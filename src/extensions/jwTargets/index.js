@@ -186,6 +186,23 @@ class Extension {
                 },
                 '---',
                 {
+                    opcode: 'clone',
+                    text: 'create clone of [TARGET]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        TARGET: Target.Argument
+                    }
+                },
+                {
+                    opcode: 'cloneR',
+                    text: 'create clone of [TARGET]',
+                    arguments: {
+                        TARGET: Target.Argument
+                    },
+                    ...Target.Block
+                },
+                '---',
+                {
                     opcode: 'all',
                     text: 'all targets',
                     ...jwArray.Block
@@ -318,6 +335,25 @@ class Extension {
         if (!variable) return
 
         variable.value = VALUE
+    }
+
+    clone(args) {
+        this.cloneR(args)
+    }
+
+    cloneR({TARGET}) {
+        TARGET = Target.Type.toTarget(TARGET)
+        if (!TARGET.target) return
+
+        let origin = TARGET.target
+        let clone = origin.makeClone()
+
+        if (clone) {
+            this.runtime.addTarget(clone)
+            clone.goBehindOther(origin) //mimick clone making from control category
+        }
+
+        return new Target.Type(clone ? clone.id : "")
     }
 
     all() {
