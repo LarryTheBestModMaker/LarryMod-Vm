@@ -349,7 +349,7 @@ class Extension {
         let clone = origin.makeClone()
 
         if (clone) {
-            this.runtime.addTarget(clone)
+            vm.runtime.addTarget(clone)
             clone.goBehindOther(origin) //mimick clone making from control category
         }
 
