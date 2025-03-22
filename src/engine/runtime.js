@@ -1671,7 +1671,7 @@ class Runtime extends EventEmitter {
             break;
         }
 
-        blockInfo.branches = blockInfo.branches || Array(blockInfo.branchCount || 0).fill({})
+        blockInfo.branches = blockInfo.branches || Array(Math.max(blockInfo.branchCount || 0, 0)).fill({})
 
         const blockText = Array.isArray(blockInfo.text) ? blockInfo.text : [blockInfo.text];
         let inTextNum = 0; // text for the next block "arm" is blockText[inTextNum]
