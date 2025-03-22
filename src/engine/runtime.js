@@ -1633,8 +1633,8 @@ class Runtime extends EventEmitter {
             ];
         }
 
-        let topAccepts = blockJSON.previousAccepts ?? 'normal'
-        let bottomAccepts = blockJSON.nextAccepts ?? 'normal'
+        let topAccepts = blockInfo.previousAccepts ?? 'normal'
+        let bottomAccepts = blockInfo.nextAccepts ?? 'normal'
 
         switch (blockInfo.blockType) {
         case BlockType.COMMAND:
