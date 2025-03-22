@@ -1662,7 +1662,7 @@ class Runtime extends EventEmitter {
             break;
         case BlockType.CONDITIONAL:
         case BlockType.LOOP:
-            blockInfo.branchCount = blockInfo.branchCount || 1;
+            blockInfo.branchCount = blockInfo.branchCount ?? 1;
             blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
             blockJSON.previousStatement = notchAccepts; // null = available connection; undefined = hat
             if (!blockInfo.isTerminal) {
