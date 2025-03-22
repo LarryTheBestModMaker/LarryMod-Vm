@@ -1679,7 +1679,7 @@ class Runtime extends EventEmitter {
         const extensionMessageContext = this.makeMessageContextForTarget();
 
         // alternate between a block "arm" with text on it and an open slot for a substack
-        while (inTextNum < blockText.length || inBranchNum < blockInfo.branchCount) {
+        while (inTextNum < blockText.length || inBranchNum < blockInfo.branches.length) {
             if (inTextNum < blockText.length) {
                 context.outLineNum = outLineNum;
                 const lineText = maybeFormatMessage(blockText[inTextNum], extensionMessageContext);
@@ -1692,12 +1692,12 @@ class Runtime extends EventEmitter {
                 ++inTextNum;
                 ++outLineNum;
             }
-            if (inBranchNum < blockInfo.branchCount) {
+            if (inBranchNum < blockInfo.branches.length) {
                 blockJSON[`message${outLineNum}`] = '%1';
                 blockJSON[`args${outLineNum}`] = [{
                     type: 'input_statement',
                     name: `SUBSTACK${inBranchNum > 0 ? inBranchNum + 1 : ''}`,
-                    check: 'normal'
+                    check: blockInfo.branches[inBranchNum].accepts ?? 'normal'
                 }];
                 ++inBranchNum;
                 ++outLineNum;
