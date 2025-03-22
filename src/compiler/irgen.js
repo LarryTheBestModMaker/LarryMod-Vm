@@ -2168,8 +2168,9 @@ class ScriptTreeGenerator {
         const substacks = [];
         const blockType = (blockInfo && blockInfo.blockType) || BlockType.COMMAND;
         if (blockType === BlockType.CONDITIONAL || blockType === BlockType.LOOP) {
-            for (let i in (blockInfo.branches || [])) {
-                const inputName = i === "0" ? 'SUBSTACK' : `SUBSTACK${Number(i) + 1}`;
+            const branchCount = blockInfo.branchCount;
+            for (let i = 0; i < branchCount; i++) {
+                const inputName = i === 0 ? 'SUBSTACK' : `SUBSTACK${i + 1}`;
                 substacks.push(this.descendSubstack(block, inputName));
             }
         }

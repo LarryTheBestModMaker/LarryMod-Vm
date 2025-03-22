@@ -1669,8 +1669,6 @@ class Runtime extends EventEmitter {
             break;
         }
 
-        blockInfo.branches = blockInfo.branches || Array(blockInfo.branchCount).fill({})
-
         const blockText = Array.isArray(blockInfo.text) ? blockInfo.text : [blockInfo.text];
         let inTextNum = 0; // text for the next block "arm" is blockText[inTextNum]
         let inBranchNum = 0; // how many branches have we placed into the JSON so far?
@@ -1679,7 +1677,7 @@ class Runtime extends EventEmitter {
         const extensionMessageContext = this.makeMessageContextForTarget();
 
         // alternate between a block "arm" with text on it and an open slot for a substack
-        while (inTextNum < blockText.length || inBranchNum < blockInfo.branches.length) {
+        while (inTextNum < blockText.length || inBranchNum < blockInfo.branchCount) {
             if (inTextNum < blockText.length) {
                 context.outLineNum = outLineNum;
                 const lineText = maybeFormatMessage(blockText[inTextNum], extensionMessageContext);
@@ -1692,12 +1690,12 @@ class Runtime extends EventEmitter {
                 ++inTextNum;
                 ++outLineNum;
             }
-            if (inBranchNum < blockInfo.branches.length) {
+            if (inBranchNum < blockInfo.branchCount) {
                 blockJSON[`message${outLineNum}`] = '%1';
                 blockJSON[`args${outLineNum}`] = [{
                     type: 'input_statement',
                     name: `SUBSTACK${inBranchNum > 0 ? inBranchNum + 1 : ''}`,
-                    check: blockInfo.branches[inBranchNum].accepts ?? 'normal'
+                    check: 'normal'
                 }];
                 ++inBranchNum;
                 ++outLineNum;
