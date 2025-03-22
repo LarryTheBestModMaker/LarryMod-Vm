@@ -94,7 +94,7 @@ class JgScriptsBlocks {
           opcode: "runBlocks",
           text: "run script [NAME] in [SPRITE]",
           blockType: BlockType.LOOP,
-          branchCount: -1,
+          branches: {},
           branchIconURI: "",
           arguments: {
             NAME: { type: ArgumentType.STRING, defaultValue: "Script1" },
@@ -105,7 +105,7 @@ class JgScriptsBlocks {
           opcode: "runBlocksData",
           text: "run script [NAME] in [SPRITE] with data [DATA]",
           blockType: BlockType.LOOP,
-          branchCount: -1,
+          branches: {},
           branchIconURI: "",
           arguments: {
             NAME: { type: ArgumentType.STRING, defaultValue: "Script1" },
