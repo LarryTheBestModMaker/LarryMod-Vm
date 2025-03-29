@@ -297,12 +297,12 @@ class Extension {
                         }
                     }
                 },
-                {
+                /*{
                     opcode: 'forEachBreak',
                     text: 'break',
                     blockType: BlockType.COMMAND,
                     isTerminal: true
-                }
+                }*/
             ],
             menus: {
                 list: {
