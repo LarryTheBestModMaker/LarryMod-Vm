@@ -379,7 +379,7 @@ class Extension {
                 break
             case "costume name":
                 let index = TARGET.target.getCostumes().indexOf(TARGET.target.getCostumes().find(v => v.name === Cast.toString(VALUE)))
-                TARGET.target.setCostume(index - 1)
+                TARGET.target.setCostume(index)
                 break
         }
     }
