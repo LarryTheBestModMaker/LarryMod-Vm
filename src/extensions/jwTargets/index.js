@@ -30,7 +30,11 @@ class jwTargetType {
     }
 
     jwArrayHandler() {
-        return 'Target'
+        try {
+            return `Target<${target.sprite.name}>`
+        } catch {
+            return `Target`
+        }
     }
 
     toString() {

@@ -44,9 +44,13 @@ class ArrayType {
     }
 
     static toArray(x) {
-        if (x instanceof ArrayType) return x
+        if (x instanceof ArrayType) return new ArrayType(x.array)
         if (x instanceof Array) return new ArrayType(x)
         if (x === "" || x === null || x === undefined) return new ArrayType()
+        try {
+            let parsed = JSON.parse(x)
+            if (parsed instanceof Array) return new ArrayType(parsed)
+        } catch {}
         return new ArrayType([x])
     }
 
@@ -250,13 +254,25 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'fill',
+                    text: 'fill [ARRAY] with [VALUE]',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo",
+                            exemptFromNormalization: true
+                        }
+                    },
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'forEachI',
                     text: 'index',
                     blockType: BlockType.REPORTER,
                     hideFromPalette: true,
-                    allowDropAnywhere: true,
                     canDragDuplicate: true
                 },
                 {
@@ -280,6 +296,12 @@ class Extension {
                             fillIn: 'forEachV'
                         }
                     }
+                },
+                {
+                    opcode: 'forEachBreak',
+                    text: 'break',
+                    blockType: BlockType.COMMAND,
+                    isTerminal: true
                 }
             ],
             menus: {
@@ -354,6 +376,13 @@ class Extension {
         return new jwArray.Type(ONE.array.concat(TWO.array))
     }
 
+    fill({ARRAY, VALUE}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        ARRAY.array.fill(VALUE)
+        return ARRAY
+    }
+
     forEachI({}, util) {
         let arr = util.thread.stackFrames[0].jwArray
         return arr ? Cast.toNumber(arr[0]) + 1 : 0
@@ -381,6 +410,10 @@ class Extension {
             util.thread.stackFrames[0].jwArray = entry[0];
         }
         util.startBranch(1, true);
+    }
+
+    forEachBreak({}, util) {
+        util.stackFrame.entry = []
     }
 }
 
