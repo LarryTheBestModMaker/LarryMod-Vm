@@ -155,6 +155,22 @@ class Extension {
                     }
                 },
                 {
+                    opcode: 'set',
+                    text: '[TARGET] [MENU] to [VALUE]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        TARGET: Target.Argument,
+                        MENU: {
+                            menu: "targetPropertySet",
+                            defaultValue: "x"
+                        },
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            exemptFromNormalization: true
+                        }
+                    }
+                },
+                {
                     opcode: 'isClone',
                     text: 'is [TARGET] a clone',
                     blockType: BlockType.BOOLEAN,
@@ -253,11 +269,28 @@ class Extension {
                 targetProperty: {
                     acceptReporters: true,
                     items: [
+                        "name",
                         "x",
                         "y",
                         "direction",
                         "size",
-                        "name"
+                        "stretch x",
+                        "stretch y",
+                        "costume #",
+                        "costume name",
+                    ]
+                },
+                targetPropertySet: {
+                    acceptReporters: true,
+                    items: [
+                        "x",
+                        "y",
+                        "direction",
+                        "size",
+                        "stretch x",
+                        "stretch y",
+                        "costume #",
+                        "costume name",
                     ]
                 }
             }
@@ -307,9 +340,48 @@ class Extension {
             case "direction": return TARGET.target.direction
             case "size": return TARGET.target.size
             case "name": return TARGET.target.sprite.name
+            case "stretch x": return TARGET.target.stretch[0]
+            case "stretch y": return TARGET.target.stretch[1]
+            case "costume #": return TARGET.target.currentCostume + 1
+            case "costume name": return TARGET.target.getCurrentCostume().name
         }
 
         return ""
+    }
+
+    set({TARGET, MENU, VALUE}) {
+        TARGET = Target.Type.toTarget(TARGET)
+        MENU = Cast.toString(MENU)
+
+        if (!TARGET.target) return
+
+        switch(MENU) {
+            case "x":
+                TARGET.target.setXY(Cast.toNumber(VALUE), TARGET.target.y)
+                break
+            case "y":
+                TARGET.target.setXY(TARGET.target.x, Cast.toNumber(VALUE))
+                break
+            case "direction":
+                TARGET.target.setDirection(Cast.toNumber(VALUE))
+                break
+            case "size":
+                TARGET.target.setSize(Cast.toNumber(VALUE))
+                break
+            case "stretch x":
+                TARGET.target.setStretch(Cast.toNumber(VALUE), TARGET.target.stretch[1])
+                break
+            case "stretch y":
+                TARGET.target.setStretch(TARGET.target.stretch[0], Cast.toNumber(VALUE))
+                break
+            case "costume #":
+                TARGET.target.setCostume(Cast.toNumber(VALUE) - 1)
+                break
+            case "costume name":
+                let index = TARGET.target.getCostumes().indexOf(TARGET.target.getCostumes().find(v => v.name === Cast.toString(VALUE)))
+                TARGET.target.setCostume(index - 1)
+                break
+        }
     }
 
     isClone({TARGET}) {
