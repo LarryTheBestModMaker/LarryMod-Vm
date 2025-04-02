@@ -77,7 +77,7 @@ class ArrayType {
     }
 
     jwArrayHandler() {
-        return `Array[${formatNumber(this.array.length)}]`
+        return `Array<${formatNumber(this.array.length)}>`
     }
 
     toString() {

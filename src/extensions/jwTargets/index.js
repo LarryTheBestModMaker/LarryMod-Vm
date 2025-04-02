@@ -31,7 +31,7 @@ class jwTargetType {
 
     jwArrayHandler() {
         try {
-            return `Target<${target.sprite.name}>`
+            return `Target<${this.target.sprite.name}>`
         } catch {
             return `Target`
         }
