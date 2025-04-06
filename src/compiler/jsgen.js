@@ -1323,15 +1323,10 @@ class JSGenerator {
             // pm: unknown behavior may appear so lets use try catch
             this.source += `try {\n`;
             // set target
-            if (isStage) this.source += `const target = ${stage}\n`;
-            else {
-                this.source += `const target = (() => {\n`;
-                this.source += `let t = runtime.getSpriteTargetByName(${sprite});\n`;
-                this.source += `if (!t) t = runtime.getTargetById(${sprite});\n`;
-                this.source += `return t;\n`;
-                this.source += `})();\n`;
-            }
-
+            const evaluatedName = this.localVariables.next()
+            this.source += `var ${evaluatedName} = ${sprite};\n`
+            const targetSprite = isStage ? stage : `runtime.getSpriteTargetByName(${evaluatedName}) || runtime.getTargetById(${evaluatedName})`;
+            this.source += `const target = (${targetSprite});\n`;
             // only run if target is found
             this.source += `if (target) {\n`;
             // set thread target (for compat blocks)
