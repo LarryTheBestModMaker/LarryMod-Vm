@@ -1323,7 +1323,6 @@ class JSGenerator {
             // pm: unknown behavior may appear so lets use try catch
             this.source += `try {\n`;
             // set target
-            const targetSprite = isStage ? stage : ``;
             if (isStage) this.source += `const target = ${stage}\n`;
             else {
                 this.source += `const target = (() => {\n`;
