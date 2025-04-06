@@ -508,6 +508,15 @@ class Scratch3PenBlocks {
             blockIconURI: blockIconURI,
             blocks: [
                 {
+                    blockType: BlockType.LABEL,
+                    text: formatMessage({
+                        id: 'pm.pen.stageSelected',
+                        default: 'Stage selected: less pen blocks',
+                        description: 'Label that appears in the Pen category when the stage is selected'
+                    }),
+                    filter: [TargetType.STAGE]
+                },
+                {
                     opcode: 'clear',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -527,93 +536,126 @@ class Scratch3PenBlocks {
                     filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'setPrintFont',
+                    opcode: 'penDown',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFont',
-                        default: 'set print font to [FONT]',
-                        description: 'set print font'
+                        id: 'pen.penDown',
+                        default: 'pen down',
+                        description: 'start leaving a trail when the sprite moves'
                     }),
-                    arguments: {
-                        FONT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'Arial',
-                            menu: 'FONT'
-                        }
-                    }
+                    filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'setPrintFontSize',
+                    opcode: 'penUp',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontSize',
-                        default: 'set print font size to [SIZE]',
-                        description: 'set print font size'
+                        id: 'pen.penUp',
+                        default: 'pen up',
+                        description: 'stop leaving a trail behind the sprite'
                     }),
-                    arguments: {
-                        SIZE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 24
-                        }
-                    }
+                    filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'setPrintFontColor',
+                    opcode: 'setPenColorToColor',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontColor',
-                        default: 'set print font color to [COLOR]',
-                        description: 'set print font color'
+                        id: 'pen.setColor',
+                        default: 'set pen color to [COLOR]',
+                        description: 'set the pen color to a particular (RGB) value'
                     }),
                     arguments: {
                         COLOR: {
                             type: ArgumentType.COLOR
                         }
-                    }
+                    },
+                    filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'setPrintFontWeight',
+                    opcode: 'changePenColorParamBy',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontWeight',
-                        default: 'set print font weight to [WEIGHT]',
-                        description: 'set print font weight'
+                        id: 'pen.changeColorParam',
+                        default: 'change pen [COLOR_PARAM] by [VALUE]',
+                        description: 'change the state of a pen color parameter'
                     }),
                     arguments: {
-                        WEIGHT: {
+                        COLOR_PARAM: {
+                            type: ArgumentType.STRING,
+                            menu: 'colorParam',
+                            defaultValue: ColorParam.COLOR
+                        },
+                        VALUE: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 700
+                            defaultValue: 10
                         }
-                    }
+                    },
+                    filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'setPrintFontItalics',
+                    opcode: 'setPenColorParamTo',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontItalics',
-                        default: 'turn print font italics [OPTION]',
-                        description: 'toggle print font italics'
+                        id: 'pen.setColorParam',
+                        default: 'set pen [COLOR_PARAM] to [VALUE]',
+                        description: 'set the state for a pen color parameter e.g. saturation'
                     }),
                     arguments: {
-                        OPTION: {
+                        COLOR_PARAM: {
                             type: ArgumentType.STRING,
-                            menu: 'italicsToggleParam',
-                            defaultValue: ItalicsParam.ON
+                            menu: 'colorParam',
+                            defaultValue: ColorParam.COLOR
+                        },
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
                         }
-                    }
+                    },
+                    filter: [TargetType.SPRITE]
                 },
                 {
-                    opcode: 'printText',
+                    opcode: 'changePenSizeBy',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.printText',
-                        default: 'print [TEXT] on x:[X] y:[Y]',
-                        description: 'print text'
+                        id: 'pen.changeSize',
+                        default: 'change pen size by [SIZE]',
+                        description: 'change the diameter of the trail left by a sprite'
                     }),
                     arguments: {
-                        TEXT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'Foobars are yummy'
+                        SIZE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    },
+                    filter: [TargetType.SPRITE]
+                },
+                {
+                    opcode: 'setPenSizeTo',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setSize',
+                        default: 'set pen size to [SIZE]',
+                        description: 'set the diameter of a trail left by a sprite'
+                    }),
+                    arguments: {
+                        SIZE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    },
+                    filter: [TargetType.SPRITE]
+                },
+                "---",
+                {
+                    opcode: 'drawRect',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.drawRect',
+                        default: 'use [COLOR] to draw a square on x:[X] y:[Y] width:[WIDTH] height:[HEIGHT]',
+                        description: 'draw a square'
+                    }),
+                    arguments: {
+                        COLOR: {
+                            type: ArgumentType.COLOR
                         },
                         X: {
                             type: ArgumentType.NUMBER,
@@ -622,9 +664,33 @@ class Scratch3PenBlocks {
                         Y: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
+                        },
+                        WIDTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 10
+                        },
+                        HEIGHT: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 10
                         }
                     }
                 },
+                {
+                    opcode: 'drawArrayComplexShape',
+                    blockType: BlockType.COMMAND,
+                    text: 'draw polygon from points [SHAPE] with fill [COLOR]',
+                    arguments: {
+                        SHAPE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '[-20, 20, 20, 20, 0, -20]'
+                        },
+                        COLOR: {
+                            type: ArgumentType.COLOR
+                        }
+                    },
+                    hideFromPalette: false
+                },
+                "---",
                 {
                     opcode: 'preloadUriImage',
                     blockType: BlockType.COMMAND,
@@ -756,17 +822,19 @@ class Scratch3PenBlocks {
                         }
                     }
                 },
+                "---",
                 {
-                    opcode: 'drawRect',
+                    opcode: 'printText',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.drawRect',
-                        default: 'use [COLOR] to draw a square on x:[X] y:[Y] width:[WIDTH] height:[HEIGHT]',
-                        description: 'draw a square'
+                        id: 'pen.printText',
+                        default: 'print [TEXT] on x:[X] y:[Y]',
+                        description: 'print text'
                     }),
                     arguments: {
-                        COLOR: {
-                            type: ArgumentType.COLOR
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Foobars are yummy'
                         },
                         X: {
                             type: ArgumentType.NUMBER,
@@ -775,17 +843,86 @@ class Scratch3PenBlocks {
                         Y: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
-                        },
-                        WIDTH: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 10
-                        },
-                        HEIGHT: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 10
                         }
                     }
                 },
+                {
+                    opcode: 'setPrintFont',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFont',
+                        default: 'set print font to [FONT]',
+                        description: 'set print font'
+                    }),
+                    arguments: {
+                        FONT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Arial',
+                            menu: 'FONT'
+                        }
+                    }
+                },
+                {
+                    opcode: 'setPrintFontSize',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontSize',
+                        default: 'set print font size to [SIZE]',
+                        description: 'set print font size'
+                    }),
+                    arguments: {
+                        SIZE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 24
+                        }
+                    }
+                },
+                {
+                    opcode: 'setPrintFontColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontColor',
+                        default: 'set print font color to [COLOR]',
+                        description: 'set print font color'
+                    }),
+                    arguments: {
+                        COLOR: {
+                            type: ArgumentType.COLOR
+                        }
+                    }
+                },
+                {
+                    opcode: 'setPrintFontWeight',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontWeight',
+                        default: 'set print font weight to [WEIGHT]',
+                        description: 'set print font weight'
+                    }),
+                    arguments: {
+                        WEIGHT: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 700
+                        }
+                    }
+                },
+                {
+                    opcode: 'setPrintFontItalics',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontItalics',
+                        default: 'turn print font italics [OPTION]',
+                        description: 'toggle print font italics'
+                    }),
+                    arguments: {
+                        OPTION: {
+                            type: ArgumentType.STRING,
+                            menu: 'italicsToggleParam',
+                            defaultValue: ItalicsParam.ON
+                        }
+                    }
+                },
+                /* Legacy blocks, should not be shown in flyout */
                 {
                     opcode: 'drawComplexShape',
                     blockType: BlockType.COMMAND,
@@ -799,7 +936,7 @@ class Scratch3PenBlocks {
                             type: ArgumentType.COLOR
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
                 {
                     opcode: 'draw4SidedComplexShape',
@@ -814,133 +951,8 @@ class Scratch3PenBlocks {
                             type: ArgumentType.COLOR
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
-                {
-                    opcode: 'drawArrayComplexShape',
-                    blockType: BlockType.COMMAND,
-                    text: 'draw polygon from points [SHAPE] with fill [COLOR]',
-                    arguments: {
-                        SHAPE: {
-                            type: ArgumentType.STRING,
-                            defaultValue: '[-20, 20, 20, 20, 0, -20]'
-                        },
-                        COLOR: {
-                            type: ArgumentType.COLOR
-                        }
-                    },
-                    hideFromPalette: false
-                },
-                {
-                    opcode: 'penDown',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.penDown',
-                        default: 'pen down',
-                        description: 'start leaving a trail when the sprite moves'
-                    }),
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'penUp',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.penUp',
-                        default: 'pen up',
-                        description: 'stop leaving a trail behind the sprite'
-                    }),
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'setPenColorToColor',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.setColor',
-                        default: 'set pen color to [COLOR]',
-                        description: 'set the pen color to a particular (RGB) value'
-                    }),
-                    arguments: {
-                        COLOR: {
-                            type: ArgumentType.COLOR
-                        }
-                    },
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'changePenColorParamBy',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.changeColorParam',
-                        default: 'change pen [COLOR_PARAM] by [VALUE]',
-                        description: 'change the state of a pen color parameter'
-                    }),
-                    arguments: {
-                        COLOR_PARAM: {
-                            type: ArgumentType.STRING,
-                            menu: 'colorParam',
-                            defaultValue: ColorParam.COLOR
-                        },
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 10
-                        }
-                    },
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'setPenColorParamTo',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.setColorParam',
-                        default: 'set pen [COLOR_PARAM] to [VALUE]',
-                        description: 'set the state for a pen color parameter e.g. saturation'
-                    }),
-                    arguments: {
-                        COLOR_PARAM: {
-                            type: ArgumentType.STRING,
-                            menu: 'colorParam',
-                            defaultValue: ColorParam.COLOR
-                        },
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 50
-                        }
-                    },
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'changePenSizeBy',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.changeSize',
-                        default: 'change pen size by [SIZE]',
-                        description: 'change the diameter of the trail left by a sprite'
-                    }),
-                    arguments: {
-                        SIZE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
-                        }
-                    },
-                    filter: [TargetType.SPRITE]
-                },
-                {
-                    opcode: 'setPenSizeTo',
-                    blockType: BlockType.COMMAND,
-                    text: formatMessage({
-                        id: 'pen.setSize',
-                        default: 'set pen size to [SIZE]',
-                        description: 'set the diameter of a trail left by a sprite'
-                    }),
-                    arguments: {
-                        SIZE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
-                        }
-                    },
-                    filter: [TargetType.SPRITE]
-                },
-                /* Legacy blocks, should not be shown in flyout */
                 {
                     opcode: 'setPenShadeToNumber',
                     blockType: BlockType.COMMAND,
@@ -955,7 +967,7 @@ class Scratch3PenBlocks {
                             defaultValue: 1
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
                 {
                     opcode: 'changePenShadeBy',
@@ -971,7 +983,7 @@ class Scratch3PenBlocks {
                             defaultValue: 1
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
                 {
                     opcode: 'setPenHueToNumber',
@@ -987,7 +999,7 @@ class Scratch3PenBlocks {
                             defaultValue: 1
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
                 {
                     opcode: 'changePenHueBy',
@@ -1003,7 +1015,7 @@ class Scratch3PenBlocks {
                             defaultValue: 1
                         }
                     },
-                    hideFromPalette: false
+                    hideFromPalette: true
                 },
                 {
                     opcode: 'goPenLayer',
