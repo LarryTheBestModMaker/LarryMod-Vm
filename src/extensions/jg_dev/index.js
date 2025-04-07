@@ -315,6 +315,16 @@ class JgDevBlocks {
                         }
                     }
                 },
+                {
+                    opcode: 'costumeTypeTest',
+                    blockType: BlockType.REPORTER,
+                    text: 'test custom type updating/rendering (new instance)'
+                },
+                {
+                    opcode: 'costumeTypeTestSame',
+                    blockType: BlockType.REPORTER,
+                    text: 'test custom type updating/rendering (same instance)'
+                }
             ],
             menus: {
                 variableInternal: {
@@ -341,6 +351,46 @@ class JgDevBlocks {
                 }
             }
         };
+    }
+    costumeTypeTest() {
+        return {
+            _monitorUpToDate: false,
+            costumId: 'thing',
+            num: Math.sin(Date.now() / 1000),
+            toReporterContent() {
+                const el = document.createElement('span');
+                el.style.color = '#F00';
+                el.textContent = this.num;
+                return el;
+            },
+            toMonitorContent() {
+                this._monitorUpToDate = true;
+                const el = document.createElement('span');
+                el.style.color = '#0F0';
+                el.textContent = this.num;
+                return el;
+            },
+            toListItem() {
+                this._monitorUpToDate = true;
+                const el = document.createElement('span');
+                el.style.color = '#00F';
+                el.textContent = this.num;
+                return el;
+            },
+            toListEditor() {
+                return `[num ${this.num}]`;
+            },
+            fromListEditor(thing) {
+                this.num = Number(thing.slice(5, -1));
+                return this;
+            }
+        };
+    }
+    costumeTypeTestSame() {
+        if (!this.custom) this.custom = this.costumeTypeTest();
+        this.custom.num = Math.sin(Date.now() / 1000);
+        this.custom._monitorUpToDate = false;
+        return this.custom;
     }
     /**
      * This function is used for any compiled blocks in the extension if they exist.
