@@ -52,7 +52,7 @@ const jwNum = {
         disableMonitor: true
     },
     Argument: {
-        argumentType: ArgumentType.NUMBER,
+        type: ArgumentType.NUMBER,
         check: ["Number", "jwNum"]
     }
 }
@@ -69,8 +69,8 @@ class Extension {
 
     getInfo() {
         return {
-            id: "jwTargets",
-            name: "Targets",
+            id: "jwNum",
+            name: "jwNum",
             color1: "#c9eb34",
             blocks: [
                 {
