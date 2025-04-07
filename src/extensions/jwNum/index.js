@@ -52,8 +52,8 @@ const jwNum = {
         disableMonitor: true
     },
     Argument: {
-        type: ArgumentType.NUMBER,
-        check: ["Number", "jwNum"]
+        type: ArgumentType.STRING,
+        check: ["Number", "String", "jwNum"]
     }
 }
 
@@ -81,6 +81,33 @@ class Extension {
                         B: jwNum.Argument
                     },
                     ...jwNum.Block
+                },
+                {
+                    opcode: 'sub',
+                    text: '[A] - [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'mul',
+                    text: '[A] * [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'div',
+                    text: '[A] / [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
                 }
             ]
         }
@@ -91,6 +118,27 @@ class Extension {
         B = jwNum.Type.toNum(B)
 
         return new jwNum.Type(A.number.add(B.number))
+    }
+
+    sub({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.sub(B.number))
+    }
+
+    mul({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.mul(B.number))
+    }
+
+    div({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.div(B.number))
     }
 }
 
