@@ -79,7 +79,7 @@ class Extension {
                     arguments: {
                         A: jwNum.Argument,
                         B: jwNum.Argument
-                    }
+                    },
                     ...jwNum.Block
                 }
             ]
