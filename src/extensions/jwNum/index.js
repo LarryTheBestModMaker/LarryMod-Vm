@@ -62,7 +62,7 @@ class Extension {
         vm.jwNum = jwNum
         vm.runtime.registerSerializer(
             "jwNum",
-            v => v.toJSON()
+            v => v.toJSON(),
             v => new jwNum.Type(v)
         )
     }
