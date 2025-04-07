@@ -7,22 +7,24 @@ class Timer {
         this.stopped = true;
     }
 
-    start () {
+    start (vmUnpause = false) {
         const paused = (this.pauseTime !== null);
         // check if we are stopped or paused before continuing
-        if (!(this.stopped || paused)) return;
+        if (!(this.stopped || paused) || (paused && (vmUnpause && !this.vmPaused))) return;
         if (this.stopped) {
             this.startTime = Date.now();
         } else {
             // we are unpausing
             this.startTime += Date.now() - this.pauseTime;
         }
+        this.vmPaused = false;
         this.pauseTime = null;
         this.stopped = false;
     }
-    pause () {
+    pause (vmPause = false) {
         const paused = (this.pauseTime !== null);
         if (paused) return;
+        this.vmPaused = vmPause;
         this.pauseTime = Date.now();
     }
     stop () {
