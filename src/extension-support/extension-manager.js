@@ -157,6 +157,8 @@ const defaultBuiltinExtensions = {
     jwPsychic: () => require("../extensions/jwPsychic"),
     // test ext for lambda functions or something
     jwLambda: () => require("../extensions/jwLambda"),
+    // omega num port for penguinmod
+    jwNum: () => require("../extensions/jwNum"),
 
     // jw: They'll think its made by jwklong >:)
     // (but it's not (yet (maybe (probably not (but its made by ianyourgod)))))
