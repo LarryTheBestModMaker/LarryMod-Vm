@@ -156,7 +156,7 @@ class Extension {
                 },
                 {
                     opcode: 'set',
-                    text: '[TARGET] [MENU] to [VALUE]',
+                    text: 'set [TARGET] [MENU] to [VALUE]',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         TARGET: Target.Argument,
