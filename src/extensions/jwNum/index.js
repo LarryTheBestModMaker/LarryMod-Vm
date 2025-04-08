@@ -72,6 +72,7 @@ class Extension {
             id: "jwNum",
             name: "Infinity",
             color1: "#3bd471",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+CiAgPGVsbGlwc2Ugc3R5bGU9InN0cm9rZS13aWR0aDogMnB4OyBwYWludC1vcmRlcjogc3Ryb2tlOyBmaWxsOiByZ2IoNTksIDIxMiwgMTEzKTsgc3Ryb2tlOiByZ2IoNTMsIDE5MCwgMTAyKTsiIGN4PSIxMCIgY3k9IjEwIiByeD0iOSIgcnk9IjkiPjwvZWxsaXBzZT4KICA8cGF0aCBkPSJNIDEzLjU3OCAxMy42MTMgUSAxMi42NDggMTMuNjEzIDExLjk2NCAxMy4zMzYgUSAxMS4yNzkgMTMuMDU4IDEwLjc5IDEyLjYwMiBRIDEwLjMwMSAxMi4xNDYgOS45MjYgMTEuNjE2IFEgOS41NTEgMTEuMDg2IDkuMjI1IDEwLjUzMiBRIDguODk5IDkuOTc4IDguNTMzIDkuNTI5IFEgOC4xNjYgOS4wODEgNy43MSA4LjgwNCBRIDcuMjUzIDguNTI3IDYuNjE3IDguNTI3IFEgNi4xNDUgOC41MjcgNS43NyA4Ljc0NyBRIDUuMzk1IDguOTY3IDUuMTgzIDkuMzI2IFEgNC45NzEgOS42ODQgNC45NzEgMTAuMTU3IFEgNC45NzEgMTAuNjEzIDUuMTgzIDEwLjk4IFEgNS4zOTUgMTEuMzQ3IDUuNzcgMTEuNTY3IFEgNi4xNDUgMTEuNzg3IDYuNjE3IDExLjc4NyBRIDcuMjUzIDExLjc4NyA3LjcxIDExLjUxIFEgOC4xNjYgMTEuMjMzIDguNTMzIDEwLjc4NSBRIDguODk5IDEwLjMzNiA5LjIyNSA5Ljc5OCBRIDkuNTUxIDkuMjYxIDkuOTI2IDguNzE0IFEgMTAuMzAxIDguMTY4IDEwLjc5IDcuNzEyIFEgMTEuMjc5IDcuMjU2IDExLjk2NCA2Ljk3OSBRIDEyLjY0OCA2LjcwMSAxMy41NzggNi43MDEgUSAxNC41NzIgNi43MDEgMTUuMzU0IDcuMTU4IFEgMTYuMTM3IDcuNjE0IDE2LjU5MyA4LjM4IFEgMTcuMDQ5IDkuMTQ2IDE3LjA0OSAxMC4xNDEgUSAxNy4wNDkgMTEuMTM1IDE2LjU5MyAxMS45MTcgUSAxNi4xMzcgMTIuNyAxNS4zNTQgMTMuMTU2IFEgMTQuNTcyIDEzLjYxMyAxMy41NzggMTMuNjEzIFogTSA2LjQ1NCAxMy42MTMgUSA1LjQ2IDEzLjYxMyA0LjY2MSAxMy4xNTYgUSAzLjg2MyAxMi43IDMuNDA2IDExLjkxNyBRIDIuOTUgMTEuMTM1IDIuOTUgMTAuMTU3IFEgMi45NSA5LjE2MyAzLjQwNiA4LjM4OCBRIDMuODYzIDcuNjE0IDQuNjYxIDcuMTU4IFEgNS40NiA2LjcwMSA2LjQ1NCA2LjcwMSBRIDcuMzY3IDYuNzAxIDguMDUyIDYuOTc5IFEgOC43MzYgNy4yNTYgOS4yMjUgNy43MTIgUSA5LjcxNCA4LjE2OCAxMC4wODkgOC43MDYgUSAxMC40NjQgOS4yNDQgMTAuNzk4IDkuNzkgUSAxMS4xMzMgMTAuMzM2IDExLjQ4MyAxMC43ODUgUSAxMS44MzMgMTEuMjMzIDEyLjI5OCAxMS41MSBRIDEyLjc2MyAxMS43ODcgMTMuMzgyIDExLjc4NyBRIDEzLjg1NSAxMS43ODcgMTQuMjMgMTEuNTc1IFEgMTQuNjA0IDExLjM2MyAxNC44MDggMTAuOTg4IFEgMTUuMDEyIDEwLjYxMyAxNS4wMTIgMTAuMTQxIFEgMTUuMDEyIDkuNjg0IDE0LjgwOCA5LjMxOCBRIDE0LjYwNCA4Ljk1MSAxNC4yMyA4LjczOSBRIDEzLjg1NSA4LjUyNyAxMy4zODIgOC41MjcgUSAxMi43NjMgOC41MjcgMTIuMjk4IDguODA0IFEgMTEuODMzIDkuMDgxIDExLjQ4MyA5LjUyOSBRIDExLjEzMyA5Ljk3OCAxMC43OTggMTAuNTI0IFEgMTAuNDY0IDExLjA3IDEwLjA4OSAxMS42MDggUSA5LjcxNCAxMi4xNDYgOS4yMjUgMTIuNjAyIFEgOC43MzYgMTMuMDU4IDguMDUyIDEzLjMzNiBRIDcuMzY3IDEzLjYxMyA2LjQ1NCAxMy42MTMgWiIgc3R5bGU9ImZpbGw6IHJnYigyNTUsIDI1NSwgMjU1KTsgdGV4dC13cmFwLW1vZGU6IG5vd3JhcDsiPjwvcGF0aD4KPC9zdmc+",
             blocks: [
                 {
                     opcode: 'add',
@@ -117,6 +118,60 @@ class Extension {
                         B: jwNum.Argument
                     },
                     ...jwNum.Block
+                },
+                {
+                    opcode: 'fact',
+                    text: '[A]!',
+                    arguments: {
+                        A: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                "---",
+                {
+                    opcode: 'eq',
+                    text: '[A] = [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    }
+                },
+                {
+                    opcode: 'gt',
+                    text: '[A] > [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    }
+                },
+                {
+                    opcode: 'gte',
+                    text: '[A] >= [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    }
+                },
+                {
+                    opcode: 'lt',
+                    text: '[A] < [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    }
+                },
+                {
+                    opcode: 'lte',
+                    text: '[A] <= [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    }
                 },
                 "---",
                 {
@@ -212,6 +267,47 @@ class Extension {
         B = jwNum.Type.toNum(B)
 
         return new jwNum.Type(A.number.pow(B.number))
+    }
+
+    fact({A}) {
+        A = jwNum.Type.toNum(A)
+
+        return new jwNum.Type(A.number.fact())
+    }
+
+    eq({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.eq(B.number))
+    }
+
+    gt({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.gt(B.number))
+    }
+
+    gte({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.gte(B.number))
+    }
+
+    lt({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.lt(B.number))
+    }
+
+    lte({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.lte(B.number))
     }
 
     root({A, B}) {
