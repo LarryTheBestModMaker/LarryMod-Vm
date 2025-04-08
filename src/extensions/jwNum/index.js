@@ -53,7 +53,8 @@ const jwNum = {
     },
     Argument: {
         type: ArgumentType.STRING,
-        check: ["Number", "String", "jwNum"]
+        defaultValue: "1",
+        exemptFromNormalization: true
     }
 }
 
@@ -211,6 +212,19 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: 'round',
+                    text: '[A] [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: {
+                            type: ArgumentType.STRING,
+                            menu: 'round'
+                        }
+                    },
+                    ...jwNum.Block
+                },
+                "---",
+                {
                     opcode: 'hyper',
                     text: '[A] hyper [B] [C]',
                     arguments: {
@@ -230,7 +244,17 @@ class Extension {
                     },
                     ...jwNum.Block
                 }
-            ]
+            ],
+            menus: {
+                round: {
+                    acceptReporters: true,
+                    items: [
+                        'ceiling',
+                        'round',
+                        'floor'
+                    ]
+                },
+            }
         }
     }
 
@@ -335,6 +359,22 @@ class Extension {
         B = jwNum.Type.toNum(B)
 
         return new jwNum.Type(B.number.slog(A.number))
+    }
+
+    round({A, B}) {
+        A = Cast.toString(A).toLowerCase()
+        B = jwNum.Type.toNum(B)
+
+        switch (A) {
+            case "ceiling":
+            case "ceil":
+                return new jwNum.Type(B.number.ceil())
+            case "round":
+                return new jwNum.Type(B.number.round())
+            case "floor":
+                return new jwNum.Type(B.number.floor())
+            default: return new jwNum.Type(B)
+        }
     }
 
     hyper({A, B, C}) {
