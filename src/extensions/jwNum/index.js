@@ -215,11 +215,11 @@ class Extension {
                     opcode: 'round',
                     text: '[A] [B]',
                     arguments: {
-                        A: jwNum.Argument,
-                        B: {
+                        A: {
                             type: ArgumentType.STRING,
                             menu: 'round'
-                        }
+                        },
+                        B: jwNum.Argument
                     },
                     ...jwNum.Block
                 },
@@ -249,7 +249,7 @@ class Extension {
                 round: {
                     acceptReporters: true,
                     items: [
-                        'ceiling',
+                        'ceil',
                         'round',
                         'floor'
                     ]
