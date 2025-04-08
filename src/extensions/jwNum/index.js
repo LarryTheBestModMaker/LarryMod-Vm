@@ -121,7 +121,7 @@ class Extension {
                 "---",
                 {
                     opcode: 'root'
-                    text 'root [A] [B]',
+                    text: 'root [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
                         B: jwNum.Argument
@@ -130,7 +130,7 @@ class Extension {
                 },
                 {
                     opcode: 'ssqrt'
-                    text 'square super-root [A]',
+                    text: 'square super-root [A]',
                     arguments: {
                         A: jwNum.Argument
                     },
@@ -138,7 +138,7 @@ class Extension {
                 },
                 {
                     opcode: 'log'
-                    text 'log [A] [B]',
+                    text: 'log [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
                         B: jwNum.Argument
@@ -147,7 +147,7 @@ class Extension {
                 },
                 {
                     opcode: 'slog'
-                    text 'super log [A] [B]',
+                    text: 'super log [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
                         B: jwNum.Argument
