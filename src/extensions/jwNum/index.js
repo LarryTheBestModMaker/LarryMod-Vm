@@ -120,7 +120,7 @@ class Extension {
                 },
                 "---",
                 {
-                    opcode: 'root'
+                    opcode: 'root',
                     text: 'root [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
@@ -129,7 +129,7 @@ class Extension {
                     ...jwNum.Block
                 },
                 {
-                    opcode: 'ssqrt'
+                    opcode: 'ssqrt',
                     text: 'square super-root [A]',
                     arguments: {
                         A: jwNum.Argument
@@ -137,7 +137,7 @@ class Extension {
                     ...jwNum.Block
                 },
                 {
-                    opcode: 'log'
+                    opcode: 'log',
                     text: 'log [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
@@ -146,7 +146,7 @@ class Extension {
                     ...jwNum.Block
                 },
                 {
-                    opcode: 'slog'
+                    opcode: 'slog',
                     text: 'super log [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
