@@ -1687,7 +1687,7 @@
     if (typeof input=="string"&&(input[0]=="["||input[0]=="{")){
       try {
         JSON.parse(input);
-      }finally{
+      } catch {} finally {
         isJSON=true;
       }
     }
