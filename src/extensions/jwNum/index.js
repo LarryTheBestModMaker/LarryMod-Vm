@@ -53,9 +53,10 @@ const jwNum = {
     },
     Argument: {
         type: ArgumentType.STRING,
-        defaultValue: "1",
+        defaultValue: "10",
         exemptFromNormalization: true
-    }
+    },
+    OmegaNum
 }
 
 class Extension {
