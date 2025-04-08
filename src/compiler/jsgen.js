@@ -1749,7 +1749,7 @@ class JSGenerator {
                 const costume = value.type === TYPE_NUMBER 
                     ? value.asNumber() 
                     : value.asString();
-                this.source += `runtime.ext_scratch3_looks._setCostume(${objectReference}, ${costume})`;
+                this.source += `runtime.ext_scratch3_looks._setCostume(${objectReference}, ${costume});`;
                 break;
             case 'backdrop':
                 const backdrop = value.type === TYPE_NUMBER 
