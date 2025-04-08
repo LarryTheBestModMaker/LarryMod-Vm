@@ -236,7 +236,7 @@ class Extension {
                 },
                 {
                     opcode: 'isInteger',
-                    text: 'is [A] a integer?',
+                    text: 'is [A] an integer?',
                     blockType: BlockType.BOOLEAN,
                     arguments: {
                         A: jwNum.Argument
@@ -256,6 +256,16 @@ class Extension {
                 {
                     opcode: 'arrow',
                     text: '[A] arrow [B] [C]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument,
+                        C: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'reverseArrow',
+                    text: '[A] reverse arrow [B] [C]',
                     arguments: {
                         A: jwNum.Argument,
                         B: jwNum.Argument,
@@ -423,6 +433,14 @@ class Extension {
         C = jwNum.Type.toNum(C)
 
         return new jwNum.Type(A.number.arrow(B.number)(C.number))
+    }
+
+    reverseArrow({A, B, C}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+        C = jwNum.Type.toNum(C)
+
+        return new jwNum.Type(A.number.arrow_height_inverse(B.number)(C.number))
     }
 }
 
