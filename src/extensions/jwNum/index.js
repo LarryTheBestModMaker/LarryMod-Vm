@@ -272,6 +272,44 @@ class Extension {
                         C: jwNum.Argument
                     },
                     ...jwNum.Block
+                },
+                {
+                    opcode: 'expansion',
+                    text: '[A] expansion [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                "---",
+                {
+                    opcode: 'toString',
+                    text: '[A] to string',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        A: jwNum.Argument
+                    }
+                },
+                {
+                    opcode: 'toStringD',
+                    text: '[A] to string with [B] decimal places',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20,
+                        }
+                    }
+                },
+                {
+                    opcode: 'toHyperE',
+                    text: '[A] to hyper E',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        A: jwNum.Argument
+                    }
                 }
             ],
             menus: {
@@ -441,6 +479,32 @@ class Extension {
         C = jwNum.Type.toNum(C)
 
         return new jwNum.Type(A.number.arrow_height_inverse(B.number)(C.number))
+    }
+
+    expansion({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.expansion(B.number))
+    }
+
+    toString({A}) {
+        A = jwNum.Type.toNum(A)
+
+        return A.number.toString()
+    }
+
+    toStringD({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = Cast.toNumber(B)
+
+        return A.number.toStringWithDecimalPlaces(B)
+    }
+
+    toHyperE({A}) {
+        A = jwNum.Type.toNum(A)
+
+        return A.number.toHyperE()
     }
 }
 
