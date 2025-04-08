@@ -34,7 +34,7 @@ class NumType {
     }
 
     jwArrayHandler() {
-        return `jwNum`
+        return this.number.toStringWithDecimalPlaces(3)
     }
 
     toString() {
@@ -120,6 +120,52 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: 'root'
+                    text 'root [A] [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'ssqrt'
+                    text 'square super-root [A]',
+                    arguments: {
+                        A: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'log'
+                    text 'log [A] [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
+                    opcode: 'log'
+                    text 'super log [A] [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                "---",
+                {
+                    opcode: 'hyper',
+                    text: '[A] hyper [B] [C]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument,
+                        C: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
                     opcode: 'arrow',
                     text: '[A] arrow [B] [C]',
                     arguments: {
@@ -166,6 +212,41 @@ class Extension {
         B = jwNum.Type.toNum(B)
 
         return new jwNum.Type(A.number.pow(B.number))
+    }
+
+    root({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(B.number.root(A.number))
+    }
+
+    ssqrt({A}) {
+        A = jwNum.Type.toNum(A)
+
+        return new jwNum.Type(A.number.ssqrt())
+    }
+
+    log({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(B.number.logBase(A.number))
+    }
+
+    slog({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(B.number.slog(A.number))
+    }
+
+    hyper({A, B, C}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+        C = jwNum.Type.toNum(C)
+
+        return new jwNum.Type(A.number.hyper(B.number)(C.number))
     }
 
     arrow({A, B, C}) {
