@@ -384,7 +384,7 @@ class Extension {
         B = jwNum.Type.toNum(B)
         C = jwNum.Type.toNum(C)
 
-        return new jwNum.Type(A.number.hyper(B.number)(C.number))
+        return new jwNum.Type(OmegaNum.hyper(B.number)(A.number, C.number))
     }
 
     arrow({A, B, C}) {
