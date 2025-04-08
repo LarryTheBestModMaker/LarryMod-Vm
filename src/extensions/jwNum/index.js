@@ -3,7 +3,7 @@ const BlockShape = require('../../extension-support/block-shape')
 const ArgumentType = require('../../extension-support/argument-type')
 const Cast = require('../../util/cast')
 
-const OmegaNum = require('./omeganum.js')
+const ExpantaNum = require('./expantanum.js')
 
 function span(text) {
     let el = document.createElement('span')
@@ -18,10 +18,10 @@ function span(text) {
 class NumType {
     customId = "jwNum"
 
-    number = OmegaNum(0)
+    number = ExpantaNum(0)
 
     constructor(x) {
-        this.number = OmegaNum(x)
+        this.number = ExpantaNum(x)
     }
 
     static toNum(x) {
@@ -56,7 +56,7 @@ const jwNum = {
         defaultValue: "10",
         exemptFromNormalization: true
     },
-    OmegaNum
+    ExpantaNum
 }
 
 class Extension {
@@ -65,7 +65,7 @@ class Extension {
         vm.runtime.registerSerializer(
             "jwNum",
             v => v.toJSON(),
-            v => new jwNum.Type(OmegaNum.fromJSON(v))
+            v => new jwNum.Type(ExpantaNum.fromJSON(v))
         )
     }
 
@@ -413,7 +413,7 @@ class Extension {
         B = jwNum.Type.toNum(B)
         C = jwNum.Type.toNum(C)
 
-        return new jwNum.Type(OmegaNum.hyper(B.number)(A.number, C.number))
+        return new jwNum.Type(ExpantaNum.hyper(B.number)(A.number, C.number))
     }
 
     arrow({A, B, C}) {
