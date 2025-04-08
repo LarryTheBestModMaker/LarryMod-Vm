@@ -118,7 +118,7 @@ class Extension {
                     },
                     ...jwNum.Block
                 },
-                "---"
+                "---",
                 {
                     opcode: 'arrow',
                     text: '[A] arrow [B] [C]',
