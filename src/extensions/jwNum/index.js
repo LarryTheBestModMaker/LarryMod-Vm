@@ -65,7 +65,7 @@ class Extension {
         vm.runtime.registerSerializer(
             "jwNum",
             v => v.toJSON(),
-            v => new jwNum.Type(v)
+            v => new jwNum.Type(OmegaNum.fromJSON(v))
         )
     }
 
@@ -213,6 +213,15 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: 'mod',
+                    text: '[A] % [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                {
                     opcode: 'round',
                     text: '[A] [B]',
                     arguments: {
@@ -224,6 +233,13 @@ class Extension {
                         B: jwNum.Argument
                     },
                     ...jwNum.Block
+                },
+                {
+                    opcode: 'isInteger',
+                    text: 'is [A] a integer?',
+                    arguments: {
+                        A: jwNum.Argument
+                    }
                 },
                 "---",
                 {
@@ -363,6 +379,13 @@ class Extension {
         return new jwNum.Type(B.number.slog(A.number))
     }
 
+    mod({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.mod(B.number))
+    }
+
     round({A, B}) {
         A = Cast.toString(A).toLowerCase()
         B = jwNum.Type.toNum(B)
@@ -377,6 +400,12 @@ class Extension {
                 return new jwNum.Type(B.number.floor())
             default: return new jwNum.Type(B)
         }
+    }
+
+    isInteger({A}) {
+        A = jwNum.Type.toNum(A)
+
+        return A.number.isint()
     }
 
     hyper({A, B, C}) {
