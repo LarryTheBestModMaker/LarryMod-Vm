@@ -217,7 +217,8 @@ class Extension {
                     arguments: {
                         A: {
                             type: ArgumentType.STRING,
-                            menu: 'round'
+                            menu: 'round',
+                            defaultValue: 'round'
                         },
                         B: jwNum.Argument
                     },
