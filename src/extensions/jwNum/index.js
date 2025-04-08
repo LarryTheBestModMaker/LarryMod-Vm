@@ -70,8 +70,8 @@ class Extension {
     getInfo() {
         return {
             id: "jwNum",
-            name: "jwNum",
-            color1: "#c9eb34",
+            name: "Infinity",
+            color1: "#3bd471",
             blocks: [
                 {
                     opcode: 'add',
@@ -108,6 +108,26 @@ class Extension {
                         B: jwNum.Argument
                     },
                     ...jwNum.Block
+                },
+                {
+                    opcode: 'pow',
+                    text: '[A] ^ [B]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument
+                    },
+                    ...jwNum.Block
+                },
+                "---"
+                {
+                    opcode: 'arrow',
+                    text: '[A] arrow [B] [C]',
+                    arguments: {
+                        A: jwNum.Argument,
+                        B: jwNum.Argument,
+                        C: jwNum.Argument
+                    },
+                    ...jwNum.Block
                 }
             ]
         }
@@ -139,6 +159,21 @@ class Extension {
         B = jwNum.Type.toNum(B)
 
         return new jwNum.Type(A.number.div(B.number))
+    }
+
+    pow({A, B}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+
+        return new jwNum.Type(A.number.pow(B.number))
+    }
+
+    arrow({A, B, C}) {
+        A = jwNum.Type.toNum(A)
+        B = jwNum.Type.toNum(B)
+        C = jwNum.Type.toNum(C)
+
+        return new jwNum.Type(A.number.arrow(B.number)(C.number))
     }
 }
 
