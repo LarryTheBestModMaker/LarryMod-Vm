@@ -146,7 +146,7 @@ class Extension {
                     ...jwNum.Block
                 },
                 {
-                    opcode: 'log'
+                    opcode: 'slog'
                     text 'super log [A] [B]',
                     arguments: {
                         A: jwNum.Argument,
