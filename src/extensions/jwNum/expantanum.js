@@ -1116,7 +1116,6 @@
       ++r;
       x=ExpantaNum.logBase(x,base);
     }
-    }
     return ExpantaNum.NaN.clone(); //Failed to converge
   };
   Q.slog=function (x,y){
