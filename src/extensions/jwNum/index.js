@@ -237,6 +237,7 @@ class Extension {
                 {
                     opcode: 'isInteger',
                     text: 'is [A] a integer?',
+                    blockType: BlockType.BOOLEAN,
                     arguments: {
                         A: jwNum.Argument
                     }
