@@ -305,35 +305,35 @@ class Extension {
         A = jwNum.Type.toNum(A)
         B = jwNum.Type.toNum(B)
 
-        return new A.number.eq(B.number)
+        return A.number.eq(B.number)
     }
 
     gt({A, B}) {
         A = jwNum.Type.toNum(A)
         B = jwNum.Type.toNum(B)
 
-        return new A.number.gt(B.number)
+        return A.number.gt(B.number)
     }
 
     gte({A, B}) {
         A = jwNum.Type.toNum(A)
         B = jwNum.Type.toNum(B)
 
-        return new A.number.gte(B.number)
+        return A.number.gte(B.number)
     }
 
     lt({A, B}) {
         A = jwNum.Type.toNum(A)
         B = jwNum.Type.toNum(B)
 
-        return new A.number.lt(B.number)
+        return A.number.lt(B.number)
     }
 
     lte({A, B}) {
         A = jwNum.Type.toNum(A)
         B = jwNum.Type.toNum(B)
 
-        return new A.number.lte(B.number)
+        return A.number.lte(B.number)
     }
 
     root({A, B}) {
