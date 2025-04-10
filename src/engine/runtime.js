@@ -3222,6 +3222,7 @@ class Runtime extends EventEmitter {
 
     findProjectOptionsComment () {
         const target = this.getTargetForStage();
+        if (!target) return null
         const comments = target.comments;
         for (const comment of Object.values(comments)) {
             if (comment.text.includes(COMMENT_CONFIG_MAGIC)) {
