@@ -208,6 +208,16 @@ class Extension {
                         }
                     },
                     ...Color.Block
+                },
+                "---",
+                {
+                    opcode: 'multiply',
+                    text: 'multiply [A] by [B]',
+                    arguments: {
+                        A: Color.Argument,
+                        B: Color.Argument
+                    },
+                    ...Color.Block
                 }
             ]
         };
@@ -231,6 +241,13 @@ class Extension {
         V = Cast.toNumber(V)
 
         return new Color.Type(H, S, V)
+    }
+
+    multiply({A, B}) {
+        A = Color.Type.toColor(A).toRGB()
+        B = Color.Type.toColor(B).toRGB()
+
+        return Color.Type.fromRGB(A[0] * B[0] / 255, A[1] * B[1] / 255, A[2] * B[2] / 255)
     }
 }
 
