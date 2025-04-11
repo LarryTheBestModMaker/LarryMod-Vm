@@ -75,9 +75,9 @@ class ColorType {
     }
 
     static fromDecimal(d) {
-        const r = (decimal >> 16) & 0xFF
-        const g = (decimal >> 8) & 0xFF
-        const b = decimal & 0xFF
+        const r = (d >> 16) & 0xFF
+        const g = (d >> 8) & 0xFF
+        const b = d & 0xFF
         return this.fromRGB(r, g, b)
     }
 
@@ -172,6 +172,7 @@ class Extension {
     }
 
     newColor({COLOR}) {
+        console.log(COLOR)
         return Color.Type.toColor(COLOR)
     }
 }
