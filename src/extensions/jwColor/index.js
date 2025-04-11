@@ -122,7 +122,7 @@ class ColorType {
 
     toRGB() {
         let f = (n, k = (n + this.hue / 60) % 6) => this.value - this.value * this.saturation * Math.max(Math.min(k, 4 - k, 1), 0)
-        return [f(5), f(3), f(1)]
+        return [Math.round(f(5) * 255), Math.round(f(3) * 255), Math.round(f(1) * 255)]
     }
 
     toDecimal() {
@@ -170,14 +170,67 @@ class Extension {
                         COLOR: Color.Argument
                     },
                     ...Color.Block
+                },
+                {
+                    opcode: 'fromRGB',
+                    text: 'from RGB [R] [G] [B]',
+                    arguments: {
+                        R: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        G: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        B: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
+                    ...Color.Block
+                },
+                {
+                    opcode: 'fromHSV',
+                    text: 'from HSV [H] [S] [V]',
+                    arguments: {
+                        H: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        S: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        V: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
+                    ...Color.Block
                 }
             ]
         };
     }
 
     newColor({COLOR}) {
-        console.log(COLOR)
         return Color.Type.toColor(COLOR)
+    }
+
+    fromRGB({R, G, B}) {
+        R = Cast.toNumber(R)
+        G = Cast.toNumber(G)
+        B = Cast.toNumber(B)
+
+        return Color.Type.fromRGB(R, G, B)
+    }
+
+    fromHSV({H, S, V}) {
+        H = Cast.toNumber(H)
+        S = Cast.toNumber(S)
+        V = Cast.toNumber(V)
+
+        return new Color.Type(H, S, V)
     }
 }
 
