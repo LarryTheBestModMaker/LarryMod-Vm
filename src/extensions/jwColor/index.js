@@ -160,8 +160,8 @@ class Extension {
             color1: "#f04a87",
             blocks: [
                 {
-                    opcode: 'new color [COLOR]',
-                    text: 'newColor',
+                    opcode: 'newColor',
+                    text: 'new color [COLOR]',
                     arguments: {
                         COLOR: Color.Argument
                     },
