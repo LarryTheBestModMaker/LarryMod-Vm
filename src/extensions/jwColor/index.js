@@ -62,7 +62,7 @@ class ColorType {
                 } else if (x.length === 4) {
                     return ColorType.fromDecimal(Number(`0x${x.slice(1, 4).split("").map(v => v + v).join("")}`))
                 }
-            }
+            } catch {}
         }
         if (Number(x) == x) return ColorType.fromDecimal(x)
         return new ColorType()
