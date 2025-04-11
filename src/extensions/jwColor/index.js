@@ -69,9 +69,13 @@ class ColorType {
     }
 
     static fromRGB(r, g, b) {
+        r /= 255
+        g /= 255
+        b /= 255
+
         let v = Math.max(r, g, b), c = v - Math.min(r, g, b)
         let h = c && ((v == r) ? (g - b) / c : ((v == g) ? 2 + (b - r) / c : 4 + (r - g) / c))
-        return new ColorType(...[60 * (h < 0 ? h + 6 : h), v && c / v, v])
+        return new ColorType(60 * (h < 0 ? h + 6 : h), v && c / v, v)
     }
 
     static fromDecimal(d) {
@@ -100,9 +104,9 @@ class ColorType {
         details.style.flexDirection = 'column'
         details.style.justifyContent = 'center'
         details.style.width = "100px"
-        details.appendChild(span(`<b>H:</b> ${formatNumber(this.hue)}`))
-        details.appendChild(span(`<b>S:</b> ${formatNumber(this.saturation)}`))
-        details.appendChild(span(`<b>V:</b> ${formatNumber(this.value)}`))
+        details.appendChild(span(`<b>H:</b> ${formatNumber(Math.round(this.hue))}`))
+        details.appendChild(span(`<b>S:</b> ${formatNumber(this.saturation * 100)}%`))
+        details.appendChild(span(`<b>V:</b> ${formatNumber(this.value * 100)}%`))
         root.appendChild(details)
         let color = document.createElement('div')
         color.style.width = "84px"
@@ -127,7 +131,7 @@ class ColorType {
     }
 
     toHex() {
-        return `#${this.toDecimal().toString(16)}`
+        return `#${this.toDecimal().toString(16).padStart(6, "0")}`
     }
 }
 
