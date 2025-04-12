@@ -111,10 +111,6 @@ class ArrayType {
     get length() {
         return this.array.length
     }
-
-    toJSON() {
-        return this.array
-    }
 }
 
 const jwArray = {
