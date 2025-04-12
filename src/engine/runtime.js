@@ -2975,7 +2975,21 @@ class Runtime extends EventEmitter {
             this._refreshTargets = false;
         }
 
-        if (!this._prevMonitorState.equals(this._monitorState)) {
+        let forceUpd = false;
+        // if a custom type set _monitorUpToDate to false on an existing instance, we need to report that update to the gui
+        if (this._monitorState.some(item => 
+            typeof item.get('value') === 'object' && 
+            '_monitorUpToDate' in item.get('value') && 
+            !item.get('value')._monitorUpToDate
+        )) { 
+            const old = this._monitorState;
+            // make a new instance so redux detects this as different later on
+            this._monitorState = this._monitorState.toOrderedMap();
+            if (!(old !== this._monitorState)) // why wont redux just accept the fucking value
+                throw new Error('Expected OrderedMap.toOrderedMap() to produce a truly unique value');
+            forceUpd = true;
+        }
+        if (!this._prevMonitorState.equals(this._monitorState) || forceUpd) {
             this.emit(Runtime.MONITORS_UPDATE, this._monitorState);
             this._prevMonitorState = this._monitorState;
         }
