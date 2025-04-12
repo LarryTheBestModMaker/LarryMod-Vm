@@ -324,6 +324,26 @@ class JgDevBlocks {
                     opcode: 'costumeTypeTestSame',
                     blockType: BlockType.REPORTER,
                     text: 'test custom type updating/rendering (same instance)'
+                },
+                {
+                    opcode: 'spriteDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get this target'
+                },
+                {
+                    opcode: 'spriteDefaultTypeOther',
+                    blockType: BlockType.REPORTER,
+                    text: 'get stage target'
+                },
+                {
+                    opcode: 'costumeDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get current costume'
+                },
+                {
+                    opcode: 'soundDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get first sound'
                 }
             ],
             menus: {
@@ -351,6 +371,18 @@ class JgDevBlocks {
                 }
             }
         };
+    }
+    spriteDefaultType(args, util) {
+        return util.target;
+    }
+    spriteDefaultTypeOther(args, util) {
+        return this.runtime.getTargetForStage();
+    }
+    costumeDefaultType(args, util) {
+        return util.target.getCostumeType(util.target.currentCostume);
+    }
+    soundDefaultType(args, util) {
+        return util.target.getSoundType(0);
     }
     costumeTypeTest() {
         return {
