@@ -54,6 +54,11 @@ class ArrayType {
         return new ArrayType([x])
     }
 
+    static forArray(x) {
+        if (x instanceof ArrayType) return new ArrayType(x.array)
+        return x
+    }
+
     static display(x) {
         try {
             switch (typeof x) {
@@ -358,14 +363,14 @@ class Extension {
     set({ARRAY, INDEX, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        ARRAY.array[clampIndex(Cast.toNumber(INDEX))-1] = VALUE
+        ARRAY.array[clampIndex(Cast.toNumber(INDEX))-1] = jwArray.Type.forArray(VALUE)
         return ARRAY
     }
 
     append({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        ARRAY.array.push(VALUE)
+        ARRAY.array.push(jwArray.Type.forArray(VALUE))
         return ARRAY
     }
 
@@ -379,7 +384,7 @@ class Extension {
     fill({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        ARRAY.array.fill(VALUE)
+        ARRAY.array.fill(jwArray.Type.forArray(VALUE))
         return ARRAY
     }
 
