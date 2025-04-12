@@ -65,7 +65,13 @@ class Extension {
         vm.runtime.registerSerializer(
             "jwNum",
             v => v.number.toJSON(),
-            v => new jwNum.Type(ExpantaNum.fromJSON(v))
+            v => {
+                let x = new ExpantaNum(0)
+                try {
+                    x = ExpantaNum.fromJSON(v)
+                } catch {}
+                return new jwNum.Type(x)
+            }
         )
     }
 

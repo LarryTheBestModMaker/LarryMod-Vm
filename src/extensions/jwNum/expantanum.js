@@ -1867,7 +1867,7 @@
     return x;
   };
   Q.fromObject=function (input){
-    if (typeof input!="object") throw Error(invalidArgument+"Expected Object");
+    if (typeof input!="object") return ExpantaNum.ZERO.clone();
     if (input===null) return ExpantaNum.ZERO.clone();
     if (input instanceof Array) return ExpantaNum.fromArray(input);
     if (input instanceof ExpantaNum) return new ExpantaNum(input);

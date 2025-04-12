@@ -88,7 +88,17 @@ class ColorType {
     }
 
     jwArrayHandler() {
-        return 'Color'
+        let color = document.createElement('div')
+        color.style.width = "16px"
+        color.style.height = "16px"
+        color.style.border = "1px solid black"
+        color.style.borderRadius = "4px"
+        color.style.boxSizing = "border-box"
+        color.style.backgroundColor = `#${this.toHex()}`
+        color.style.display = "inline-block"
+        color.style.verticalAlign = "text-bottom"
+
+        return color.outerHTML
     }
 
     toString() {
