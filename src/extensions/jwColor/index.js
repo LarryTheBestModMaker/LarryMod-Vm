@@ -211,8 +211,26 @@ class Extension {
                 },
                 "---",
                 {
-                    opcode: 'multiply',
-                    text: 'multiply [A] by [B]',
+                    opcode: 'add',
+                    text: '[A] + [B]',
+                    arguments: {
+                        A: Color.Argument,
+                        B: Color.Argument
+                    },
+                    ...Color.Block
+                },
+                {
+                    opcode: 'sub',
+                    text: '[A] - [B]',
+                    arguments: {
+                        A: Color.Argument,
+                        B: Color.Argument
+                    },
+                    ...Color.Block
+                },
+                {
+                    opcode: 'mul',
+                    text: '[A] * [B]',
                     arguments: {
                         A: Color.Argument,
                         B: Color.Argument
@@ -243,7 +261,21 @@ class Extension {
         return new Color.Type(H, S, V)
     }
 
-    multiply({A, B}) {
+    add({A, B}) {
+        A = Color.Type.toColor(A).toRGB()
+        B = Color.Type.toColor(B).toRGB()
+
+        return Color.Type.fromRGB(A[0] + B[0], A[1] + B[1], A[2] + B[2])
+    }
+
+    sub({A, B}) {
+        A = Color.Type.toColor(A).toRGB()
+        B = Color.Type.toColor(B).toRGB()
+
+        return Color.Type.fromRGB(A[0] - B[0], A[1] - B[1], A[2] - B[2])
+    }
+
+    mul({A, B}) {
         A = Color.Type.toColor(A).toRGB()
         B = Color.Type.toColor(B).toRGB()
 
