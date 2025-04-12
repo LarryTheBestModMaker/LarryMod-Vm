@@ -384,9 +384,9 @@ class Extension {
             case "HSV":
                 let hueDifference = Math.abs(A.hue - B.hue)
                 if (hueDifference > 180) {
-                    return new Color.Type(A.hue * 1-I - (360 - hueDifference) * I, A.saturation * 1-I + B.saturation * I, A.value * 1-I + B.value * I)
+                    return new Color.Type(A.hue * (1-I) - (360 - hueDifference) * I, A.saturation * (1-I) + B.saturation * I, A.value * (1-I) + B.value * I)
                 } else {
-                    return new Color.Type(A.hue * 1-I + B.hue * I, A.saturation * 1-I + B.saturation * I, A.value * 1-I + B.value * I)
+                    return new Color.Type(A.hue * (1-I) + B.hue * I, A.saturation * (1-I) + B.saturation * I, A.value * (1-I) + B.value * I)
                 }
             default: return new Color.Type
         }
