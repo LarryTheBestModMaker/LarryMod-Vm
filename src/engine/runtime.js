@@ -2343,6 +2343,7 @@ class Runtime extends EventEmitter {
      * @param {?object} opts optional arguments
      * @param {?boolean} opts.stackClick true if the script was activated by clicking on the stack
      * @param {?boolean} opts.updateMonitor true if the script should update a monitor value
+     * @param {?Target} opts.targetBlockLocation where the blocks are located
      * @return {!Thread} The newly created thread.
      */
     _pushThread (id, target, opts) {
@@ -2352,7 +2353,7 @@ class Runtime extends EventEmitter {
         thread.updateMonitor = Boolean(opts && opts.updateMonitor);
         thread.blockContainer = thread.updateMonitor ?
             this.monitorBlocks :
-            target.blocks;
+            ((opts && opts.targetBlockLocation) || target.blocks);
 
         thread.pushStack(id);
         this.threads.push(thread);
