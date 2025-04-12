@@ -1402,7 +1402,7 @@ class RenderedTarget extends Target {
         const owner = this;
         const ent = this.getSounds()[idx];
         if (!ent) return;
-        ent.customId = 'pm-costume-asset';
+        ent.customId = 'pm-sound-asset';
         Object.defineProperty(ent, '_monitorUpToDate', {
             get() {
                 if (this._oldName !== this.name) return false;

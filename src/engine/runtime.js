@@ -593,7 +593,32 @@ class Runtime extends EventEmitter {
         // list of variable types declared by extensions
         this._extensionVariables = {};
         // lists all custom serializers
-        this.serializers = {};
+        this.serializers = {
+            'pm-rendered-target': {
+                serialize: target => ({ id: target.id, name: target.getName() }),
+                deserialize: ({ id, name }) => this.getTargetById(id) ?? this.getSpriteTargetByName(name)
+            },
+            'pm-costume-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getCostumes();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            },
+            'pm-sound-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getSounds();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            }
+        };
 
         /**
          * An object to contain runtime variables from the
