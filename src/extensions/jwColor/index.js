@@ -12,7 +12,7 @@ function formatNumber(x) {
         return x.toExponential(4)
     } else {
         x = Math.floor(x * 1000) / 1000
-        return x.toFixed(Math.min(3, (String(x).split('.')[1] || '').length))
+        return x.toFixed(Math.min(1, (String(x).split('.')[1] || '').length))
     }
 }
 
@@ -59,7 +59,7 @@ class ColorType {
             try {
                 if (x.length === 7 || x.length === 9) {
                     return ColorType.fromDecimal(Number(`0x${x.slice(1, 7)}`))
-                } else if (x.length === 4) {
+                } else if (x.length === 4 || x.length === 5) {
                     return ColorType.fromDecimal(Number(`0x${x.slice(1, 4).split("").map(v => v + v).join("")}`))
                 }
             } catch {}
@@ -143,7 +143,8 @@ const Color = {
         disableMonitor: true
     },
     Argument: {
-        type: ArgumentType.COLOR
+        type: ArgumentType.COLOR,
+        defaultValue: "#ff7aab"
     }
 }
 
@@ -177,15 +178,15 @@ class Extension {
                     arguments: {
                         R: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 255
                         },
                         G: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 122
                         },
                         B: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 171
                         }
                     },
                     ...Color.Block
@@ -196,15 +197,15 @@ class Extension {
                     arguments: {
                         H: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 338
                         },
                         S: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 0.52
                         },
                         V: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 0
+                            defaultValue: 1
                         }
                     },
                     ...Color.Block
@@ -236,6 +237,67 @@ class Extension {
                         B: Color.Argument
                     },
                     ...Color.Block
+                },
+                "---",
+                {
+                    opcode: 'getR',
+                    text: 'get R of [COLOR]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument
+                    }
+                },
+                {
+                    opcode: 'getG',
+                    text: 'get G of [COLOR]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument
+                    }
+                },
+                {
+                    opcode: 'getB',
+                    text: 'get B of [COLOR]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument
+                    }
+                },
+                {
+                    opcode: 'setR',
+                    text: 'set R of [COLOR] to [VALUE]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument,
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
+                    opcode: 'setG',
+                    text: 'set G of [COLOR] to [VALUE]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument,
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
+                    opcode: 'setB',
+                    text: 'set B of [COLOR] to [VALUE]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument,
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
                 }
             ]
         };
@@ -280,6 +342,45 @@ class Extension {
         B = Color.Type.toColor(B).toRGB()
 
         return Color.Type.fromRGB(A[0] * B[0] / 255, A[1] * B[1] / 255, A[2] * B[2] / 255)
+    }
+
+    getR({COLOR}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+
+        return COLOR[0]
+    }
+
+    getG({COLOR}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+
+        return COLOR[1]
+    }
+
+    getB({COLOR}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+
+        return COLOR[2]
+    }
+
+    setR({COLOR, VALUE}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+        VALUE = Cast.toNumber(VALUE)
+
+        return Color.Type.fromRGB(VALUE, COLOR[1], COLOR[2])
+    }
+
+    setG({COLOR, VALUE}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+        VALUE = Cast.toNumber(VALUE)
+
+        return Color.Type.fromRGB(COLOR[0], VALUE, COLOR[2])
+    }
+
+    setB({COLOR, VALUE}) {
+        COLOR = Color.Type.toColor(COLOR).toRGB()
+        VALUE = Cast.toNumber(VALUE)
+
+        return Color.Type.fromRGB(COLOR[0], COLOR[1], VALUE)
     }
 }
 
