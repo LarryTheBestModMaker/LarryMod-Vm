@@ -270,7 +270,6 @@ class Extension {
                 {
                     opcode: 'set',
                     text: 'set [OPTION] [COLOR] to [VALUE]',
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         COLOR: Color.Argument,
                         VALUE: {
@@ -280,7 +279,8 @@ class Extension {
                         OPTION: {
                             menu: "propOption"
                         }
-                    }
+                    },
+                    ...Color.Block
                 },
             ],
             menus: {
