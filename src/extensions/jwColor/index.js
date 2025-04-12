@@ -69,9 +69,9 @@ class ColorType {
     }
 
     static fromRGB(r, g, b) {
-        r /= 255
-        g /= 255
-        b /= 255
+        r = Math.max(0, Math.min(r / 255, 1))
+        g = Math.max(0, Math.min(g / 255, 1))
+        b = Math.max(0, Math.min(b / 255, 1))
 
         let v = Math.max(r, g, b), c = v - Math.min(r, g, b)
         let h = c && ((v == r) ? (g - b) / c : ((v == g) ? 2 + (b - r) / c : 4 + (r - g) / c))
@@ -257,72 +257,49 @@ class Extension {
                 },
                 "---",
                 {
-                    opcode: 'getR',
-                    text: 'get R of [COLOR]',
+                    opcode: 'get',
+                    text: 'get [OPTION] [COLOR]',
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        COLOR: Color.Argument
+                        COLOR: Color.Argument,
+                        OPTION: {
+                            menu: "propOption"
+                        }
                     }
                 },
                 {
-                    opcode: 'getG',
-                    text: 'get G of [COLOR]',
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        COLOR: Color.Argument
-                    }
-                },
-                {
-                    opcode: 'getB',
-                    text: 'get B of [COLOR]',
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        COLOR: Color.Argument
-                    }
-                },
-                {
-                    opcode: 'setR',
-                    text: 'set R of [COLOR] to [VALUE]',
+                    opcode: 'set',
+                    text: 'set [OPTION] [COLOR] to [VALUE]',
                     blockType: BlockType.REPORTER,
                     arguments: {
                         COLOR: Color.Argument,
                         VALUE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
+                        },
+                        OPTION: {
+                            menu: "propOption"
                         }
                     }
                 },
-                {
-                    opcode: 'setG',
-                    text: 'set G of [COLOR] to [VALUE]',
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        COLOR: Color.Argument,
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 0
-                        }
-                    }
-                },
-                {
-                    opcode: 'setB',
-                    text: 'set B of [COLOR] to [VALUE]',
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        COLOR: Color.Argument,
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 0
-                        }
-                    }
-                }
             ],
             menus: {
                 interpolateOption: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: [
                         'RGB',
                         'HSV'
+                    ]
+                },
+                propOption: {
+                    acceptReporters: true,
+                    items: [
+                        'red',
+                        'green',
+                        'blue',
+                        'hue',
+                        'saturation',
+                        'value'
                     ]
                 }
             }
@@ -380,7 +357,7 @@ class Extension {
                 A = A.toRGB()
                 B = B.toRGB()
 
-                return Color.Type.fromRGB(A[0] * 1-I + B[0] * I, A[1] * 1-I + B[1] * I, A[2] * 1-I + B[2] * I)
+                return Color.Type.fromRGB(A[0] * (1-I) + B[0] * I, A[1] * (1-I) + B[1] * I, A[2] * (1-I) + B[2] * I)
             case "HSV":
                 let hueDifference = Math.abs(A.hue - B.hue)
                 if (hueDifference > 180) {
@@ -389,6 +366,34 @@ class Extension {
                     return new Color.Type(A.hue * (1-I) + B.hue * I, A.saturation * (1-I) + B.saturation * I, A.value * (1-I) + B.value * I)
                 }
             default: return new Color.Type
+        }
+    }
+
+    get({COLOR, OPTION}) {
+        COLOR = Color.Type.toColor(COLOR)
+
+        switch (OPTION) {
+            case "red": return COLOR.toRGB()[0]
+            case "green": return COLOR.toRGB()[1]
+            case "blue": return COLOR.toRGB()[2]
+            case "hue": return COLOR.hue
+            case "saturation": return COLOR.saturation
+            case "value": return COLOR.value
+            default: return 0
+        }
+    }
+
+    set({COLOR, VALUE, OPTION}) {
+        COLOR = Color.Type.toColor(COLOR)
+        VALUE = Cast.toNumber(VALUE)
+
+        switch (OPTION) {
+            case "red": return Color.Type.fromRGB(VALUE, COLOR.toRGB()[1], COLOR.toRGB()[2])
+            case "green": return Color.Type.fromRGB(COLOR.toRGB()[0], VALUE, COLOR.toRGB()[2])
+            case "blue": return Color.Type.fromRGB(COLOR.toRGB()[0], COLOR.toRGB()[1], VALUE)
+            case "hue": return new Color.Type(VALUE, COLOR.saturation, COLOR.value)
+            case "saturation": return new Color.Type(COLOR.hue, VALUE, COLOR.value)
+            case "value": return new Color.Type(COLOR.hue, COLOR.saturation, VALUE)
         }
     }
 
