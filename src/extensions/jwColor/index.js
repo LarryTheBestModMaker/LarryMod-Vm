@@ -29,22 +29,22 @@ function span(text) {
 class ColorType {
     customId = "jwColor"
 
-    hue = 0
+    h = 0
     setHue(x) {
-        this.hue = (x % 360)
-        if (this.hue < 0) {
-            this.hue = 360 + this.hue
+        this.h = (x % 360)
+        if (this.h < 0) {
+            this.h = 360 + this.h
         }
     }
 
-    saturation = 0
+    s = 0
     setSaturation(x) {
-        this.saturation = Math.max(0, Math.min(x, 1))
+        this.s = Math.max(0, Math.min(x, 1))
     }
 
-    value = 0
+    v = 0
     setValue(x) {
-        this.value = Math.max(0, Math.min(x, 1))
+        this.v = Math.max(0, Math.min(x, 1))
     }
 
     constructor(h = 0, s = 0, v = 0) {
@@ -106,9 +106,9 @@ class ColorType {
         details.style.flexDirection = 'column'
         details.style.justifyContent = 'center'
         details.style.width = "100px"
-        details.appendChild(span(`<b>H:</b> ${formatNumber(Math.round(this.hue))}`))
-        details.appendChild(span(`<b>S:</b> ${formatNumber(this.saturation * 100)}%`))
-        details.appendChild(span(`<b>V:</b> ${formatNumber(this.value * 100)}%`))
+        details.appendChild(span(`<b>H:</b> ${formatNumber(Math.round(this.h))}`))
+        details.appendChild(span(`<b>S:</b> ${formatNumber(this.s * 100)}%`))
+        details.appendChild(span(`<b>V:</b> ${formatNumber(this.v * 100)}%`))
         root.appendChild(details)
         let color = document.createElement('div')
         color.style.width = "84px"
@@ -123,7 +123,7 @@ class ColorType {
     }
 
     toRGB() {
-        let f = (n, k = (n + this.hue / 60) % 6) => this.value - this.value * this.saturation * Math.max(Math.min(k, 4 - k, 1), 0)
+        let f = (n, k = (n + this.h / 60) % 6) => this.v - this.v * this.s * Math.max(Math.min(k, 4 - k, 1), 0)
         return [Math.round(f(5) * 255), Math.round(f(3) * 255), Math.round(f(1) * 255)]
     }
 
@@ -155,7 +155,7 @@ class Extension {
         vm.jwColor = Color
         vm.runtime.registerSerializer(
             "jwColor",
-            v => [v.hue, v.saturation, v.value],
+            v => [v.h, v.s, v.v],
             v => new Color.Type(...v)
         );
     }
@@ -378,11 +378,11 @@ class Extension {
 
                 return Color.Type.fromRGB(A[0] * (1-I) + B[0] * I, A[1] * (1-I) + B[1] * I, A[2] * (1-I) + B[2] * I)
             case "HSV":
-                let hueDifference = Math.abs(A.hue - B.hue)
+                let hueDifference = Math.abs(A.h - B.h)
                 if (hueDifference > 180) {
-                    return new Color.Type(A.hue * (1-I) - (360 - hueDifference) * I, A.saturation * (1-I) + B.saturation * I, A.value * (1-I) + B.value * I)
+                    return new Color.Type(A.h * (1-I) - (360 - hueDifference) * I, A.s * (1-I) + B.s * I, A.v * (1-I) + B.v * I)
                 } else {
-                    return new Color.Type(A.hue * (1-I) + B.hue * I, A.saturation * (1-I) + B.saturation * I, A.value * (1-I) + B.value * I)
+                    return new Color.Type(A.h * (1-I) + B.h * I, A.s * (1-I) + B.s * I, A.v * (1-I) + B.v * I)
                 }
             default: return new Color.Type
         }
@@ -395,9 +395,9 @@ class Extension {
             case "red": return COLOR.toRGB()[0]
             case "green": return COLOR.toRGB()[1]
             case "blue": return COLOR.toRGB()[2]
-            case "hue": return COLOR.hue
-            case "saturation": return COLOR.saturation
-            case "value": return COLOR.value
+            case "hue": return COLOR.h
+            case "saturation": return COLOR.s
+            case "value": return COLOR.v
             default: return 0
         }
     }
@@ -410,9 +410,9 @@ class Extension {
             case "red": return Color.Type.fromRGB(VALUE, COLOR.toRGB()[1], COLOR.toRGB()[2])
             case "green": return Color.Type.fromRGB(COLOR.toRGB()[0], VALUE, COLOR.toRGB()[2])
             case "blue": return Color.Type.fromRGB(COLOR.toRGB()[0], COLOR.toRGB()[1], VALUE)
-            case "hue": return new Color.Type(VALUE, COLOR.saturation, COLOR.value)
-            case "saturation": return new Color.Type(COLOR.hue, VALUE, COLOR.value)
-            case "value": return new Color.Type(COLOR.hue, COLOR.saturation, VALUE)
+            case "hue": return new Color.Type(VALUE, COLOR.s, COLOR.v)
+            case "saturation": return new Color.Type(COLOR.h, VALUE, COLOR.v)
+            case "value": return new Color.Type(COLOR.h, COLOR.s, VALUE)
         }
     }
 
