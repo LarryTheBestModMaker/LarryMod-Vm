@@ -146,7 +146,7 @@ const Color = {
     },
     Argument: {
         type: ArgumentType.COLOR,
-        defaultValue: "ff7aab"
+        defaultValue: "#ff7aab"
     }
 }
 
