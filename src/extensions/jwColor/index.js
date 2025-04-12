@@ -240,11 +240,18 @@ class Extension {
                     ...Color.Block
                 },
                 {
-                    opcode: 'mix',
-                    text: 'mix [A] [B]',
+                    opcode: 'interpolate',
+                    text: 'interpolate [A] to [B] by [I] using [OPTION]',
                     arguments: {
                         A: Color.Argument,
-                        B: Color.Argument
+                        B: Color.Argument,
+                        I: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0.5
+                        },
+                        OPTION: {
+                            menu: "interpolateOption"
+                        }
                     },
                     ...Color.Block
                 },
@@ -309,7 +316,16 @@ class Extension {
                         }
                     }
                 }
-            ]
+            ],
+            menus: {
+                interpolateOption: {
+                    acceptReporters: false,
+                    items: [
+                        'RGB',
+                        'HSV'
+                    ]
+                }
+            }
         };
     }
 
@@ -354,11 +370,26 @@ class Extension {
         return Color.Type.fromRGB(A[0] * B[0] / 255, A[1] * B[1] / 255, A[2] * B[2] / 255)
     }
 
-    mix({A, B}) {
-        A = Color.Type.toColor(A).toRGB()
-        B = Color.Type.toColor(B).toRGB()
+    interpolate({A, B, I, OPTION}) {
+        A = Color.Type.toColor(A)
+        B = Color.Type.toColor(B)
+        I = Math.max(0, Math.min(Cast.toNumber(I), 1))
 
-        return Color.Type.fromRGB((A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[2] + B[2]) / 2)
+        switch (OPTION) {
+            case "RGB":
+                A = A.toRGB()
+                B = B.toRGB()
+
+                return Color.Type.fromRGB(A[0] * 1-I + B[0] * I, A[1] * 1-I + B[1] * I, A[2] * 1-I + B[2] * I)
+            case "HSV":
+                let hueDifference = Math.abs(A.hue - B.hue)
+                if (hueDifference > 180) {
+                    return new Color.Type(A.hue * 1-I - hueDifference * I, A.saturation * 1-I + B.saturation * I, A.value * 1-I + B.value * I)
+                } else {
+                    return new Color.Type(A.hue * 1-I + B.hue * I, A.saturation * 1-I + B.saturation * I, A.value * 1-I + B.value * I)
+                }
+            default: return new Color.Type
+        }
     }
 
     getR({COLOR}) {
