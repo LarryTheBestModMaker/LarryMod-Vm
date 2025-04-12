@@ -95,6 +95,8 @@ class ColorType {
         color.style.borderRadius = "4px"
         color.style.boxSizing = "border-box"
         color.style.backgroundColor = `#${this.toHex()}`
+        color.style.display = "inline-block"
+        color.style.verticalAlign = "text-bottom"
 
         return color.outerHTML
     }
