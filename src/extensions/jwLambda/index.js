@@ -29,13 +29,13 @@ function span(text) {
 class LambdaType {
     customId = "jwLambda"
 
-    constructor(func) {
-        this.func = typeof func == 'function' ? func : () => func
+    constructor(util) {
+        this.firstBlockId = util ? util.thread.blockContainer.getBranch(util.thread.peekStack(), 0) : ""
     }
 
     static toLambda(x) {
         if (x instanceof LambdaType) return x
-        return new LambdaType(x)
+        return new LambdaType()
     }
 
     jwArrayHandler() {
@@ -47,6 +47,13 @@ class LambdaType {
     }
     toMonitorContent = () => span(this.toString())
     toReporterContent = () => span(this.toString())
+
+    execute(target) {
+        if (this.firstBlockId !== "") {
+            let thread = vm.runtime._pushThread(this.firstBlockId, target, {})
+            console.log(thread)
+        }
+    }
 }
 
 const Lambda = {
@@ -120,17 +127,13 @@ class Extension {
     }
 
     newLambda({}, util) {
-        return new Lambda.Type((arg) => {
-            util.thread.stackFrames[0].jwLambda = arg;
-            console.debug("Yes hello i am working")
-            util.startBranch(1, false)
-        })
+        return new Lambda.Type(util)
     }
 
     execute({LAMBDA, ARG}, util) {
         LAMBDA = Lambda.Type.toLambda(LAMBDA)
 
-        LAMBDA.func(ARG)
+        LAMBDA.execute(util.target)
     }
 }
 
