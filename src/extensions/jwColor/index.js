@@ -163,7 +163,7 @@ class Extension {
             id: "jwColor",
             name: "Color",
             color1: "#f04a87",
-            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgMTI0IDEyNCIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSIxMjQiIGhlaWdodD0iMTI0IiByeD0iMjQiIGZpbGw9IiNGOTczMTYiLz4KPHBhdGggZD0iTTE5LjM3NSAzNi43ODE4VjEwMC42MjVDMTkuMzc1IDEwMi44MzQgMjEuMTY1OSAxMDQuNjI1IDIzLjM3NSAxMDQuNjI1SDg3LjIxODFDOTAuNzgxOCAxMDQuNjI1IDkyLjU2NjQgMTAwLjMxNiA5MC4wNDY2IDk3Ljc5NjZMMjYuMjAzNCAzMy45NTM0QzIzLjY4MzYgMzEuNDMzNiAxOS4zNzUgMzMuMjE4MiAxOS4zNzUgMzYuNzgxOFoiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjYzLjIxMDkiIGN5PSIzNy41MzkxIiByPSIxOC4xNjQxIiBmaWxsPSJibGFjayIvPgo8cmVjdCBvcGFjaXR5PSIwLjQiIHg9IjgxLjEzMjgiIHk9IjgwLjcxOTgiIHdpZHRoPSIxNy41Njg3IiBoZWlnaHQ9IjE3LjM4NzYiIHJ4PSI0IiB0cmFuc2Zvcm09InJvdGF0ZSgtNDUgODEuMTMyOCA4MC43MTk4KSIgZmlsbD0iI0ZEQkE3NCIvPgo8L3N2Zz4=",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+CiAgPGVsbGlwc2Ugc3R5bGU9ImZpbGw6IHJnYigyNDAsIDc0LCAxMzUpOyBzdHJva2U6IHJnYigyMTYsIDY2LCAxMjIpOyBzdHJva2Utd2lkdGg6IDJweDsgcGFpbnQtb3JkZXI6IHN0cm9rZTsiIGN4PSIxMCIgY3k9IjEwIiByeD0iOSIgcnk9IjkiPjwvZWxsaXBzZT4KICA8cGF0aCB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGQ9Ik0gMTIuMTYyIDExLjAxNSBDIDExLjM1OCAxMS44MTkgMTAuNzY1IDEyLjIzMyAxMC4yOTkgMTIuMzkxIEMgMTAuMTYyIDExLjk2OCA5LjkyOSAxMS41NzYgOS42MDEgMTEuMjQ4IEMgOS4yNjIgMTAuOTIgOC44NzEgMTAuNjg3IDguNDQ3IDEwLjUzOCBDIDguNjE3IDEwLjA3MyA5LjAzIDkuNDggOS44MjMgOC42ODcgQyAxMS43MjggNi43NzEgMTUuMTE1IDQuNDMyIDE1Ljc2MSA1LjA3OCBDIDE2LjQwNyA1LjcyMyAxNC4wNjggOS4xMSAxMi4xNjIgMTEuMDE1IFogTSA4LjY1IDE0LjUzOSBDIDguMzM1IDE0Ljg0NCA3LjkyOSAxNSA3LjUyMiAxNS4wMiBMIDcuNTIyIDE1LjAzIEwgNy40MjEgMTUuMDMgQyA0LjY5OCAxNS4xMjggMy41MDkgMTIuMDQ2IDQuNDQ0IDEyLjM2OSBDIDUuNjczIDEyLjc5MiA2LjE3MiAxMi4xODMgNi4xOTEgMTIuMTYzIEMgNi44NzIgMTEuNTE2IDcuOTY5IDExLjUxNiA4LjY1IDEyLjE2MyBDIDkuMzMxIDEyLjgyMSA5LjMzMSAxMy44OTIgOC42NSAxNC41MzkgWiIgaWQ9ImJ1cnNoLWljb24iIHN0eWxlPSJmaWxsOiByZ2IoMjU1LCAyNTUsIDI1NSk7Ij48L3BhdGg+Cjwvc3ZnPg==",
             blocks: [
                 {
                     opcode: 'newColor',
@@ -233,6 +233,15 @@ class Extension {
                 {
                     opcode: 'mul',
                     text: '[A] * [B]',
+                    arguments: {
+                        A: Color.Argument,
+                        B: Color.Argument
+                    },
+                    ...Color.Block
+                },
+                {
+                    opcode: 'mix',
+                    text: 'mix [A] [B]',
                     arguments: {
                         A: Color.Argument,
                         B: Color.Argument
@@ -343,6 +352,13 @@ class Extension {
         B = Color.Type.toColor(B).toRGB()
 
         return Color.Type.fromRGB(A[0] * B[0] / 255, A[1] * B[1] / 255, A[2] * B[2] / 255)
+    }
+
+    mix({A, B}) {
+        A = Color.Type.toColor(A).toRGB()
+        B = Color.Type.toColor(B).toRGB()
+
+        return Color.Type.fromRGB((A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[1] + B[1]) / 2)
     }
 
     getR({COLOR}) {
