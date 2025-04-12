@@ -55,12 +55,14 @@ class ColorType {
 
     static toColor(x) {
         if (x instanceof ColorType) return x
-        if (typeof x == 'string' && x.startsWith("#")) {
+        if (typeof x == 'string') {
+            let hex = x
+            if (x.startsWith("#")) x = x.substring(1)
             try {
-                if (x.length === 7 || x.length === 9) {
-                    return ColorType.fromDecimal(Number(`0x${x.slice(1, 7)}`))
-                } else if (x.length === 4 || x.length === 5) {
-                    return ColorType.fromDecimal(Number(`0x${x.slice(1, 4).split("").map(v => v + v).join("")}`))
+                if (x.length === 6 || x.length === 8) {
+                    return ColorType.fromDecimal(Number(`0x${x.slice(0, 6)}`))
+                } else if (x.length === 3 || x.length === 4) {
+                    return ColorType.fromDecimal(Number(`0x${x.slice(0, 3).split("").map(v => v + v).join("")}`))
                 }
             } catch {}
         }
@@ -90,7 +92,7 @@ class ColorType {
     }
 
     toString() {
-        return this.toDecimal()
+        return String(this.toDecimal())
     }
     toMonitorContent = () => span(this.toString())
 
@@ -115,7 +117,7 @@ class ColorType {
         color.style.border = "2px solid black"
         color.style.borderRadius = "8px"
         color.style.boxSizing = "border-box"
-        color.style.backgroundColor = this.toHex()
+        color.style.backgroundColor = `#${this.toHex()}`
         root.appendChild(color)
         return root
     }
@@ -131,7 +133,7 @@ class ColorType {
     }
 
     toHex() {
-        return `#${this.toDecimal().toString(16).padStart(6, "0")}`
+        return this.toDecimal().toString(16).padStart(6, "0")
     }
 }
 
@@ -144,7 +146,7 @@ const Color = {
     },
     Argument: {
         type: ArgumentType.COLOR,
-        defaultValue: "#ff7aab"
+        defaultValue: "ff7aab"
     }
 }
 
@@ -282,6 +284,23 @@ class Extension {
                     },
                     ...Color.Block
                 },
+                "---",
+                {
+                    opcode: 'toDecimal',
+                    text: '[COLOR] to decimal',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument
+                    }
+                },
+                {
+                    opcode: 'toHex',
+                    text: '[COLOR] to hexadecimal',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        COLOR: Color.Argument
+                    }
+                }
             ],
             menus: {
                 interpolateOption: {
@@ -397,43 +416,16 @@ class Extension {
         }
     }
 
-    getR({COLOR}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
+    toDecimal({COLOR}) {
+        COLOR = Color.Type.toColor(COLOR)
 
-        return COLOR[0]
+        return COLOR.toDecimal()
     }
 
-    getG({COLOR}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
+    toHex({COLOR}) {
+        COLOR = Color.Type.toColor(COLOR)
 
-        return COLOR[1]
-    }
-
-    getB({COLOR}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
-
-        return COLOR[2]
-    }
-
-    setR({COLOR, VALUE}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
-        VALUE = Cast.toNumber(VALUE)
-
-        return Color.Type.fromRGB(VALUE, COLOR[1], COLOR[2])
-    }
-
-    setG({COLOR, VALUE}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
-        VALUE = Cast.toNumber(VALUE)
-
-        return Color.Type.fromRGB(COLOR[0], VALUE, COLOR[2])
-    }
-
-    setB({COLOR, VALUE}) {
-        COLOR = Color.Type.toColor(COLOR).toRGB()
-        VALUE = Cast.toNumber(VALUE)
-
-        return Color.Type.fromRGB(COLOR[0], COLOR[1], VALUE)
+        return COLOR.toHex()
     }
 }
 
