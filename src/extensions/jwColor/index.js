@@ -55,8 +55,8 @@ class ColorType {
 
     static toColor(x) {
         if (x instanceof ColorType) return x
+        if (typeof x == 'number') return ColorType.fromDecimal(x)
         if (typeof x == 'string') {
-            let hex = x
             if (x.startsWith("#")) x = x.substring(1)
             try {
                 if (x.length === 6 || x.length === 8) {
@@ -66,7 +66,6 @@ class ColorType {
                 }
             } catch {}
         }
-        if (Number(x) == x) return ColorType.fromDecimal(x)
         return new ColorType()
     }
 
