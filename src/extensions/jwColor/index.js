@@ -55,17 +55,19 @@ class ColorType {
 
     static toColor(x) {
         if (x instanceof ColorType) return x
-        if (typeof x == 'number') return ColorType.fromDecimal(x)
-        if (typeof x == 'string') {
-            if (x.startsWith("#")) x = x.substring(1)
-            try {
-                if (x.length === 6 || x.length === 8) {
-                    return ColorType.fromDecimal(Number(`0x${x.slice(0, 6)}`))
-                } else if (x.length === 3 || x.length === 4) {
-                    return ColorType.fromDecimal(Number(`0x${x.slice(0, 3).split("").map(v => v + v).join("")}`))
-                }
-            } catch {}
-        }
+        if (Number(x) == x) return ColorType.fromDecimal(x)
+        return new ColorType()
+    }
+
+    static fromHex(x) {
+        if (x.startsWith("#")) x = x.substring(1)
+        try {
+            if (x.length === 6 || x.length === 8) {
+                return ColorType.fromDecimal(Number(`0x${x.slice(0, 6)}`))
+            } else if (x.length === 3 || x.length === 4) {
+                return ColorType.fromDecimal(Number(`0x${x.slice(0, 3).split("").map(v => v + v).join("")}`))
+            }
+        } catch {}
         return new ColorType()
     }
 
@@ -222,6 +224,17 @@ class Extension {
                     },
                     ...Color.Block
                 },
+                {
+                    opcode: 'fromHex',
+                    text: 'from hex [HEX]',
+                    arguments: {
+                        HEX: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "ff7aab"
+                        }
+                    },
+                    ...Color.Block
+                },
                 "---",
                 {
                     opcode: 'add',
@@ -352,6 +365,12 @@ class Extension {
         V = Cast.toNumber(V)
 
         return new Color.Type(H, S, V)
+    }
+
+    fromHex({HEX}) {
+        HEX = Cast.toString(HEX)
+
+        return Color.Type.fromHex(HEX)
     }
 
     add({A, B}) {

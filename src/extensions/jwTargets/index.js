@@ -170,6 +170,7 @@ class Extension {
                         }
                     }
                 },
+                '---',
                 {
                     opcode: 'isClone',
                     text: 'is [TARGET] a clone',
@@ -178,6 +179,16 @@ class Extension {
                         TARGET: Target.Argument
                     }
                 },
+                {
+                    opcode: 'isTouching',
+                    text: 'is [A] touching [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: Target.Argument,
+                        B: Target.Argument
+                    }
+                },
+                '---',
                 {
                     opcode: 'getVar',
                     text: 'var [NAME] of [TARGET]',
@@ -391,6 +402,13 @@ class Extension {
         return !TARGET.target.isOriginal
     }
 
+    isTouching({A, B}) {
+        A = Target.Type.toTarget(A)
+        B = Target.Type.toTarget(B)
+
+        return A.target.isTouchingTarget(B.targetId)
+    }
+
     getVar({TARGET, NAME}) {
         TARGET = Target.Type.toTarget(TARGET)
         NAME = Cast.toString(NAME)
@@ -442,7 +460,7 @@ class Extension {
 
         let targets = vm.runtime.targets
         targets = targets.filter(v => v !== TARGET && !v.isStage)
-        targets = targets.filter(v => TARGET.target.isTouchingTarget(v.id))
+        targets = targets.filter(v => v.isTouchingTarget(TARGET.targetId))
         return new jwArray.Type(targets.map(v => new Target.Type(v.id)))
     }
 
