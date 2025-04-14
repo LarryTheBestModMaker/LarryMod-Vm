@@ -39,7 +39,7 @@ function toDegRounding(rad) {
 }
 
 /**
- * Class for 3D VR blokckes
+ * Class for 3D VR blocks
  */
 class Jg3DVrBlocks {
     constructor(runtime) {
@@ -58,11 +58,11 @@ class Jg3DVrBlocks {
                 });
         } else {
             this._3d = this.runtime.ext_jg3d;
-            this.three = this._3d.three
+            this.three = this._3d.three;
         }
     }
     /**
-     * metadata for this extension and its blocks.
+     * Metadata for this extension and its blocks.
      * @returns {object}
      */
     getInfo() {
@@ -326,11 +326,11 @@ class Jg3DVrBlocks {
     }
     _disposeImmersive() {
         this.session = null;
-
         const renderer = this._getRenderer();
         if (!renderer) return;
-
         renderer.xr.enabled = false;
+        // Clear the animation loop so Three.js stops calling it
+        renderer.setAnimationLoop(null);
     }
     async _createImmersive() {
         if (!('xr' in navigator)) return false;
@@ -351,23 +351,26 @@ class Jg3DVrBlocks {
             this._disposeImmersive();
         });
     
-        // Set up the render loop
-        const drawFrame = (_, frame) => {
-            if (!this.open) return;
+        // Request a reference space (store it so we can use it for the poses)
+        session.requestReferenceSpace("local").then(space => {
+            this.localSpace = space;
+        });
     
+        // Use Three.js's setAnimationLoop to drive the render loop
+        renderer.setAnimationLoop((time, frame) => {
+            if (!this.open) return;
             const threed = this._3d;
             if (!threed.camera || !threed.scene) return;
     
             // Render the scene
             renderer.render(threed.scene, threed.camera);
     
+            // Update controller poses if possible
             if (this.localSpace && frame) {
-                // Initialize the controller poses container as an object (keyed by controller index)
                 this.controllerPoses = {};
                 const sources = session.inputSources;
                 for (let i = 0; i < sources.length; i++) {
                     const inputSource = sources[i];
-                    // Get the pose using the targetRaySpace (alternatively, you might use getControllerGrip if available)
                     const pose = frame.getPose(inputSource.targetRaySpace, this.localSpace);
                     if (pose) {
                         this.controllerPoses[i] = {
@@ -377,21 +380,11 @@ class Jg3DVrBlocks {
                     }
                 }
             }
-            // Loop again
-            session.requestAnimationFrame(drawFrame);
-        };
-    
-        session.requestAnimationFrame(drawFrame);
-    
-        // Request a reference space (store it so we can use it for the poses)
-        session.requestReferenceSpace("local").then(space => {
-            this.localSpace = space;
         });
     
         return session;
     }
     
-
     // blocks
     isSupported() {
         if (!('xr' in navigator)) return false;
@@ -456,7 +449,6 @@ class Jg3DVrBlocks {
         controller.getWorldPosition(position);
         return Cast.toNumber(position[v]);
     }
-    
     
     getControllerRotation(args) {
         if (!this._3d || !this._3d.scene) return "";
