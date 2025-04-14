@@ -56,6 +56,7 @@ class ColorType {
     static toColor(x) {
         if (x instanceof ColorType) return x
         if (Number(x) == x) return ColorType.fromDecimal(x)
+        if (typeof x == 'string') return ColorType.fromHex(x)
         return new ColorType()
     }
 
