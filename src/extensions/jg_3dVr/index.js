@@ -572,5 +572,6 @@ class Jg3DVrBlocks {
         }
         return false;
     }
+}
 
 module.exports = Jg3DVrBlocks;
