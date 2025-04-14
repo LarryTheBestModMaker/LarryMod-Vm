@@ -193,6 +193,7 @@ class Extension {
                     opcode: 'getVar',
                     text: 'var [NAME] of [TARGET]',
                     blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
                     arguments: {
                         TARGET: Target.Argument,
                         NAME: {
