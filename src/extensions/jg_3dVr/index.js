@@ -436,10 +436,13 @@ class Jg3DVrBlocks {
         const controller = this._getController(index);
         if (!controller) return "";
         const v = args.VECTOR3;
-        if (!v) return "";
-        if (!["x", "y", "z"].includes(v)) return "";
-        return Cast.toNumber(controller.position[v]);
-    }
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+      
+        // Create a new vector and update it with the controller's world position
+        const position = new three.three.Vector3();
+        controller.getWorldPosition(position);
+        return Cast.toNumber(position[v]);
+    }    
     getControllerRotation(args) {
         const three = this._3d;
         if (!three.scene) return "";
@@ -449,19 +452,19 @@ class Jg3DVrBlocks {
         const controller = this._getController(index);
         if (!controller) return "";
         const v = args.VECTOR3;
-        if (!v) return "";
-        if (!["x", "y", "z"].includes(v)) return "";
-
-        // rotation is funky
-        // lets make it match the 3D extensions handling of rotation
-        // YXZ tells it to rotate Y first, then X, then Z
-        const euler = new three.three.Euler(0, 0, 0);
-        euler.setFromQuaternion(controller.quaternion, 'YXZ');
-        const rotation = Cast.toNumber(euler[v]);
-        // rotation is in radians, convert to degrees but round it
-        // a bit so that we get 46 instead of 45.999999999999996
-        return toDegRounding(rotation);
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+      
+        // Create a quaternion and update it with the controller's world quaternion
+        const quaternion = new three.three.Quaternion();
+        controller.getWorldQuaternion(quaternion);
+      
+        // Convert the quaternion into Euler angles using the YXZ order
+        const euler = new three.three.Euler(0, 0, 0, 'YXZ');
+        euler.setFromQuaternion(quaternion, 'YXZ');
+        // Convert the rotation from radians to degrees (and round it slightly)
+        return toDegRounding(euler[v]);
     }
+    
 
     // inputs but like actual
     getControllerSide(args) {
