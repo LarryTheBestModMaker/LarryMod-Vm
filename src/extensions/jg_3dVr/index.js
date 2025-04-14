@@ -448,7 +448,7 @@ class Jg3DVrBlocks {
         const controller = this._getController(index);
         if (!controller) return "";
         controller.updateMatrixWorld(true);
-        const position = new this.three.three.Vector3();
+        const position = new this.three.three.Vector3() || new this.three.Vector3();
         controller.getWorldPosition(position);
         return Cast.toNumber(position[v]);
     }
@@ -464,8 +464,8 @@ class Jg3DVrBlocks {
         if (this.controllerPoses && this.controllerPoses[index]) {
             const o = this.controllerPoses[index].orientation;
             // Create a quaternion from the stored values
-            const quaternion = new this.three.three.Quaternion(o.x, o.y, o.z, o.w);
-            const euler = new this.three.three.Euler(0, 0, 0, 'YXZ');
+            const quaternion = new this.three.three.Quaternion(o.x, o.y, o.z, o.w) || new this.three.Quaternion(o.x, o.y, o.z, o.w);
+            const euler = new this.three.three.Euler(0, 0, 0, 'YXZ') || new this.three.Euler(0, 0, 0, 'YXZ');
             euler.setFromQuaternion(quaternion, 'YXZ');
             return toDegRounding(euler[v]);
         }
@@ -475,9 +475,9 @@ class Jg3DVrBlocks {
         const controller = this._getController(index);
         if (!controller) return "";
         controller.updateMatrixWorld(true);
-        const quaternion = new this.three.three.Quaternion();
+        const quaternion = new this.three.three.Quaternion() || new this.three.Quaternion();
         controller.getWorldQuaternion(quaternion);
-        const euler = new this.three.three.Euler(0, 0, 0, 'YXZ');
+        const euler = new this.three.three.Euler(0, 0, 0, 'YXZ') || new this.three.Euler(0, 0, 0, 'YXZ');
         euler.setFromQuaternion(quaternion, 'YXZ');
         return toDegRounding(euler[v]);
     }
