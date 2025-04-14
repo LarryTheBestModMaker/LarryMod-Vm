@@ -336,58 +336,61 @@ class Jg3DVrBlocks {
         if (!('xr' in navigator)) return false;
         const renderer = this._getRenderer();
         if (!renderer) return false;
-
+    
         const sessionInit = { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] };
         const session = await navigator.xr.requestSession(SESSION_TYPE, sessionInit);
         this.session = session;
         this.open = true;
-
-        // enable xr on three.js
+    
         renderer.xr.enabled = true;
         await renderer.xr.setSession(session);
-
-        // we need to make sure stuff is back to normal once the vr session is done
-        // but this isnt always triggered by the close session block
-        // the user can also close it themselves, so we need to handle that
-        // this is also triggered by the close session block btw so we dont need
-        // to repeat
+    
+        // When session ends, reset state
         session.addEventListener("end", () => {
             this.open = false;
             this._disposeImmersive();
         });
-
-        // setup render loop
+    
+        // Set up the render loop
         const drawFrame = (_, frame) => {
-            // breaks the loop once the session has ended
             if (!this.open) return;
-
+    
             const threed = this._3d;
-            // break loop if no camera or scene
-            if (!threed.camera) return;
-            if (!threed.scene) return;
-
-            // force renderer to draw a new frame
-            // otherwise we would only actually draw outside of this loop
-            // which just ends up showing nothing
-            // since rendering only happens in session.requestAnimationFrame
-            // we also dont give blocks for rendering
-            // because it would be too slow compared to just rendering
-            // every animation frame
+            if (!threed.camera || !threed.scene) return;
+    
+            // Render the scene
             renderer.render(threed.scene, threed.camera);
-            // loop again
+    
+            if (this.localSpace && frame) {
+                // Initialize the controller poses container as an object (keyed by controller index)
+                this.controllerPoses = {};
+                const sources = session.inputSources;
+                for (let i = 0; i < sources.length; i++) {
+                    const inputSource = sources[i];
+                    // Get the pose using the targetRaySpace (alternatively, you might use getControllerGrip if available)
+                    const pose = frame.getPose(inputSource.targetRaySpace, this.localSpace);
+                    if (pose) {
+                        this.controllerPoses[i] = {
+                            position: pose.transform.position,   // {x, y, z}
+                            orientation: pose.transform.orientation  // {x, y, z, w}
+                        };
+                    }
+                }
+            }
+            // Loop again
             session.requestAnimationFrame(drawFrame);
-        }
+        };
+    
         session.requestAnimationFrame(drawFrame);
-
-        // reference space
+    
+        // Request a reference space (store it so we can use it for the poses)
         session.requestReferenceSpace("local").then(space => {
             this.localSpace = space;
-            // TODO: add "when position reset" hat?
-            //     done with space.addEventListener("reset")
         });
-
+    
         return session;
     }
+    
 
     // blocks
     isSupported() {
@@ -428,42 +431,57 @@ class Jg3DVrBlocks {
 
     // inputs
     getControllerPosition(args) {
-        const three = this._3d;
-        if (!three.scene) return "";
+        if (!this._3d || !this._3d.scene) return "";
+        
         const index = Cast.toNumber(args.INDEX) - 1;
+        const v = args.VECTOR3;
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+    
+        // Check if we have stored pose info from the render loop
+        if (this.controllerPoses && this.controllerPoses[index]) {
+            return Cast.toNumber(this.controllerPoses[index].position[v]);
+        }
+        
+        // Fallback: attempt using the controller object (may be stale in XR)
         const renderer = this._getRenderer();
         if (!renderer) return "";
         const controller = this._getController(index);
         if (!controller) return "";
-        const v = args.VECTOR3;
-        if (!v || !["x", "y", "z"].includes(v)) return "";
-      
-        // Create a new vector and update it with the controller's world position
-        const position = new three.three.Vector3();
+        controller.updateMatrixWorld(true);
+        const position = new this.three.three.Vector3();
         controller.getWorldPosition(position);
         return Cast.toNumber(position[v]);
-    }    
+    }
+    
     getControllerRotation(args) {
-        const three = this._3d;
-        if (!three.scene) return "";
+        if (!this._3d || !this._3d.scene) return "";
+        
         const index = Cast.toNumber(args.INDEX) - 1;
+        const v = args.VECTOR3;
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+    
+        // If we have stored pose info from the render loop:
+        if (this.controllerPoses && this.controllerPoses[index]) {
+            const o = this.controllerPoses[index].orientation;
+            // Create a quaternion from the stored values
+            const quaternion = new this.three.three.Quaternion(o.x, o.y, o.z, o.w);
+            const euler = new this.three.three.Euler(0, 0, 0, 'YXZ');
+            euler.setFromQuaternion(quaternion, 'YXZ');
+            return toDegRounding(euler[v]);
+        }
+        
         const renderer = this._getRenderer();
         if (!renderer) return "";
         const controller = this._getController(index);
         if (!controller) return "";
-        const v = args.VECTOR3;
-        if (!v || !["x", "y", "z"].includes(v)) return "";
-      
-        // Create a quaternion and update it with the controller's world quaternion
-        const quaternion = new three.three.Quaternion();
+        controller.updateMatrixWorld(true);
+        const quaternion = new this.three.three.Quaternion();
         controller.getWorldQuaternion(quaternion);
-      
-        // Convert the quaternion into Euler angles using the YXZ order
-        const euler = new three.three.Euler(0, 0, 0, 'YXZ');
+        const euler = new this.three.three.Euler(0, 0, 0, 'YXZ');
         euler.setFromQuaternion(quaternion, 'YXZ');
-        // Convert the rotation from radians to degrees (and round it slightly)
         return toDegRounding(euler[v]);
     }
+    
     
 
     // inputs but like actual
