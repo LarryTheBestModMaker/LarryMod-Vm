@@ -437,21 +437,26 @@ class Jg3DVrBlocks {
         const v = args.VECTOR3;
         if (!v || !["x", "y", "z"].includes(v)) return "";
     
-        // Check if we have stored pose info from the render loop
+        // If stored pose info is available, use it
         if (this.controllerPoses && this.controllerPoses[index]) {
             return Cast.toNumber(this.controllerPoses[index].position[v]);
         }
         
-        // Fallback: attempt using the controller object (may be stale in XR)
         const renderer = this._getRenderer();
         if (!renderer) return "";
         const controller = this._getController(index);
         if (!controller) return "";
         controller.updateMatrixWorld(true);
-        const position = new this.three.three.Vector3() || new this.three.Vector3();
+    
+        // Use fallback logic with a conditional check
+        const Vector3 = (this.three && this.three.three && this.three.three.Vector3)
+            ? this.three.three.Vector3
+            : this.three.Vector3;
+        const position = new Vector3();
         controller.getWorldPosition(position);
         return Cast.toNumber(position[v]);
     }
+    
     
     getControllerRotation(args) {
         if (!this._3d || !this._3d.scene) return "";
@@ -460,12 +465,21 @@ class Jg3DVrBlocks {
         const v = args.VECTOR3;
         if (!v || !["x", "y", "z"].includes(v)) return "";
     
-        // If we have stored pose info from the render loop:
+        // If stored pose info is available, use it
         if (this.controllerPoses && this.controllerPoses[index]) {
             const o = this.controllerPoses[index].orientation;
-            // Create a quaternion from the stored values
-            const quaternion = new this.three.three.Quaternion(o.x, o.y, o.z, o.w) || new this.three.Quaternion(o.x, o.y, o.z, o.w);
-            const euler = new this.three.three.Euler(0, 0, 0, 'YXZ') || new this.three.Euler(0, 0, 0, 'YXZ');
+            
+            // Set up Quaternion with fallback
+            const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
+                ? this.three.three.Quaternion
+                : this.three.Quaternion;
+            const quaternion = new Quaternion(o.x, o.y, o.z, o.w);
+    
+            // Set up Euler with fallback
+            const Euler = (this.three && this.three.three && this.three.three.Euler)
+                ? this.three.three.Euler
+                : this.three.Euler;
+            const euler = new Euler(0, 0, 0, 'YXZ');
             euler.setFromQuaternion(quaternion, 'YXZ');
             return toDegRounding(euler[v]);
         }
@@ -475,15 +489,21 @@ class Jg3DVrBlocks {
         const controller = this._getController(index);
         if (!controller) return "";
         controller.updateMatrixWorld(true);
-        const quaternion = new this.three.three.Quaternion() || new this.three.Quaternion();
+    
+        // Use fallback logic for Quaternion and Euler similarly
+        const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
+            ? this.three.three.Quaternion
+            : this.three.Quaternion;
+        const quaternion = new Quaternion();
         controller.getWorldQuaternion(quaternion);
-        const euler = new this.three.three.Euler(0, 0, 0, 'YXZ') || new this.three.Euler(0, 0, 0, 'YXZ');
+        
+        const Euler = (this.three && this.three.three && this.three.three.Euler)
+            ? this.three.three.Euler
+            : this.three.Euler;
+        const euler = new Euler(0, 0, 0, 'YXZ');
         euler.setFromQuaternion(quaternion, 'YXZ');
         return toDegRounding(euler[v]);
     }
-    
-    
-
     // inputs but like actual
     getControllerSide(args) {
         const three = this._3d;
