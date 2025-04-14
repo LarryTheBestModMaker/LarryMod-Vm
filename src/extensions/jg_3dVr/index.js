@@ -18,9 +18,7 @@ function quaternionToEuler(quat) {
     const Ry = Math.asin(2 * (q0 * q2 - q3 * q1));
     const Rz = Math.atan2(2 * (q0 * q3 + q1 * q2), 1 - (2 * (q2 * q2 + q3 * q3)));
 
-    const euler = [Rx, Ry, Rz];
-
-    return euler;
+    return [Rx, Ry, Rz];
 };
 
 function toRad(deg) {
@@ -48,8 +46,11 @@ class Jg3DVrBlocks {
          */
         this.runtime = runtime;
         this.open = false;
-        this._3d = {}
-        this.three = {}
+        this._3d = {};
+        this.three = {};
+        // We'll store a wake lock reference here:
+        this.wakeLock = null;
+        
         if (!this.runtime.ext_jg3d) {
             vm.extensionManager.loadExtensionURL('jg3d')
                 .then(() => {
@@ -324,6 +325,7 @@ class Jg3DVrBlocks {
         const sources = session.inputSources;
         return sources[index] || null;
     }
+    
     _disposeImmersive() {
         this.session = null;
         const renderer = this._getRenderer();
@@ -332,12 +334,37 @@ class Jg3DVrBlocks {
         // Clear the animation loop so Three.js stops calling it
         renderer.setAnimationLoop(null);
     }
+
+    async _requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                // Request a screen wake lock to prevent idling
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                this.wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock was released');
+                });
+                console.log('Wake Lock is active');
+            } catch (err) {
+                console.error('Failed to acquire wake lock:', err);
+            }
+        }
+    }
+    
+    _releaseWakeLock() {
+        if (this.wakeLock) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+        }
+    }
+    
     async _createImmersive() {
         if (!('xr' in navigator)) return false;
         const renderer = this._getRenderer();
         if (!renderer) return false;
     
-        const sessionInit = { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] };
+        const sessionInit = { 
+            optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] 
+        };
         const session = await navigator.xr.requestSession(SESSION_TYPE, sessionInit);
         this.session = session;
         this.open = true;
@@ -345,10 +372,14 @@ class Jg3DVrBlocks {
         renderer.xr.enabled = true;
         await renderer.xr.setSession(session);
     
-        // When session ends, reset state
+        // Request the wake lock so that the session keeps updating even when idle
+        await this._requestWakeLock();
+    
+        // When session ends, reset state and release wake lock.
         session.addEventListener("end", () => {
             this.open = false;
             this._disposeImmersive();
+            this._releaseWakeLock();
         });
     
         // Request a reference space (store it so we can use it for the poses)
@@ -365,7 +396,7 @@ class Jg3DVrBlocks {
             // Render the scene
             renderer.render(threed.scene, threed.camera);
     
-            // Update controller poses if possible
+            // Update controller poses if available
             if (this.localSpace && frame) {
                 this.controllerPoses = {};
                 const sources = session.inputSources;
@@ -405,7 +436,7 @@ class Jg3DVrBlocks {
         return this.session.end();
     }
 
-    // extra
+    // extra: attach/detach camera to/from an object in the scene
     attachObject(args) {
         const three = this._3d;
         if (!three.scene) return;
@@ -422,7 +453,7 @@ class Jg3DVrBlocks {
         three.scene.add(three.camera);
     }
 
-    // inputs
+    // Controller input blocks follow
     getControllerPosition(args) {
         if (!this._3d || !this._3d.scene) return "";
         
@@ -430,7 +461,7 @@ class Jg3DVrBlocks {
         const v = args.VECTOR3;
         if (!v || !["x", "y", "z"].includes(v)) return "";
     
-        // If stored pose info is available, use it
+        // Use stored pose information if available
         if (this.controllerPoses && this.controllerPoses[index]) {
             return Cast.toNumber(this.controllerPoses[index].position[v]);
         }
@@ -441,7 +472,7 @@ class Jg3DVrBlocks {
         if (!controller) return "";
         controller.updateMatrixWorld(true);
     
-        // Use fallback logic with a conditional check
+        // Fallback: get world position via Three.js
         const Vector3 = (this.three && this.three.three && this.three.three.Vector3)
             ? this.three.three.Vector3
             : this.three.Vector3;
@@ -457,17 +488,15 @@ class Jg3DVrBlocks {
         const v = args.VECTOR3;
         if (!v || !["x", "y", "z"].includes(v)) return "";
     
-        // If stored pose info is available, use it
+        // Use stored orientation if available
         if (this.controllerPoses && this.controllerPoses[index]) {
             const o = this.controllerPoses[index].orientation;
-            
-            // Set up Quaternion with fallback
+    
             const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
                 ? this.three.three.Quaternion
                 : this.three.Quaternion;
             const quaternion = new Quaternion(o.x, o.y, o.z, o.w);
     
-            // Set up Euler with fallback
             const Euler = (this.three && this.three.three && this.three.three.Euler)
                 ? this.three.three.Euler
                 : this.three.Euler;
@@ -482,7 +511,6 @@ class Jg3DVrBlocks {
         if (!controller) return "";
         controller.updateMatrixWorld(true);
     
-        // Use fallback logic for Quaternion and Euler similarly
         const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
             ? this.three.three.Quaternion
             : this.three.Quaternion;
@@ -496,7 +524,7 @@ class Jg3DVrBlocks {
         euler.setFromQuaternion(quaternion, 'YXZ');
         return toDegRounding(euler[v]);
     }
-    // inputs but like actual
+    
     getControllerSide(args) {
         const three = this._3d;
         if (!three.scene) return "";
@@ -515,7 +543,7 @@ class Jg3DVrBlocks {
     getControllerStick(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return 0;
-        // index gained by testing
+        // For 'y', use axis index 3, otherwise default to index 2.
         if (Cast.toString(args.XY) === "y") {
             return gamepad.axes[3];
         } else {
@@ -525,8 +553,6 @@ class Jg3DVrBlocks {
     getControllerTrig(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return 0;
-        // Using a similar idea: if "side" is selected for trigger, use button[1],
-        // otherwise default to button[0]
         if (Cast.toString(args.TRIGGER) === "side") {
             return gamepad.buttons[1] ? gamepad.buttons[1].value : 0;
         } else {
@@ -536,7 +562,6 @@ class Jg3DVrBlocks {
     getControllerButton(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return false;
-        // determine controller handedness; default to right if unknown
         const inputSource = this._getInputSource(Cast.toNumber(args.INDEX) - 1);
         let handedness = 'right';
         if (inputSource && inputSource.handedness) {
@@ -544,7 +569,6 @@ class Jg3DVrBlocks {
         }
 
         const button = Cast.toString(args.BUTTON).toLowerCase();
-        // for Oculus Touch as an example: right controller uses "a"/"b", left uses "x"/"y"
         if (handedness === 'right') {
             switch (button) {
                 case 'a':
