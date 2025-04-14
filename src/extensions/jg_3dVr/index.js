@@ -309,7 +309,21 @@ class Jg3DVrBlocks {
         const gamepad = controller.gamepad;
         return gamepad;
     }
-
+    _getController(index) {
+        const renderer = this._getRenderer();
+        if (!renderer) return null;
+        // try to use grip first (which typically has position/quaternion)
+        const grip = renderer.xr.getControllerGrip(index);
+        return grip || renderer.xr.getController(index);
+    }
+    _getInputSource(index) {
+        const renderer = this._getRenderer();
+        if (!renderer) return null;
+        const session = renderer.xr.getSession();
+        if (!session) return null;
+        const sources = session.inputSources;
+        return sources[index] || null;
+    }
     _disposeImmersive() {
         this.session = null;
 
@@ -419,7 +433,7 @@ class Jg3DVrBlocks {
         const index = Cast.toNumber(args.INDEX) - 1;
         const renderer = this._getRenderer();
         if (!renderer) return "";
-        const controller = renderer.xr.getController(index);
+        const controller = this._getController(index);
         if (!controller) return "";
         const v = args.VECTOR3;
         if (!v) return "";
@@ -432,7 +446,7 @@ class Jg3DVrBlocks {
         const index = Cast.toNumber(args.INDEX) - 1;
         const renderer = this._getRenderer();
         if (!renderer) return "";
-        const controller = renderer.xr.getController(index);
+        const controller = this._getController(index);
         if (!controller) return "";
         const v = args.VECTOR3;
         if (!v) return "";
@@ -478,55 +492,85 @@ class Jg3DVrBlocks {
     getControllerTrig(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return 0;
-        // index gained by testing
+        // Using a similar idea: if "side" is selected for trigger, use button[1],
+        // otherwise default to button[0]
         if (Cast.toString(args.TRIGGER) === "side") {
-            return gamepad.buttons[1].value;
+            return gamepad.buttons[1] ? gamepad.buttons[1].value : 0;
         } else {
-            return gamepad.buttons[0].value;
+            return gamepad.buttons[0] ? gamepad.buttons[0].value : 0;
         }
     }
     getControllerButton(args) {
         const gamepad = this._getGamepad(args.INDEX);
-        if (!gamepad) return 0;
-        const button = Cast.toString(args.BUTTON);
-        switch (button) {
-            // index gained by testing
-            case 'a':
-                return gamepad.buttons[4].pressed;
-            case 'b':
-                return gamepad.buttons[5].pressed;
-            case 'x':
-                return gamepad.buttons[4].pressed;
-            case 'y':
-                return gamepad.buttons[5].pressed;
-            case 'joystick':
-                return gamepad.buttons[3].pressed;
+        if (!gamepad) return false;
+        // determine controller handedness; default to right if unknown
+        const inputSource = this._getInputSource(Cast.toNumber(args.INDEX) - 1);
+        let handedness = 'right';
+        if (inputSource && inputSource.handedness) {
+            handedness = inputSource.handedness;
+        }
+
+        const button = Cast.toString(args.BUTTON).toLowerCase();
+        // for Oculus Touch as an example: right controller uses "a"/"b", left uses "x"/"y"
+        if (handedness === 'right') {
+            switch (button) {
+                case 'a':
+                    return gamepad.buttons[4] && gamepad.buttons[4].pressed;
+                case 'b':
+                    return gamepad.buttons[5] && gamepad.buttons[5].pressed;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].pressed;
+            }
+        } else if (handedness === 'left') {
+            switch (button) {
+                case 'x':
+                    return gamepad.buttons[4] && gamepad.buttons[4].pressed;
+                case 'y':
+                    return gamepad.buttons[5] && gamepad.buttons[5].pressed;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].pressed;
+            }
         }
         return false;
     }
     getControllerTouching(args) {
         const gamepad = this._getGamepad(args.INDEX);
-        if (!gamepad) return 0;
-        const button = Cast.toString(args.BUTTON);
-        switch (button) {
-            // index gained by testing
-            case 'a button':
-                return gamepad.buttons[4].touched;
-            case 'b button':
-                return gamepad.buttons[5].touched;
-            case 'x button':
-                return gamepad.buttons[4].touched;
-            case 'y button':
-                return gamepad.buttons[5].touched;
-            case 'joystick':
-                return gamepad.buttons[3].touched;
-            case 'back trigger':
-                return gamepad.buttons[0].touched;
-            case 'side trigger':
-                return gamepad.buttons[1].touched;
+        if (!gamepad) return false;
+        const inputSource = this._getInputSource(Cast.toNumber(args.INDEX) - 1);
+        let handedness = 'right';
+        if (inputSource && inputSource.handedness) {
+            handedness = inputSource.handedness;
+        }
+
+        const button = Cast.toString(args.BUTTON).toLowerCase();
+        if (handedness === 'right') {
+            switch (button) {
+                case 'a button':
+                    return gamepad.buttons[4] && gamepad.buttons[4].touched;
+                case 'b button':
+                    return gamepad.buttons[5] && gamepad.buttons[5].touched;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].touched;
+                case 'back trigger':
+                    return gamepad.buttons[0] && gamepad.buttons[0].touched;
+                case 'side trigger':
+                    return gamepad.buttons[1] && gamepad.buttons[1].touched;
+            }
+        } else if (handedness === 'left') {
+            switch (button) {
+                case 'x button':
+                    return gamepad.buttons[4] && gamepad.buttons[4].touched;
+                case 'y button':
+                    return gamepad.buttons[5] && gamepad.buttons[5].touched;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].touched;
+                case 'back trigger':
+                    return gamepad.buttons[0] && gamepad.buttons[0].touched;
+                case 'side trigger':
+                    return gamepad.buttons[1] && gamepad.buttons[1].touched;
+            }
         }
         return false;
     }
-}
 
 module.exports = Jg3DVrBlocks;
