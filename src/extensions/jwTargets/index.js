@@ -406,6 +406,8 @@ class Extension {
         A = Target.Type.toTarget(A)
         B = Target.Type.toTarget(B)
 
+        if (!A.target) return
+
         return A.target.isTouchingTarget(B.targetId)
     }
 
