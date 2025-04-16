@@ -911,7 +911,7 @@ class Scratch3PenBlocks {
                     opcode: 'setPrintFontStrokeWidth',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontSize',
+                        id: 'pen.setPrintFontStrokeSize',
                         default: 'set print stroke width to [WIDTH]',
                         description: 'set print stroke width'
                     }),
