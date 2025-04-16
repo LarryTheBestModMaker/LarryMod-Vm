@@ -1137,8 +1137,8 @@ class Scratch3PenBlocks {
         ctx.lineWidth = this.printTextAttribute.strokeWidth;
         ctx.fillStyle = this.printTextAttribute.color;
 
+        if (this.printTextAttribute.strokeWidth > 0) ctx.strokeText(args.TEXT, args.X, -args.Y);
         ctx.fillText(args.TEXT, args.X, -args.Y);
-        if (this.printTextAttribute.strokeWidth > 0) ctx.strokeText(args.TEXT, args.X, -args.Y)
 
         this._drawContextToPen(ctx);
     }
