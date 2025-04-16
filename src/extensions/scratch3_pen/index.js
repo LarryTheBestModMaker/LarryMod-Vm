@@ -911,7 +911,7 @@ class Scratch3PenBlocks {
                     opcode: 'setPrintFontStrokeWidth',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
-                        id: 'pen.setPrintFontStrokeSize',
+                        id: 'pen.setPrintFontStrokeWidth',
                         default: 'set print stroke width to [WIDTH]',
                         description: 'set print stroke width'
                     }),
@@ -1133,12 +1133,12 @@ class Scratch3PenBlocks {
         resultFont += this.printTextAttribute.font;
         ctx.font = resultFont;
 
-        ctx.strokeStyle = this.printTextAttribute.strokeColor;
+        ctx.strokeStyle = this.printTextAttribute.strokeWidth > 0 ? this.printTextAttribute.strokeColor : this.printTextAttribute.color;
         ctx.lineWidth = this.printTextAttribute.strokeWidth;
         ctx.fillStyle = this.printTextAttribute.color;
 
         ctx.fillText(args.TEXT, args.X, -args.Y);
-        if (ctx.lineWidth > 0) ctx.strokeText(args.TEXT, args.X, -args.Y)
+        if (this.printTextAttribute.strokeWidth > 0) ctx.strokeText(args.TEXT, args.X, -args.Y)
 
         this._drawContextToPen(ctx);
     }
