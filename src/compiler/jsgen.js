@@ -849,6 +849,8 @@ class JSGenerator {
             return new TypedInput(`runtime.ext_scratch3_operators._random(${this.descendInput(node.low).asUnknown()}, ${this.descendInput(node.high).asUnknown()})`, TYPE_NUMBER_NAN);
         case 'op.round':
             return new TypedInput(`Math.round(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
+        case 'op.sign':
+            return new TypedInput(`Math.sign(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
         case 'op.sin':
             // pm: optimizations allow us to use a premade list for sin values on integers
             if (this.isOptimized) {
