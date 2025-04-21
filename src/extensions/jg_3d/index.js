@@ -165,11 +165,11 @@ class Jg3DBlocks {
         // _backgroundColor4f[3] controls opacity
         let lastOpacity = this.runtime.renderer._backgroundColor4f[3];
         if (this.sceneLayer === 'front') {
-            this.runtime.renderer._backgroundColor4f[3] = 1;
             this.runtime.renderer.setBackgroundColor(
                 this.lastStageColor[0],
                 this.lastStageColor[1],
-                this.lastStageColor[2]
+                this.lastStageColor[2],
+                1
             );
         }
         if (this.sceneLayer === 'back') {
@@ -182,8 +182,7 @@ class Jg3DBlocks {
                 console.log("updated stage color");
                 this.lastStageColor = this.runtime.renderer._backgroundColor4f;
             }
-            this.runtime.renderer._backgroundColor4f[3] = 0;
-            this.runtime.renderer.setBackgroundColor(0, 0, 0);
+            this.runtime.renderer.setBackgroundColor(0, 0, 0, 0);
         }
         // update if changed
         if (lastOpacity !== this.runtime.renderer._backgroundColor4f[3]) {
