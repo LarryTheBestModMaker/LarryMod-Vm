@@ -849,7 +849,7 @@ class JgRuntimeBlocks {
     maxAmountOfClones() { return this.runtime.runtimeOptions.maxClones }
     setBackgroundColor(args) {
         let RGB;
-        if (typeof args.COLOR === "string") {
+        if (typeof args.COLOR === "number") {
             RGB = Cast.toRgbColorObject(args.COLOR);
             this.runtime.renderer.setBackgroundColor(RGB.r / 255, RGB.g / 255, RGB.b / 255);
         } else {
