@@ -848,8 +848,20 @@ class JgRuntimeBlocks {
     }
     maxAmountOfClones() { return this.runtime.runtimeOptions.maxClones }
     setBackgroundColor(args) {
-        const RGB = Cast.toRgbColorObject(args.COLOR);
-        this.runtime.renderer.setBackgroundColor(RGB.r / 255, RGB.g / 255, RGB.b / 255);
+        let RGB;
+        if (typeof args.COLOR === "string") {
+            RGB = Cast.toRgbColorObject(args.COLOR);
+            this.runtime.renderer.setBackgroundColor(RGB.r / 255, RGB.g / 255, RGB.b / 255);
+        } else {
+            RGB = Cast.toString(args.COLOR);
+            RGB = RGB.startsWith("#") ? RGB.slice(1) : RGB;
+            this.runtime.renderer.setBackgroundColor(
+                parseInt(RGB.slice(0, 2), 16) / 255,
+                parseInt(RGB.slice(2, 4), 16) / 255,
+                parseInt(RGB.slice(4, 6), 16) / 255,
+                RGB.length === 8 ? parseInt(RGB.slice(6, 8), 16) / 255 : 1
+            )
+        }
     }
     getBackgroundColor() {
         const colorArray = this.runtime.renderer._backgroundColor3b;
