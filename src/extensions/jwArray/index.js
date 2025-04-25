@@ -364,7 +364,7 @@ class Extension {
     index({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array.indexOf(VALUE)
+        return ARRAY.array.indexOf(VALUE) + 1
     }
 
     has({ARRAY, VALUE}) {
