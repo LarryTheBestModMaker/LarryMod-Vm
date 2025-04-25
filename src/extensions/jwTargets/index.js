@@ -244,7 +244,7 @@ class Extension {
                     text: 'targets touching [TARGET]',
                     arguments: {
                         TARGET: Target.Argument
-                    }
+                    },
                     ...jwArray.Block
                 },
                 {
@@ -252,7 +252,7 @@ class Extension {
                     text: 'clones of [TARGET]',
                     arguments: {
                         TARGET: Target.Argument
-                    }
+                    },
                     ...jwArray.Block
                 },
                 {
