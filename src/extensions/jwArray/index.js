@@ -200,6 +200,19 @@ class Extension {
                     }
                 },
                 {
+                    opcode: 'index',
+                    text: 'index of [VALUE] in [ARRAY]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo",
+                            exemptFromNormalization: true
+                        }
+                    }
+                },
+                {
                     opcode: 'has',
                     text: '[ARRAY] has [VALUE]',
                     blockType: BlockType.BOOLEAN,
@@ -346,6 +359,12 @@ class Extension {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
         return ARRAY.array[Cast.toNumber(INDEX)-1] || ""
+    }
+
+    index({ARRAY, VALUE}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        return ARRAY.array.indexOf(VALUE)
     }
 
     has({ARRAY, VALUE}) {
