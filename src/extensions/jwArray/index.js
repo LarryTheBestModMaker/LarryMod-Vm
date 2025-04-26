@@ -21,7 +21,7 @@ function formatNumber(x) {
 }
 
 function clampIndex(x) {
-    return Math.min(Math.max(x, 1), arrayLimit)
+    return Math.min(Math.max(x, 0), arrayLimit)
 }
 
 function span(text) {
@@ -429,7 +429,7 @@ class Extension {
         ARRAY = jwArray.Type.toArray(ARRAY)
         INDEX = Cast.toNumber(INDEX)
 
-        ARRAY.array[clampIndex(Cast.toNumber(INDEX))-1] = jwArray.Type.forArray(VALUE)
+        ARRAY.array[clampIndex(Cast.toNumber(INDEX)-1)] = jwArray.Type.forArray(VALUE)
         return ARRAY
     }
 
