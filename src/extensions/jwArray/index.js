@@ -438,7 +438,7 @@ class Extension {
         INDEX = Cast.toNumber(INDEX)
         ITEMS = Cast.toNumber(ITEMS)
 
-        ARRAY.array.splice(INDEX + 1, ITEMS)
+        ARRAY.array.splice(INDEX - 1, ITEMS)
         return ARRAY
     }
 
