@@ -196,7 +196,7 @@ class Extension {
                         DIVIDER: {
                             type: ArgumentType.STRING
                         }
-                    }
+                    },
                     ...jwArray.Block
                 },
                 "---",
