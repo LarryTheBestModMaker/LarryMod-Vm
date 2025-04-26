@@ -44,8 +44,8 @@ class ArrayType {
     }
 
     static toArray(x) {
-        if (x instanceof ArrayType) return new ArrayType(x.array)
-        if (x instanceof Array) return new ArrayType(x)
+        if (x instanceof ArrayType) return new ArrayType([...x.array])
+        if (x instanceof Array) return new ArrayType([...x])
         if (x === "" || x === null || x === undefined) return new ArrayType()
         try {
             let parsed = JSON.parse(x)
@@ -55,7 +55,7 @@ class ArrayType {
     }
 
     static forArray(x) {
-        if (x instanceof ArrayType) return new ArrayType(x.array)
+        if (x instanceof ArrayType) return new ArrayType([...x.array])
         return x
     }
 
@@ -285,6 +285,31 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'splice',
+                    text: 'splice [ARRAY] at [INDEX] with [ITEMS] items',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        ITEMS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    },
+                    ...jwArray.Block
+                },
+                "---",
+                {
+                    opcode: 'reverse',
+                    text: 'reverse [ARRAY]',
+                    arguments: {
+                        ARRAY: jwArray.Argument
+                    },
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'forEachI',
@@ -381,6 +406,7 @@ class Extension {
 
     set({ARRAY, INDEX, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
+        INDEX = Cast.toNumber(INDEX)
 
         ARRAY.array[clampIndex(Cast.toNumber(INDEX))-1] = jwArray.Type.forArray(VALUE)
         return ARRAY
@@ -404,6 +430,22 @@ class Extension {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
         ARRAY.array.fill(jwArray.Type.forArray(VALUE))
+        return ARRAY
+    }
+
+    splice({ARRAY, INDEX, ITEMS}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        INDEX = Cast.toNumber(INDEX)
+        ITEMS = Cast.toNumber(ITEMS)
+
+        ARRAY.array.splice(INDEX + 1, ITEMS)
+        return ARRAY
+    }
+
+    reverse({ARRAY}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        ARRAY.array.reverse()
         return ARRAY
     }
 
