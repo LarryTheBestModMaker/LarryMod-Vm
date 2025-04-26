@@ -137,9 +137,6 @@ class Tween {
          */
         this.runtime = runtime;
     }
-    now() {
-        return this.runtime.currentMSecs;
-    }
     getInfo() {
         return {
             id: "jgTween",
