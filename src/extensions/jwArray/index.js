@@ -185,6 +185,20 @@ class Extension {
                     hideFromPalette: true, //doesn't work for some reason
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'split',
+                    text: 'split [STRING] by [DIVIDER]',
+                    arguments: {
+                        STRING: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo"
+                        },
+                        DIVIDER: {
+                            type: ArgumentType.STRING
+                        }
+                    }
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'get',
@@ -378,6 +392,13 @@ class Extension {
 
     fromList({LIST}) {
         return jwArray.Type.toArray(LIST)
+    }
+
+    split({STRING, DIVIDER}) {
+        STRING = Cast.toString(STRING)
+        DIVIDER = Cast.toString(DIVIDER)
+
+        return new jwArray.Type(STRING.split(DIVIDER))
     }
 
     get({ARRAY, INDEX}) {
