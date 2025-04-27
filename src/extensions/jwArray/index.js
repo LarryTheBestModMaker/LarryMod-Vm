@@ -21,7 +21,7 @@ function formatNumber(x) {
 }
 
 function clampIndex(x) {
-    return Math.min(Math.max(x, 1), arrayLimit)
+    return Math.min(Math.max(x, 0), arrayLimit)
 }
 
 function span(text) {
@@ -44,14 +44,19 @@ class ArrayType {
     }
 
     static toArray(x) {
-        if (x instanceof ArrayType) return new ArrayType(x.array)
-        if (x instanceof Array) return new ArrayType(x)
+        if (x instanceof ArrayType) return new ArrayType([...x.array])
+        if (x instanceof Array) return new ArrayType([...x])
         if (x === "" || x === null || x === undefined) return new ArrayType()
         try {
             let parsed = JSON.parse(x)
             if (parsed instanceof Array) return new ArrayType(parsed)
         } catch {}
         return new ArrayType([x])
+    }
+
+    static forArray(x) {
+        if (x instanceof ArrayType) return new ArrayType([...x.array])
+        return x
     }
 
     static display(x) {
@@ -180,6 +185,20 @@ class Extension {
                     hideFromPalette: true, //doesn't work for some reason
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'split',
+                    text: 'split [STRING] by [DIVIDER]',
+                    arguments: {
+                        STRING: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo"
+                        },
+                        DIVIDER: {
+                            type: ArgumentType.STRING
+                        }
+                    },
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'get',
@@ -191,6 +210,19 @@ class Extension {
                         INDEX: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 1
+                        }
+                    }
+                },
+                {
+                    opcode: 'index',
+                    text: 'index of [VALUE] in [ARRAY]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo",
+                            exemptFromNormalization: true
                         }
                     }
                 },
@@ -267,6 +299,31 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'splice',
+                    text: 'splice [ARRAY] at [INDEX] with [ITEMS] items',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        ITEMS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    },
+                    ...jwArray.Block
+                },
+                "---",
+                {
+                    opcode: 'reverse',
+                    text: 'reverse [ARRAY]',
+                    arguments: {
+                        ARRAY: jwArray.Argument
+                    },
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'forEachI',
@@ -337,10 +394,23 @@ class Extension {
         return jwArray.Type.toArray(LIST)
     }
 
+    split({STRING, DIVIDER}) {
+        STRING = Cast.toString(STRING)
+        DIVIDER = Cast.toString(DIVIDER)
+
+        return new jwArray.Type(STRING.split(DIVIDER))
+    }
+
     get({ARRAY, INDEX}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
         return ARRAY.array[Cast.toNumber(INDEX)-1] || ""
+    }
+
+    index({ARRAY, VALUE}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        return ARRAY.array.indexOf(VALUE) + 1
     }
 
     has({ARRAY, VALUE}) {
@@ -357,15 +427,16 @@ class Extension {
 
     set({ARRAY, INDEX, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
+        INDEX = Cast.toNumber(INDEX)
 
-        ARRAY.array[clampIndex(Cast.toNumber(INDEX))-1] = VALUE
+        ARRAY.array[clampIndex(Cast.toNumber(INDEX)-1)] = jwArray.Type.forArray(VALUE)
         return ARRAY
     }
 
     append({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        ARRAY.array.push(VALUE)
+        ARRAY.array.push(jwArray.Type.forArray(VALUE))
         return ARRAY
     }
 
@@ -379,7 +450,23 @@ class Extension {
     fill({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        ARRAY.array.fill(VALUE)
+        ARRAY.array.fill(jwArray.Type.forArray(VALUE))
+        return ARRAY
+    }
+
+    splice({ARRAY, INDEX, ITEMS}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        INDEX = Cast.toNumber(INDEX)
+        ITEMS = Cast.toNumber(ITEMS)
+
+        ARRAY.array.splice(INDEX - 1, ITEMS)
+        return ARRAY
+    }
+
+    reverse({ARRAY}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        ARRAY.array.reverse()
         return ARRAY
     }
 

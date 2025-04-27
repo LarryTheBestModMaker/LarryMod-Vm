@@ -131,7 +131,9 @@ class Scratch3PenBlocks {
             italic: false,
             size: '28',
             font: 'Arial',
-            color: '#000000'
+            color: '#000000',
+            strokeColor: '#000000',
+            strokeWidth: 0
         };
 
         this._onTargetCreated = this._onTargetCreated.bind(this);
@@ -892,6 +894,35 @@ class Scratch3PenBlocks {
                     }
                 },
                 {
+                    opcode: 'setPrintFontStrokeColor',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontStrokeColor',
+                        default: 'set print stroke color to [COLOR]',
+                        description: 'set print stroke color'
+                    }),
+                    arguments: {
+                        COLOR: {
+                            type: ArgumentType.COLOR
+                        }
+                    }
+                },
+                {
+                    opcode: 'setPrintFontStrokeWidth',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'pen.setPrintFontStrokeWidth',
+                        default: 'set print stroke width to [WIDTH]',
+                        description: 'set print stroke width'
+                    }),
+                    arguments: {
+                        WIDTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
                     opcode: 'setPrintFontWeight',
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
@@ -1078,6 +1109,14 @@ class Scratch3PenBlocks {
         const hex = Color.rgbToHex(rgb);
         this.printTextAttribute.color = hex;
     }
+    setPrintFontStrokeColor (args) {
+        const rgb = Cast.toRgbColorObject(args.COLOR);
+        const hex = Color.rgbToHex(rgb);
+        this.printTextAttribute.strokeColor = hex;
+    }
+    setPrintFontStrokeWidth (args) {
+        this.printTextAttribute.strokeWidth = args.WIDTH;
+    }
     setPrintFontWeight (args) {
         this.printTextAttribute.weight = args.WEIGHT;
     }
@@ -1094,9 +1133,11 @@ class Scratch3PenBlocks {
         resultFont += this.printTextAttribute.font;
         ctx.font = resultFont;
 
-        ctx.strokeStyle = this.printTextAttribute.color;
-        ctx.fillStyle = ctx.strokeStyle;
+        ctx.strokeStyle = this.printTextAttribute.strokeWidth > 0 ? this.printTextAttribute.strokeColor : this.printTextAttribute.color;
+        ctx.lineWidth = this.printTextAttribute.strokeWidth;
+        ctx.fillStyle = this.printTextAttribute.color;
 
+        if (this.printTextAttribute.strokeWidth > 0) ctx.strokeText(args.TEXT, args.X, -args.Y);
         ctx.fillText(args.TEXT, args.X, -args.Y);
 
         this._drawContextToPen(ctx);

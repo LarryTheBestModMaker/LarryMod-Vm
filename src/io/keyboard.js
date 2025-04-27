@@ -27,10 +27,10 @@ const KEY_NAME = {
 };
 
 /**
- * An array of the names of scratch keys.
- * @type {Array<string>}
+ * An set of the names of scratch keys.
+ * @type {Set<string>}
  */
-const KEY_NAME_LIST = Object.keys(KEY_NAME).map(name => KEY_NAME[name]);
+const KEY_NAME_SET = new Set(Object.values(KEY_NAME));
 
 class Keyboard {
     constructor (runtime) {
@@ -140,7 +140,9 @@ class Keyboard {
         keyArg = Cast.toString(keyArg);
 
         // If the arg matches a special key name, return it.
-        if (KEY_NAME_LIST.includes(keyArg)) {
+        // No special keys have a name that is only 1 character long, so we can avoid the lookup
+        // entirely in the most common case.
+        if (keyArg.length > 1 && KEY_NAME_SET.has(keyArg)) {
             return keyArg;
         }
 

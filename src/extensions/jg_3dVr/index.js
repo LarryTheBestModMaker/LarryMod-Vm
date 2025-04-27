@@ -18,9 +18,7 @@ function quaternionToEuler(quat) {
     const Ry = Math.asin(2 * (q0 * q2 - q3 * q1));
     const Rz = Math.atan2(2 * (q0 * q3 + q1 * q2), 1 - (2 * (q2 * q2 + q3 * q3)));
 
-    const euler = [Rx, Ry, Rz];
-
-    return euler;
+    return [Rx, Ry, Rz];
 };
 
 function toRad(deg) {
@@ -39,7 +37,7 @@ function toDegRounding(rad) {
 }
 
 /**
- * Class for 3D VR blokckes
+ * Class for 3D VR blocks
  */
 class Jg3DVrBlocks {
     constructor(runtime) {
@@ -48,8 +46,11 @@ class Jg3DVrBlocks {
          */
         this.runtime = runtime;
         this.open = false;
-        this._3d = {}
-        this.three = {}
+        this._3d = {};
+        this.three = {};
+        // We'll store a wake lock reference here:
+        this.wakeLock = null;
+        
         if (!this.runtime.ext_jg3d) {
             vm.extensionManager.loadExtensionURL('jg3d')
                 .then(() => {
@@ -58,11 +59,11 @@ class Jg3DVrBlocks {
                 });
         } else {
             this._3d = this.runtime.ext_jg3d;
-            this.three = this._3d.three
+            this.three = this._3d.three;
         }
     }
     /**
-     * metadata for this extension and its blocks.
+     * Metadata for this extension and its blocks.
      * @returns {object}
      */
     getInfo() {
@@ -309,72 +310,112 @@ class Jg3DVrBlocks {
         const gamepad = controller.gamepad;
         return gamepad;
     }
-
+    _getController(index) {
+        const renderer = this._getRenderer();
+        if (!renderer) return null;
+        // try to use grip first (which typically has position/quaternion)
+        const grip = renderer.xr.getControllerGrip(index);
+        return grip || renderer.xr.getController(index);
+    }
+    _getInputSource(index) {
+        const renderer = this._getRenderer();
+        if (!renderer) return null;
+        const session = renderer.xr.getSession();
+        if (!session) return null;
+        const sources = session.inputSources;
+        return sources[index] || null;
+    }
+    
     _disposeImmersive() {
         this.session = null;
-
         const renderer = this._getRenderer();
         if (!renderer) return;
-
         renderer.xr.enabled = false;
+        // Clear the animation loop so Three.js stops calling it
+        renderer.setAnimationLoop(null);
     }
+
+    async _requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                // Request a screen wake lock to prevent idling
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                this.wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock was released');
+                });
+                console.log('Wake Lock is active');
+            } catch (err) {
+                console.error('Failed to acquire wake lock:', err);
+            }
+        }
+    }
+    
+    _releaseWakeLock() {
+        if (this.wakeLock) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+        }
+    }
+    
     async _createImmersive() {
         if (!('xr' in navigator)) return false;
         const renderer = this._getRenderer();
         if (!renderer) return false;
-
-        const sessionInit = { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] };
+    
+        const sessionInit = { 
+            optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] 
+        };
         const session = await navigator.xr.requestSession(SESSION_TYPE, sessionInit);
         this.session = session;
         this.open = true;
-
-        // enable xr on three.js
+    
         renderer.xr.enabled = true;
         await renderer.xr.setSession(session);
-
-        // we need to make sure stuff is back to normal once the vr session is done
-        // but this isnt always triggered by the close session block
-        // the user can also close it themselves, so we need to handle that
-        // this is also triggered by the close session block btw so we dont need
-        // to repeat
+    
+        // Request the wake lock so that the session keeps updating even when idle
+        await this._requestWakeLock();
+    
+        // When session ends, reset state and release wake lock.
         session.addEventListener("end", () => {
             this.open = false;
             this._disposeImmersive();
+            this._releaseWakeLock();
         });
-
-        // setup render loop
-        const drawFrame = (_, frame) => {
-            // breaks the loop once the session has ended
-            if (!this.open) return;
-
-            const threed = this._3d;
-            // break loop if no camera or scene
-            if (!threed.camera) return;
-            if (!threed.scene) return;
-
-            // force renderer to draw a new frame
-            // otherwise we would only actually draw outside of this loop
-            // which just ends up showing nothing
-            // since rendering only happens in session.requestAnimationFrame
-            // we also dont give blocks for rendering
-            // because it would be too slow compared to just rendering
-            // every animation frame
-            renderer.render(threed.scene, threed.camera);
-            // loop again
-            session.requestAnimationFrame(drawFrame);
-        }
-        session.requestAnimationFrame(drawFrame);
-
-        // reference space
+    
+        // Request a reference space (store it so we can use it for the poses)
         session.requestReferenceSpace("local").then(space => {
             this.localSpace = space;
-            // TODO: add "when position reset" hat?
-            //     done with space.addEventListener("reset")
         });
-
+    
+        // Use Three.js's setAnimationLoop to drive the render loop
+        renderer.setAnimationLoop((time, frame) => {
+            if (!this.open) return;
+            const threed = this._3d;
+            if (!threed.camera || !threed.scene) return;
+    
+            // Render the scene
+            renderer.render(threed.scene, threed.camera);
+    
+            // Update controller poses if available
+            if (this.localSpace && frame) {
+                this.controllerPoses = {};
+                const sources = session.inputSources;
+                for (let i = 0; i < sources.length; i++) {
+                    const inputSource = sources[i];
+                    const pose = frame.getPose(inputSource.targetRaySpace, this.localSpace);
+                    if (pose) {
+                        this.controllerPoses[i] = {
+                            position: pose.transform.position,   // {x, y, z}
+                            orientation: pose.transform.orientation  // {x, y, z, w}
+                        };
+                    }
+                }
+            }
+        });
+    
         return session;
     }
-
+    
     // blocks
     isSupported() {
         if (!('xr' in navigator)) return false;
@@ -395,7 +436,7 @@ class Jg3DVrBlocks {
         return this.session.end();
     }
 
-    // extra
+    // extra: attach/detach camera to/from an object in the scene
     attachObject(args) {
         const three = this._3d;
         if (!three.scene) return;
@@ -412,44 +453,78 @@ class Jg3DVrBlocks {
         three.scene.add(three.camera);
     }
 
-    // inputs
+    // Controller input blocks follow
     getControllerPosition(args) {
-        const three = this._3d;
-        if (!three.scene) return "";
+        if (!this._3d || !this._3d.scene) return "";
+        
         const index = Cast.toNumber(args.INDEX) - 1;
+        const v = args.VECTOR3;
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+    
+        // Use stored pose information if available
+        if (this.controllerPoses && this.controllerPoses[index]) {
+            return Cast.toNumber(this.controllerPoses[index].position[v]);
+        }
+        
         const renderer = this._getRenderer();
         if (!renderer) return "";
-        const controller = renderer.xr.getController(index);
+        const controller = this._getController(index);
         if (!controller) return "";
-        const v = args.VECTOR3;
-        if (!v) return "";
-        if (!["x", "y", "z"].includes(v)) return "";
-        return Cast.toNumber(controller.position[v]);
+        controller.updateMatrixWorld(true);
+    
+        // Fallback: get world position via Three.js
+        const Vector3 = (this.three && this.three.three && this.three.three.Vector3)
+            ? this.three.three.Vector3
+            : this.three.Vector3;
+        const position = new Vector3();
+        controller.getWorldPosition(position);
+        return Cast.toNumber(position[v]);
     }
+    
     getControllerRotation(args) {
-        const three = this._3d;
-        if (!three.scene) return "";
+        if (!this._3d || !this._3d.scene) return "";
+        
         const index = Cast.toNumber(args.INDEX) - 1;
+        const v = args.VECTOR3;
+        if (!v || !["x", "y", "z"].includes(v)) return "";
+    
+        // Use stored orientation if available
+        if (this.controllerPoses && this.controllerPoses[index]) {
+            const o = this.controllerPoses[index].orientation;
+    
+            const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
+                ? this.three.three.Quaternion
+                : this.three.Quaternion;
+            const quaternion = new Quaternion(o.x, o.y, o.z, o.w);
+    
+            const Euler = (this.three && this.three.three && this.three.three.Euler)
+                ? this.three.three.Euler
+                : this.three.Euler;
+            const euler = new Euler(0, 0, 0, 'YXZ');
+            euler.setFromQuaternion(quaternion, 'YXZ');
+            return toDegRounding(euler[v]);
+        }
+        
         const renderer = this._getRenderer();
         if (!renderer) return "";
-        const controller = renderer.xr.getController(index);
+        const controller = this._getController(index);
         if (!controller) return "";
-        const v = args.VECTOR3;
-        if (!v) return "";
-        if (!["x", "y", "z"].includes(v)) return "";
-
-        // rotation is funky
-        // lets make it match the 3D extensions handling of rotation
-        // YXZ tells it to rotate Y first, then X, then Z
-        const euler = new three.three.Euler(0, 0, 0);
-        euler.setFromQuaternion(controller.quaternion, 'YXZ');
-        const rotation = Cast.toNumber(euler[v]);
-        // rotation is in radians, convert to degrees but round it
-        // a bit so that we get 46 instead of 45.999999999999996
-        return toDegRounding(rotation);
+        controller.updateMatrixWorld(true);
+    
+        const Quaternion = (this.three && this.three.three && this.three.three.Quaternion)
+            ? this.three.three.Quaternion
+            : this.three.Quaternion;
+        const quaternion = new Quaternion();
+        controller.getWorldQuaternion(quaternion);
+        
+        const Euler = (this.three && this.three.three && this.three.three.Euler)
+            ? this.three.three.Euler
+            : this.three.Euler;
+        const euler = new Euler(0, 0, 0, 'YXZ');
+        euler.setFromQuaternion(quaternion, 'YXZ');
+        return toDegRounding(euler[v]);
     }
-
-    // inputs but like actual
+    
     getControllerSide(args) {
         const three = this._3d;
         if (!three.scene) return "";
@@ -468,7 +543,7 @@ class Jg3DVrBlocks {
     getControllerStick(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return 0;
-        // index gained by testing
+        // For 'y', use axis index 3, otherwise default to index 2.
         if (Cast.toString(args.XY) === "y") {
             return gamepad.axes[3];
         } else {
@@ -478,52 +553,79 @@ class Jg3DVrBlocks {
     getControllerTrig(args) {
         const gamepad = this._getGamepad(args.INDEX);
         if (!gamepad) return 0;
-        // index gained by testing
         if (Cast.toString(args.TRIGGER) === "side") {
-            return gamepad.buttons[1].value;
+            return gamepad.buttons[1] ? gamepad.buttons[1].value : 0;
         } else {
-            return gamepad.buttons[0].value;
+            return gamepad.buttons[0] ? gamepad.buttons[0].value : 0;
         }
     }
     getControllerButton(args) {
         const gamepad = this._getGamepad(args.INDEX);
-        if (!gamepad) return 0;
-        const button = Cast.toString(args.BUTTON);
-        switch (button) {
-            // index gained by testing
-            case 'a':
-                return gamepad.buttons[4].pressed;
-            case 'b':
-                return gamepad.buttons[5].pressed;
-            case 'x':
-                return gamepad.buttons[4].pressed;
-            case 'y':
-                return gamepad.buttons[5].pressed;
-            case 'joystick':
-                return gamepad.buttons[3].pressed;
+        if (!gamepad) return false;
+        const inputSource = this._getInputSource(Cast.toNumber(args.INDEX) - 1);
+        let handedness = 'right';
+        if (inputSource && inputSource.handedness) {
+            handedness = inputSource.handedness;
+        }
+
+        const button = Cast.toString(args.BUTTON).toLowerCase();
+        if (handedness === 'right') {
+            switch (button) {
+                case 'a':
+                    return gamepad.buttons[4] && gamepad.buttons[4].pressed;
+                case 'b':
+                    return gamepad.buttons[5] && gamepad.buttons[5].pressed;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].pressed;
+            }
+        } else if (handedness === 'left') {
+            switch (button) {
+                case 'x':
+                    return gamepad.buttons[4] && gamepad.buttons[4].pressed;
+                case 'y':
+                    return gamepad.buttons[5] && gamepad.buttons[5].pressed;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].pressed;
+            }
         }
         return false;
     }
     getControllerTouching(args) {
         const gamepad = this._getGamepad(args.INDEX);
-        if (!gamepad) return 0;
-        const button = Cast.toString(args.BUTTON);
-        switch (button) {
-            // index gained by testing
-            case 'a button':
-                return gamepad.buttons[4].touched;
-            case 'b button':
-                return gamepad.buttons[5].touched;
-            case 'x button':
-                return gamepad.buttons[4].touched;
-            case 'y button':
-                return gamepad.buttons[5].touched;
-            case 'joystick':
-                return gamepad.buttons[3].touched;
-            case 'back trigger':
-                return gamepad.buttons[0].touched;
-            case 'side trigger':
-                return gamepad.buttons[1].touched;
+        if (!gamepad) return false;
+        const inputSource = this._getInputSource(Cast.toNumber(args.INDEX) - 1);
+        let handedness = 'right';
+        if (inputSource && inputSource.handedness) {
+            handedness = inputSource.handedness;
+        }
+
+        const button = Cast.toString(args.BUTTON).toLowerCase();
+        if (handedness === 'right') {
+            switch (button) {
+                case 'a button':
+                    return gamepad.buttons[4] && gamepad.buttons[4].touched;
+                case 'b button':
+                    return gamepad.buttons[5] && gamepad.buttons[5].touched;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].touched;
+                case 'back trigger':
+                    return gamepad.buttons[0] && gamepad.buttons[0].touched;
+                case 'side trigger':
+                    return gamepad.buttons[1] && gamepad.buttons[1].touched;
+            }
+        } else if (handedness === 'left') {
+            switch (button) {
+                case 'x button':
+                    return gamepad.buttons[4] && gamepad.buttons[4].touched;
+                case 'y button':
+                    return gamepad.buttons[5] && gamepad.buttons[5].touched;
+                case 'joystick':
+                    return gamepad.buttons[3] && gamepad.buttons[3].touched;
+                case 'back trigger':
+                    return gamepad.buttons[0] && gamepad.buttons[0].touched;
+                case 'side trigger':
+                    return gamepad.buttons[1] && gamepad.buttons[1].touched;
+            }
         }
         return false;
     }

@@ -156,7 +156,7 @@ class Extension {
                 },
                 {
                     opcode: 'set',
-                    text: '[TARGET] [MENU] to [VALUE]',
+                    text: 'set [TARGET] [MENU] to [VALUE]',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         TARGET: Target.Argument,
@@ -170,6 +170,7 @@ class Extension {
                         }
                     }
                 },
+                '---',
                 {
                     opcode: 'isClone',
                     text: 'is [TARGET] a clone',
@@ -179,9 +180,20 @@ class Extension {
                     }
                 },
                 {
+                    opcode: 'isTouching',
+                    text: 'is [A] touching [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: Target.Argument,
+                        B: Target.Argument
+                    }
+                },
+                '---',
+                {
                     opcode: 'getVar',
                     text: 'var [NAME] of [TARGET]',
                     blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
                     arguments: {
                         TARGET: Target.Argument,
                         NAME: {
@@ -233,7 +245,6 @@ class Extension {
                     arguments: {
                         TARGET: Target.Argument
                     },
-                    filter: [TargetType.SPRITE],
                     ...jwArray.Block
                 },
                 {
@@ -242,7 +253,6 @@ class Extension {
                     arguments: {
                         TARGET: Target.Argument
                     },
-                    filter: [TargetType.SPRITE],
                     ...jwArray.Block
                 },
                 {
@@ -252,8 +262,7 @@ class Extension {
                     arguments: {
                         ARRAY: jwArray.Argument,
                         TARGET: Target.Argument
-                    },
-                    filter: [TargetType.SPRITE]
+                    }
                 },
                 '---',
                 {
@@ -391,6 +400,15 @@ class Extension {
         return !TARGET.target.isOriginal
     }
 
+    isTouching({A, B}) {
+        A = Target.Type.toTarget(A)
+        B = Target.Type.toTarget(B)
+
+        if (!A.target) return
+
+        return A.target.isTouchingTarget(B.targetId)
+    }
+
     getVar({TARGET, NAME}) {
         TARGET = Target.Type.toTarget(TARGET)
         NAME = Cast.toString(NAME)
@@ -442,7 +460,7 @@ class Extension {
 
         let targets = vm.runtime.targets
         targets = targets.filter(v => v !== TARGET && !v.isStage)
-        targets = targets.filter(v => TARGET.target.isTouchingTarget(v.id))
+        targets = targets.filter(v => v.isTouchingTarget(TARGET.targetId))
         return new jwArray.Type(targets.map(v => new Target.Type(v.id)))
     }
 

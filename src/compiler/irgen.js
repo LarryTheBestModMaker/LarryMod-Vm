@@ -484,6 +484,10 @@ class ScriptTreeGenerator {
                 kind: 'op.ceiling',
                 value
             };
+            case 'sign': return {
+                kind: 'op.sign',
+                value
+            };
             case 'sqrt': return {
                 kind: 'op.sqrt',
                 value

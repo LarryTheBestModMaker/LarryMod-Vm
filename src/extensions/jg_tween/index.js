@@ -137,9 +137,6 @@ class Tween {
          */
         this.runtime = runtime;
     }
-    now() {
-        return this.runtime.currentMSecs;
-    }
     getInfo() {
         return {
             id: "jgTween",
@@ -359,7 +356,10 @@ class Tween {
             // First run, need to start timer
             util.yield();
 
-            const durationMS = Cast.toNumber(args.SEC) * 1000;
+            if (util.stackTimerNeedsInit()) {
+               const durationMS = Math.max(0, 1000 * Cast.toNumber(args.SEC));
+               util.startStackTimer(durationMS);
+            }
             const easeMethod = Cast.toString(args.MODE);
             const easeDirection = Cast.toString(args.DIRECTION);
             const start = currentValue;
@@ -370,19 +370,18 @@ class Tween {
             else easingFunction = EasingMethods.linear;
 
             util.stackFrame[id] = {
-                startTimeMS: this.now(), durationMS,
                 easingFunction, easeDirection,
                 start, end
             };
             return start;
-        } else if (this.now() - state.startTimeMS >= state.durationMS) {
+        } else if (util.stackTimerFinished()) {
             // Done
             return util.stackFrame[id].end;
         } 
         // Still running
         util.yield();
 
-        const progress = (this.now() - state.startTimeMS) / state.durationMS;
+        const progress = util.stackFrame.timer.timeElapsed() / util.stackFrame.duration;
         const tweened = state.easingFunction(progress, state.easeDirection);
         return interpolate(tweened, state.start, state.end);
     }
@@ -418,7 +417,10 @@ class Tween {
       const id = "loopedVal";
       const state = util.stackFrame[id];
       if (!state) {
-        const durationMS = Cast.toNumber(args.SEC) * 1000;
+        if (util.stackTimerNeedsInit()) {
+            const durationMS = Math.max(0, 1000 * Cast.toNumber(args.SEC));
+            util.startStackTimer(durationMS);
+        }
         const easeMethod = Cast.toString(args.MODE);
         const easeDirection = Cast.toString(args.DIRECTION);
         const start = Cast.toNumber(args.START);
@@ -430,22 +432,21 @@ class Tween {
         else easingFunction = EasingMethods.linear;
 
         util.stackFrame[id] = {
-          startTimeMS: this.now(), durationMS,
           easingFunction, easeDirection,
           start, end,
         };
         util.startBranch(1, true);
-      } else if (this.now() - state.startTimeMS >= state.durationMS) {
+      } else if (util.stackTimerFinished()) {
         util.thread.stackFrames[0].tweenValue = util.stackFrame[id].end;
-        if (util.stackFrame[id].durationMS !== "stop") {
-          util.stackFrame[id].durationMS = "stop";
+        if (util.stackFrame[id].canContinue !== "stop") {
+          util.stackFrame[id].canContinue = "stop";
           util.startBranch(1, true);
         }
       } else {
-        const progress = (this.now() - state.startTimeMS) / state.durationMS;
+        const progress = util.stackFrame.timer.timeElapsed() / util.stackFrame.duration;
         const tweened = state.easingFunction(progress, state.easeDirection);
         util.thread.stackFrames[0].tweenValue =  interpolate(tweened, state.start, state.end);
-        if (util.stackFrame[id].durationMS !== "stop") util.startBranch(1, true);
+        if (util.stackFrame[id].canContinue !== "stop") util.startBranch(1, true);
       }
     }
 

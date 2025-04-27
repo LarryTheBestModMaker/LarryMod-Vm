@@ -593,7 +593,32 @@ class Runtime extends EventEmitter {
         // list of variable types declared by extensions
         this._extensionVariables = {};
         // lists all custom serializers
-        this.serializers = {};
+        this.serializers = {
+            'pm-rendered-target': {
+                serialize: target => ({ id: target.id, name: target.getName() }),
+                deserialize: ({ id, name }) => this.getTargetById(id) ?? this.getSpriteTargetByName(name)
+            },
+            'pm-costume-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getCostumes();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            },
+            'pm-sound-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getSounds();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            }
+        };
 
         /**
          * An object to contain runtime variables from the
@@ -2343,6 +2368,7 @@ class Runtime extends EventEmitter {
      * @param {?object} opts optional arguments
      * @param {?boolean} opts.stackClick true if the script was activated by clicking on the stack
      * @param {?boolean} opts.updateMonitor true if the script should update a monitor value
+     * @param {?Target} opts.targetBlockLocation where the blocks are located
      * @return {!Thread} The newly created thread.
      */
     _pushThread (id, target, opts) {
@@ -2352,7 +2378,7 @@ class Runtime extends EventEmitter {
         thread.updateMonitor = Boolean(opts && opts.updateMonitor);
         thread.blockContainer = thread.updateMonitor ?
             this.monitorBlocks :
-            target.blocks;
+            ((opts && opts.targetBlockLocation) || target.blocks);
 
         thread.pushStack(id);
         this.threads.push(thread);
@@ -2974,7 +3000,21 @@ class Runtime extends EventEmitter {
             this._refreshTargets = false;
         }
 
-        if (!this._prevMonitorState.equals(this._monitorState)) {
+        let forceUpd = false;
+        // if a custom type set _monitorUpToDate to false on an existing instance, we need to report that update to the gui
+        if (this._monitorState.some(item => 
+            typeof item.get('value') === 'object' && 
+            '_monitorUpToDate' in item.get('value') && 
+            !item.get('value')._monitorUpToDate
+        )) { 
+            const old = this._monitorState;
+            // make a new instance so redux detects this as different later on
+            this._monitorState = this._monitorState.toOrderedMap();
+            if (!(old !== this._monitorState)) // why wont redux just accept the fucking value
+                throw new Error('Expected OrderedMap.toOrderedMap() to produce a truly unique value');
+            forceUpd = true;
+        }
+        if (!this._prevMonitorState.equals(this._monitorState) || forceUpd) {
             this.emit(Runtime.MONITORS_UPDATE, this._monitorState);
             this._prevMonitorState = this._monitorState;
         }

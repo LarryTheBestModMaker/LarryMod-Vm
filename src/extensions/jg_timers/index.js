@@ -15,16 +15,12 @@ class JgTimersBlocks {
          */
         this.runtime = runtime;
         this.timers = {};
-
-        this.runtime.addListener("RUNTIME_PAUSED", _ => {
-            this._getTimersArray().forEach(timer => {
-                timer.instance.pause(true);
-            });
+        // pause/unpause timers when the project pauses
+        runtime.on("RUNTIME_PAUSED", () => {
+            this._getTimersArray().forEach(timer => timer.instance.pause(true));
         });
-        this.runtime.addListener("RUNTIME_UNPAUSED", _ => {
-            this._getTimersArray().forEach(timer => {
-                timer.instance.start(true);
-            });
+        runtime.on("RUNTIME_UNPAUSED", () => {
+            this._getTimersArray().forEach(timer => timer.instance.start(true));
         });
     }
 
