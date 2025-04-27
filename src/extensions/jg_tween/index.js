@@ -136,11 +136,6 @@ class Tween {
          * @type {Runtime}
          */
         this.runtime = runtime;
-
-        this.cancelTweens = {};
-        this.runtime.on("targetWasRemoved", (clone) => {
-            delete this.cancelTweens[clone.id];
-        });
     }
     getInfo() {
         return {
@@ -374,7 +369,7 @@ class Tween {
         return interpolate(tweened, start, end);
     }
 
-    _tweenValue(args, util, id, valueArgName, currentValue) {
+    _tweenValue(args, util, id, valueArgName, currentValue, propertyName) {
         // Only use args on first run. For later executions grab everything from stackframe.
         // This ensures that if the arguments change, the tweening won't change. This matches
         // the vanilla Scratch glide blocks.
@@ -399,7 +394,7 @@ class Tween {
 
             util.stackFrame[id] = {
                 easingFunction, easeDirection,
-                start, end
+                start, end, propertyName
             };
             return start;
         } else if (util.stackTimerFinished()) {
@@ -415,54 +410,37 @@ class Tween {
     }
 
     tweenVariable(args, util) {
-        const targetId = util.target.id;
         const variable = util.target.lookupVariableById(args.VAR);
 
-        if (this.cancelTweens[targetId] && this.cancelTweens[targetId][args.VAR]) {
-            delete this.cancelTweens[targetId][args.VAR];
+        if (util.stackFrame[""] && util.stackFrame[""].cancelled) {
             return;
         }
 
-        const value = this._tweenValue(args, util, "", "VALUE", variable.value);
+        const value = this._tweenValue(args, util, "", "VALUE", variable.value, args.VAR);
         if (variable && variable.type === "") variable.value = value;
     }
 
     tweenXY(args, util) {
-        const targetId = util.target.id;
         const stateX = util.stackFrame["x"] || {};
         const stateY = util.stackFrame["y"] || {};
 
-        // we use state so we can keep one of the x or y positions going.
-        // checking !state.cancelled because otherwise cancelling x or y again would be consumed if the block is still tweening the other position
-        if (!stateX.cancelled && this.cancelTweens[targetId] && this.cancelTweens[targetId]["x position"]) {
-            delete this.cancelTweens[targetId]["x position"];
-            stateX.cancelled = true;
-        }
-        if (!stateY.cancelled && this.cancelTweens[targetId] && this.cancelTweens[targetId]["y position"]) {
-            delete this.cancelTweens[targetId]["y position"];
-            stateY.cancelled = true;
-        }
-
-        const x = stateX.cancelled ? util.target.x : this._tweenValue(args, util, "x", "X", util.target.x);
-        const y = stateY.cancelled ? util.target.y : this._tweenValue(args, util, "y", "Y", util.target.y);
+        const x = stateX.cancelled ? util.target.x : this._tweenValue(args, util, "x", "X", util.target.x, "x position");
+        const y = stateY.cancelled ? util.target.y : this._tweenValue(args, util, "y", "Y", util.target.y, "y position");
         util.target.setXY(x, y);
     }
 
     tweenProperty(args, util) {
-        const targetId = util.target.id;
-
         let currentValue = 0;
         if (args.PROPERTY === "x position") currentValue = util.target.x;
         else if (args.PROPERTY === "y position") currentValue = util.target.y;
         else if (args.PROPERTY === "direction") currentValue = util.target.direction;
         else if (args.PROPERTY === "size") currentValue = util.target.size;
 
-        if (this.cancelTweens[targetId] && this.cancelTweens[targetId][args.PROPERTY]) {
-            delete this.cancelTweens[targetId][args.PROPERTY];
+        if (util.stackFrame[""] && util.stackFrame[""].cancelled) {
             return;
         }
 
-        const value = this._tweenValue(args, util, "", "VALUE", currentValue);
+        const value = this._tweenValue(args, util, "", "VALUE", currentValue, args.PROPERTY);
 
         if (args.PROPERTY === "x position") util.target.setXY(value, util.target.y);
         else if (args.PROPERTY === "y position") util.target.setXY(util.target.x, value);
@@ -470,19 +448,33 @@ class Tween {
         else if (args.PROPERTY === "size") util.target.setSize(value);
     }
 
-    // the blocks should check if the property is true, and then delete & return once consumed.
-    // exception is X and Y tween, where it should delete and then keep the other one tweening
     tweenVariableCancel(args, util) {
         const property = args.VAR;
-        const id = util.target.id;
-        if (!this.cancelTweens[id]) this.cancelTweens[id] = {};
-        this.cancelTweens[id][property] = true;
+        this.tweenPropertyCancel({
+            PROPERTY: property
+        }, util);
     }
     tweenPropertyCancel(args, util) {
         const property = args.PROPERTY;
         const id = util.target.id;
-        if (!this.cancelTweens[id]) this.cancelTweens[id] = {};
-        this.cancelTweens[id][property] = true;
+
+        // supposedly for i loop is faster (garbo seemed to say this before too?)
+        for (let i = 0; i < this.runtime.threads.length; i++) {
+            const thread = this.runtime.threads[i];
+            console.log(thread, thread.target.id, id);
+            if (thread.target.id !== id) continue;
+            // some threads dont have a stackFrame from util
+            if (!thread.compatibilityStackFrame) continue;
+            // x position and y position should also cancel the tweenXY block
+            const propertyFrame = thread.compatibilityStackFrame[""] ||
+                (property === "x position" ? thread.compatibilityStackFrame["x"] : null) ||
+                (property === "y position" ? thread.compatibilityStackFrame["y"] : null);
+            // this thread did not have a property tween
+            if (!propertyFrame) continue;
+            // check if the property being tweened is the one we are cancelling
+            if (propertyFrame.propertyName !== property) continue;
+            propertyFrame.cancelled = true;
+        }
     }
 
     tweenC(args, util) {
