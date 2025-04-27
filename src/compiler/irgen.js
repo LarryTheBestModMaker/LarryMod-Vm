@@ -524,6 +524,10 @@ class ScriptTreeGenerator {
                 kind: 'op.log',
                 value
             };
+            case 'log2': return {
+                kind: 'op.log2',
+                value
+            };
             case 'e ^': return {
                 kind: 'op.e^',
                 value

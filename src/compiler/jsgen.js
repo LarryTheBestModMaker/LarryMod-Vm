@@ -824,6 +824,9 @@ class JSGenerator {
         case 'op.log':
             // Needs to be marked as NaN because Math.log(-1) == NaN
             return new TypedInput(`(Math.log(${this.descendInput(node.value).asNumber()}) / Math.LN10)`, TYPE_NUMBER_NAN);
+        case 'op.log2':
+            // Needs to be marked as NaN because Math.log2(-1) == NaN
+            return new TypedInput(`Math.log2(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER_NAN);
         case 'op.advlog':
             // Needs to be marked as NaN because Math.log(-1) == NaN
             return new TypedInput(`(Math.log(${this.descendInput(node.right).asNumber()}) / (Math.log(${this.descendInput(node.left).asNumber()}))`, TYPE_NUMBER_NAN);
