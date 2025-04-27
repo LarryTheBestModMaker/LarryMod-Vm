@@ -14,12 +14,14 @@ const blocks = `
 %b30> ` +/* binnary xor */`
 %b31> ` +/* binnary not */`
 ${blockSeparator}
-<block type="operator_randomBoolean" />
+%b34> ` +/* or if falsey */`
+%b35> ` +/* if is true */`
 ${blockSeparator}
 <block type="operator_nand" />
 <block type="operator_nor" />
 <block type="operator_xor" />
 <block type="operator_xnor" />
+<block type="operator_randomBoolean" />
 ${blockSeparator}
 %b20> ` +/* evaluate math expression */`
 <block type="operator_countAppearTimes">
@@ -95,6 +97,9 @@ ${blockSeparator}
 ${blockSeparator}
 %b16> ` +/* reverse text */`
 %b17> ` +/* shuffle text */`
+${blockSeparator}
+%b32> ` +/* speed to pitch */`
+%b33> ` +/* pitch to speed */`
 ${blockSeparator}
 ` +/* join blocks */`
 <block type="operator_join">
@@ -370,39 +375,6 @@ class pmOperatorsExpansion {
                     }
                 },
                 {
-                    opcode: 'orIfFalsey',
-                    text: '[ONE] or else [TWO]',
-                    blockType: BlockType.REPORTER,
-                    allowDropAnywhere: true,
-                    disableMonitor: true,
-                    arguments: {
-                        ONE: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "a"
-                        },
-                        TWO: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "b"
-                        }
-                    }
-                },
-                {
-                    opcode: 'ifIsTruthy',
-                    text: 'if [ONE] is true then [TWO]',
-                    blockType: BlockType.REPORTER,
-                    allowDropAnywhere: true,
-                    disableMonitor: true,
-                    arguments: {
-                        ONE: {
-                            type: ArgumentType.BOOLEAN
-                        },
-                        TWO: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "perfect!"
-                        }
-                    }
-                },
-                {
                     opcode: 'shuffleChars',
                     text: 'shuffle [TEXT]',
                     blockType: BlockType.REPORTER,
@@ -617,7 +589,64 @@ class pmOperatorsExpansion {
                             defaultValue: "2"
                         }
                     }
-                }
+                },
+                {
+                    opcode: 'speedToPitch',
+                    text: 'speed [SPEED] to pitch',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    arguments: {
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "2"
+                        },
+                    }
+                },
+                {
+                    opcode: 'pitchToSpeed',
+                    text: 'pitch [PITCH] to speed',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    arguments: {
+                        PITCH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "120"
+                        },
+                    }
+                },
+                {
+                    opcode: 'orIfFalsey',
+                    text: '[ONE] or else [TWO]',
+                    blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
+                    disableMonitor: true,
+                    arguments: {
+                        ONE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "a"
+                        },
+                        TWO: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "b"
+                        }
+                    }
+                },
+                {
+                    opcode: 'ifIsTruthy',
+                    text: 'if [ONE] is true then [TWO]',
+                    blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
+                    disableMonitor: true,
+                    arguments: {
+                        ONE: {
+                            type: ArgumentType.BOOLEAN
+                        },
+                        TWO: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "perfect!"
+                        }
+                    }
+                },
             ],
             menus: {
                 part: {
@@ -678,6 +707,14 @@ class pmOperatorsExpansion {
                     kind: 'input',
                     one: generator.descendInputOfBlock(block, 'ONE'),
                     two: generator.descendInputOfBlock(block, 'TWO'),
+                }),
+                speedToPitch: (generator, block) => ({
+                    kind: 'input',
+                    speed: generator.descendInputOfBlock(block, 'SPEED'),
+                }),
+                pitchToSpeed: (generator, block) => ({
+                    kind: 'input',
+                    pitch: generator.descendInputOfBlock(block, 'PITCH'),
                 })
             },
             js: {
@@ -727,6 +764,14 @@ class pmOperatorsExpansion {
                     const num2 = compiler.descendInput(node.two).asUnknown();
                     
                     return new TypedInput(`(${num1} && ${num2})`, TYPE_UNKNOWN);
+                },
+                speedToPitch: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
+                    const speed = compiler.descendInput(node.speed).asNumber();
+                    return new TypedInput(`((1200 * Math.log2(${speed})) / 10)`, TYPE_NUMBER_NAN);
+                },
+                pitchToSpeed: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
+                    const pitch = compiler.descendInput(node.pitch).asNumber();
+                    return new TypedInput(`(Math.pow(2, (${pitch} * 10) / 1200))`, TYPE_NUMBER_NAN);
                 }
             }
         };
@@ -957,6 +1002,8 @@ class pmOperatorsExpansion {
     binnaryOr(args) { return false }
     binnaryXor(args) { return false }
     binnaryNot(args) { return false }
+    speedToPitch(args) { return 0 }
+    pitchToSpeed(args) { return 1 }
 }
 
 module.exports = pmOperatorsExpansion;
