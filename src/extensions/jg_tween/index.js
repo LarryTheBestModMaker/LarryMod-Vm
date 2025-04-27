@@ -136,6 +136,11 @@ class Tween {
          * @type {Runtime}
          */
         this.runtime = runtime;
+
+        this.cancelTweens = {};
+        this.runtime.on("targetWasRemoved", (clone) => {
+            delete this.cancelTweens[clone.id];
+        });
     }
     getInfo() {
         return {
@@ -256,6 +261,29 @@ class Tween {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: "direction"
+                        }
+                    }
+                },
+                "---",
+                {
+                    opcode: "tweenVariableCancel",
+                    text: "cancel tween for variable [VAR]",
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        VAR: {
+                            type: ArgumentType.STRING,
+                            menu: "vars"
+                        }
+                    }
+                },
+                {
+                    opcode: "tweenPropertyCancel",
+                    text: "cancel tween for [PROPERTY]",
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        PROPERTY: {
+                            type: ArgumentType.STRING,
+                            menu: "properties"
                         }
                     }
                 },
@@ -387,23 +415,52 @@ class Tween {
     }
 
     tweenVariable(args, util) {
+        const targetId = util.target.id;
         const variable = util.target.lookupVariableById(args.VAR);
+
+        if (this.cancelTweens[targetId] && this.cancelTweens[targetId][args.VAR]) {
+            delete this.cancelTweens[targetId][args.VAR];
+            return;
+        }
+
         const value = this._tweenValue(args, util, "", "VALUE", variable.value);
         if (variable && variable.type === "") variable.value = value;
     }
 
     tweenXY(args, util) {
-        const x = this._tweenValue(args, util, "x", "X", util.target.x);
-        const y = this._tweenValue(args, util, "y", "Y", util.target.y);
+        const targetId = util.target.id;
+        const stateX = util.stackFrame["x"] || {};
+        const stateY = util.stackFrame["y"] || {};
+
+        // we use state so we can keep one of the x or y positions going.
+        // checking !state.cancelled because otherwise cancelling x or y again would be consumed if the block is still tweening the other position
+        if (!stateX.cancelled && this.cancelTweens[targetId] && this.cancelTweens[targetId]["x position"]) {
+            delete this.cancelTweens[targetId]["x position"];
+            stateX.cancelled = true;
+        }
+        if (!stateY.cancelled && this.cancelTweens[targetId] && this.cancelTweens[targetId]["y position"]) {
+            delete this.cancelTweens[targetId]["y position"];
+            stateY.cancelled = true;
+        }
+
+        const x = stateX.cancelled ? util.target.x : this._tweenValue(args, util, "x", "X", util.target.x);
+        const y = stateY.cancelled ? util.target.y : this._tweenValue(args, util, "y", "Y", util.target.y);
         util.target.setXY(x, y);
     }
 
     tweenProperty(args, util) {
+        const targetId = util.target.id;
+
         let currentValue = 0;
         if (args.PROPERTY === "x position") currentValue = util.target.x;
         else if (args.PROPERTY === "y position") currentValue = util.target.y;
         else if (args.PROPERTY === "direction") currentValue = util.target.direction;
         else if (args.PROPERTY === "size") currentValue = util.target.size;
+
+        if (this.cancelTweens[targetId] && this.cancelTweens[targetId][args.PROPERTY]) {
+            delete this.cancelTweens[targetId][args.PROPERTY];
+            return;
+        }
 
         const value = this._tweenValue(args, util, "", "VALUE", currentValue);
 
@@ -411,6 +468,21 @@ class Tween {
         else if (args.PROPERTY === "y position") util.target.setXY(util.target.x, value);
         else if (args.PROPERTY === "direction") util.target.setDirection(value);
         else if (args.PROPERTY === "size") util.target.setSize(value);
+    }
+
+    // the blocks should check if the property is true, and then delete & return once consumed.
+    // exception is X and Y tween, where it should delete and then keep the other one tweening
+    tweenVariableCancel(args, util) {
+        const property = args.VAR;
+        const id = util.target.id;
+        if (!this.cancelTweens[id]) this.cancelTweens[id] = {};
+        this.cancelTweens[id][property] = true;
+    }
+    tweenPropertyCancel(args, util) {
+        const property = args.PROPERTY;
+        const id = util.target.id;
+        if (!this.cancelTweens[id]) this.cancelTweens[id] = {};
+        this.cancelTweens[id][property] = true;
     }
 
     tweenC(args, util) {
