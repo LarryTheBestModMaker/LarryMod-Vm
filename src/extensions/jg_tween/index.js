@@ -461,7 +461,6 @@ class Tween {
         // supposedly for i loop is faster (garbo seemed to say this before too?)
         for (let i = 0; i < this.runtime.threads.length; i++) {
             const thread = this.runtime.threads[i];
-            console.log(thread, thread.target.id, id);
             if (thread.target.id !== id) continue;
             // some threads dont have a stackFrame from util
             if (!thread.compatibilityStackFrame) continue;
