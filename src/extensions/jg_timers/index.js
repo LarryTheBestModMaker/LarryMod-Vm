@@ -15,13 +15,19 @@ class JgTimersBlocks {
          */
         this.runtime = runtime;
         this.timers = {};
+        this.pauseCache = new Set();
 
         // pause/unpause timers when the project pauses
         runtime.on("RUNTIME_PAUSED", () => {
-            this._getTimersArray().forEach(timer => timer.instance.pause());
+            this._getTimersArray().forEach(timer => {
+                if (timer.pauseTime !== null) return;
+                this.pauseCache.add(timer);
+                timer.instance.pause();
+            });
         });
         runtime.on("RUNTIME_UNPAUSED", () => {
-            this._getTimersArray().forEach(timer => timer.instance.start());
+            this.pauseCache.forEach(timer => timer.instance.start());
+            this.pauseCache = new Set();
         });
     }
 
