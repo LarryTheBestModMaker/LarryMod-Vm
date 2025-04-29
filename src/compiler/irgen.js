@@ -347,11 +347,13 @@ class ScriptTreeGenerator {
         }
 
         case 'pmEventsExpansion_broadcastFunction':
+            this.script.yields = true;
             return {
                 kind: 'pmEventsExpansion.broadcastFunction',
                 broadcast: this.descendInputOfBlock(block, 'BROADCAST')
             };
-            case 'pmEventsExpansion_broadcastFunctionArgs':
+        case 'pmEventsExpansion_broadcastFunctionArgs':
+            this.script.yields = true;
             return {
                 kind: 'pmEventsExpansion.broadcastFunctionArgs',
                 broadcast: this.descendInputOfBlock(block, 'BROADCAST'),
