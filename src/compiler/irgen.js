@@ -911,7 +911,11 @@ class ScriptTreeGenerator {
             for (let i = 0; i < paramIds.length; i++) {
                 let value;
                 if (block.inputs[paramIds[i]] && block.inputs[paramIds[i]].block) {
-                    value = this.descendInputOfBlock(block, paramIds[i]);
+                    if (paramIds[i].startsWith("SUBSTACK")) {
+                        value = this.descendSubstack(block, paramIds[i])
+                    } else {
+                        value = this.descendInputOfBlock(block, paramIds[i]);
+                    }
                 } else {
                     value = {
                         kind: 'constant',
@@ -1687,11 +1691,14 @@ class ScriptTreeGenerator {
             }
 
             const args = [];
-            console.debug(block.inputs)
             for (let i = 0; i < paramIds.length; i++) {
                 let value;
                 if (block.inputs[paramIds[i]] && block.inputs[paramIds[i]].block) {
-                    value = this.descendInputOfBlock(block, paramIds[i]);
+                    if (paramIds[i].startsWith("SUBSTACK")) {
+                        value = this.descendSubstack(block, paramIds[i])
+                    } else {
+                        value = this.descendInputOfBlock(block, paramIds[i]);
+                    }
                 } else {
                     value = {
                         kind: 'constant',
