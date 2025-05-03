@@ -1687,7 +1687,7 @@ class ScriptTreeGenerator {
             }
 
             const args = [];
-            console.debug(blocks.inputs)
+            console.debug(block.inputs)
             for (let i = 0; i < paramIds.length; i++) {
                 let value;
                 if (block.inputs[paramIds[i]] && block.inputs[paramIds[i]].block) {
