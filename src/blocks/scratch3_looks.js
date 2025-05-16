@@ -697,7 +697,6 @@ class Scratch3LooksBlocks {
             switch (Cast.toString(requestedCostume)) {
                 case "next backdrop":
                 case "next costume":
-                    console.log("Nexting :Good:")
                     costumeIndex = target.currentCostume + 1;
                     if (costumeIndex >= target.sprite.costumes_.length) {
                         costumeIndex = 0
