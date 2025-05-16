@@ -665,6 +665,18 @@ class Scratch3LooksBlocks {
             // Try to cast the string to a number (and treat it as a costume index)
             // Pure whitespace should not be treated as a number
             // Note: isNaN will cast the string to a number before checking if it's NaN
+            } else if (requestedCostume === 'random costume') {
+                let randomIndex = MathUtil.inclusiveRandIntWithout(
+                    0,
+                    target.sprite.costumes_.length - 1,
+                    target.currentCostume
+                )
+                if (randomIndex >= target.sprite.costumes_.length) {
+                    randomIndex = 0;
+                    // This really only accounts for if there's only 1
+                    // costume.
+                }
+                target.setCostume(randomIndex);
             } else if (!(isNaN(requestedCostume) || Cast.isWhiteSpace(requestedCostume))) {
                 target.setCostume(optZeroIndex ? Number(requestedCostume) : Number(requestedCostume) - 1);
             }
@@ -694,24 +706,23 @@ class Scratch3LooksBlocks {
             // Numbers should be treated as costume indices, always
             costumeIndex = (requestedCostume === 0) ? 0 : requestedCostume - 1;
         } else {
+            let noun = target.isStage ? "backdrop" : "costume";
             switch (Cast.toString(requestedCostume)) {
-                case "next backdrop":
-                case "next costume":
+                case "next " + noun:
                     costumeIndex = target.currentCostume + 1;
                     if (costumeIndex >= target.sprite.costumes_.length) {
                         costumeIndex = 0
                         // loop around to front
                     }
                     break;
-                case "previous backdrop":
-                case "previous costume":
+                case "previous " + noun:
                     costumeIndex = target.currentCostume - 1;
                     if (costumeIndex < 0) {
                         costumeIndex = target.sprite.costumes_.length - 1;
                         // Loop around to back
                     }
                     break;
-                case "random backdrop":
+                case "random " + noun:
                     costumeIndex = MathUtil.inclusiveRandIntWithout(
                         0,
                         target.sprite.costumes_.length - 1,
