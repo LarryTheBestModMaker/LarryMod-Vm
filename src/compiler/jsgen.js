@@ -740,7 +740,7 @@ class JSGenerator {
             // pm: optimizations allow us to use a premade list for sin values on integers
             if (this.isOptimized) {
                 const value = `${this.descendInput(node.value).asNumber()}`;
-                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.cos[Math.abs(${value} % 360)] : (Math.round(Math.cos((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
+                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.cos[((${value} % 360) + 360) % 360] : (Math.round(Math.cos((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
             }
             return new TypedInput(`(Math.round(Math.cos((Math.PI * ${this.descendInput(node.value).asNumber()}) / 180) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
         case 'op.divide':
@@ -858,7 +858,7 @@ class JSGenerator {
             // pm: optimizations allow us to use a premade list for sin values on integers
             if (this.isOptimized) {
                 const value = `${this.descendInput(node.value).asNumber()}`;
-                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.sin[Math.abs(${value} % 360)] : (Math.round(Math.sin((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
+                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.sin[((${value} % 360) + 360) % 360] : (Math.round(Math.sin((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
             }
             return new TypedInput(`(Math.round(Math.sin((Math.PI * ${this.descendInput(node.value).asNumber()}) / 180) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
         case 'op.sqrt':
