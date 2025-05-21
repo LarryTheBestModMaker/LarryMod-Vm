@@ -376,6 +376,7 @@ class Scratch3LooksBlocks {
             looks_costumenumbername: this.getCostumeNumberName,
             looks_backdropnumbername: this.getBackdropNumberName,
             looks_setStretch: this.stretchSet,
+            looks_changeStretch: this.changeStretch,
             looks_stretchGetX: this.getStretchX,
             looks_stretchGetY: this.getStretchY,
             looks_sayWidth: this.getBubbleWidth,
@@ -439,6 +440,13 @@ class Scratch3LooksBlocks {
 
     stretchSet (args, util) {
         util.target.setStretch(args.X, args.Y);
+    }
+
+    changeStretch(args, util) {
+        let [x, y] = util.target._getRenderedDirectionAndScale().stretch;
+        let new_x = x + Cast.toNumber(args.X)
+        let new_y = y + Cast.toNumber(args.Y)
+        util.target.setStretch(new_x, new_y)
     }
 
     setFont (args, util) {
