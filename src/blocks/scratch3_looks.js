@@ -444,7 +444,9 @@ class Scratch3LooksBlocks {
 
     changeStretch(args, util) {
         let [x, y] = util.target._getRenderedDirectionAndScale().stretch;
-        util.target.setStetch(x+args.X, y+args.Y)
+        let new_x = x + Cast.toNumber(args.X)
+        let new_y = y + Cast.toNumber(args.Y)
+        util.target.setStretch(new_x, new_y)
     }
 
     setFont (args, util) {
