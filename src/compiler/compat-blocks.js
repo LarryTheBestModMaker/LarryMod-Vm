@@ -34,6 +34,7 @@ const statementBlocks = [
     'sound_setvolumeto',
     'sound_stopallsounds',
     "looks_setStretch",
+    "looks_changeStretch",
     "data_reverselist",
     "data_arraylist",
     "control_switch",
