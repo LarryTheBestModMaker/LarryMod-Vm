@@ -90,7 +90,7 @@ function getSwitches({runtime}) {
                         let name = el.getAttribute("name");
                         let shadow_type = el.getElementsByName("shadow").getAttribute("type");
 
-                        let value = get_block.info.arguments[name].defaultValue ?? currargs[name] ?? "";
+                        let value = currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "";
 
                         createInputs[name] = {
                             shadow_type,
