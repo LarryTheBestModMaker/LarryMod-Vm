@@ -55,6 +55,7 @@ Object.getOwnPropertyNames(extensions).forEach(extID => {
 function getSwitches({runtime}) {
     var _switches = switches;
     for (let ext of runtime._blockInfo) {
+        if (ext.id in _switches) continue;
         _switches[ext.id] = {};
         for (let block of ext.blocks) {
             var blockswitches = block.info.switches;
@@ -81,9 +82,62 @@ function getSwitches({runtime}) {
                 }
                 get_block = get_block[0];
 
+                let createInputs = {};
+                let currargs = current.createArguments ?? {};
+
+                const parser = new DOMParser();
+
+                parser.parseFromString(get_block.xml, "text/xml")
+                    .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        if (Object.keys(block.info.arguments).includes(name)) return;
+
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+
+                        let value = (currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "").toString();
+
+                        createInputs[name] = {
+                            shadowType,
+                            value
+                        };
+                    });
+
+                const splitInputs = Object.keys(block.info.arguments)
+                    .filter(arg => !Object.keys(get_block.info.arguments).includes(arg) && !Object.keys(current.remapArguments ?? {}).includes(arg));
+
+                const remapShadowType = {};
+
+                parser.parseFromString(block.xml, "text/xml")
+                    .querySelectorAll(`[type="${block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        if (!(name in get_block.info.arguments)) return;
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+                        remapShadowType[name] = shadowType;
+                    });
+
+                parser.parseFromString(get_block.xml, "text/xml")
+                    .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        if (!(name in remapShadowType)) return;
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+
+                        if (remapShadowType[name] == shadowType) {
+                            delete remapShadowType[name];
+                            return;
+                        }
+                        remapShadowType[name] = shadowType;
+                    });
+
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
+                    createInputs,
+                    splitInputs,
+                    remapShadowType,
+                    mapFieldValues: current.remapMenus ?? {},
                     msg: get_block.info.switchText ?? get_block.info.text
                 };
             });
