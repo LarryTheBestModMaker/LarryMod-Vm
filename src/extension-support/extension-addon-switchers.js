@@ -82,7 +82,7 @@ function getSwitches({runtime}) {
                 get_block = get_block[0];
 
                 return {
-                    opcode: current.opcode,
+                    opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
                     msg: get_block.info.switch_text ?? get_block.info.text
                 };
