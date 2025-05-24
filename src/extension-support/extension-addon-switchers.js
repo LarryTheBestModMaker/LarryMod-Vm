@@ -84,11 +84,14 @@ function getSwitches({runtime}) {
                 let createInputs = {};
                 let currargs = current.createArguments ?? {};
 
-                new DOMParser().parseFromString(get_block.xml, "text/xml")
+                const parser = new DOMParser();
+
+                parser.parseFromString(get_block.xml, "text/xml")
                     .querySelectorAll(`[type="${get_block.json.type}"] > value`)
                     .forEach(el => {
                         let name = el.getAttribute("name");
-                        console.log(name);
+                        if (Object.keys(block.info.arguments).includes(name)) return;
+
                         let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
 
                         let value = (currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "").toString();
@@ -102,11 +105,37 @@ function getSwitches({runtime}) {
                 const splitInputs = Object.keys(block.info.arguments)
                     .filter(arg => !Object.keys(get_block.info.arguments).includes(arg) && !Object.keys(current.remapArguments ?? {}).includes(arg));
 
+                const remapShadowType = {};
+
+                parser.parseFromString(block.xml, "text/xml")
+                    .querySelectorAll(`[type="${block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        if (!(name in get_block.info.arguments)) return;
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+                        remapShadowType[name] = shadowType;
+                    });
+
+                parser.parseFromString(get_block.xml, "text/xml")
+                    .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        if (!(name in remapShadowType)) return;
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+
+                        if (remapShadowType[name] == shadowType) {
+                            delete remapShadowType[name];
+                            return;
+                        }
+                        remapShadowType[name] = shadowType;
+                    });
+
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
                     createInputs,
                     splitInputs,
+                    remapShadowType,
                     mapFieldValues: current.remapMenus ?? {},
                     msg: get_block.info.switchText ?? get_block.info.text
                 };
