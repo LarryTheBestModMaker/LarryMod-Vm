@@ -103,6 +103,32 @@ runtimeFunctions.waitThreads = `const waitThreads = function*(threads) {
  * @param {Promise} promise The promise to wait for.
  * @returns {*} the value that the promise resolves to, otherwise undefined if the promise rejects
  */
+runtimeFunctions.waitPromise = `
+const waitPromise = function*(promise) {
+    const thread = globalState.thread;
+    let returnValue;
+    let errorReturn;
+
+    promise
+        .then(value => {
+            returnValue = value;
+            thread.status = 0; // STATUS_RUNNING
+        })
+        .catch(error => {
+            errorReturn = error;
+            // i realized, i dont actually know what would happen if we never do this but throw and exit anyways
+            thread.status = 0; // STATUS_RUNNING
+        });
+
+    // enter STATUS_PROMISE_WAIT and yield
+    // this will stop script execution until the promise handlers reset the thread status
+    thread.status = 1; // STATUS_PROMISE_WAIT
+    yield;
+
+    // throw the promise error if ee got one
+    if (errorReturn) throw errorReturn
+    return returnValue;
+}`;
 
 /**
  * isPromise: Determine if a value is Promise-like
@@ -116,60 +142,50 @@ runtimeFunctions.waitThreads = `const waitThreads = function*(threads) {
  * @param {function} blockFunction The primitive's function.
  * @param {boolean} useFlags Whether to set flags (hasResumedFromPromise)
  * @param {string} blockId Block ID to set on the emulated block utility.
+ * @param {*|null} branchInfo Extra information object for CONDITIONAL and LOOP blocks. See createBranchInfo().
  * @returns {*} the value returned by the block, if any.
  */
 runtimeFunctions.executeInCompatibilityLayer = `let hasResumedFromPromise = false;
-const waitPromise = function*(promise) {
-    const thread = globalState.thread;
-    let returnValue;
 
-    promise
-        .then(value => {
-            returnValue = value;
-            thread.status = 0; // STATUS_RUNNING
-        })
-        .catch(error => {
-            thread.status = 0; // STATUS_RUNNING
-            globalState.log.warn('Promise rejected in compiled script:', error);
-        });
-
-    // enter STATUS_PROMISE_WAIT and yield
-    // this will stop script execution until the promise handlers reset the thread status
-    thread.status = 1; // STATUS_PROMISE_WAIT
-    yield;
-
-    return returnValue;
-};
 const isPromise = value => (
     // see engine/execute.js
     value !== null &&
     typeof value === 'object' &&
     typeof value.then === 'function'
 );
-const executeInCompatibilityLayer = function*(inputs, blockFunction, isWarp, useFlags, blockId) {
+const executeInCompatibilityLayer = function*(inputs, blockFunction, isWarp, useFlags, blockId, branchInfo, visualReport) {
     const thread = globalState.thread;
+    const blockUtility = globalState.blockUtility;
+    const stackFrame = branchInfo ? branchInfo.stackFrame : {};
+    const finish = (returnValue) => {
+        if (branchInfo) {
+            if (typeof returnValue === 'undefined' && blockUtility._startedBranch) {
+                branchInfo.isLoop = blockUtility._startedBranch[1];
+                return blockUtility._startedBranch[0];
+            }
+            branchInfo.isLoop = branchInfo.defaultIsLoop;
+            return returnValue;
+        }
+        return returnValue;
+    };
 
     // reset the stackframe
     // we only ever use one stackframe at a time, so this shouldn't cause issues
     thread.stackFrames[thread.stackFrames.length - 1].reuse(isWarp);
 
     const executeBlock = () => {
-        const blockUtility = globalState.blockUtility;
-        blockUtility.init(thread, blockId);
-        return blockFunction(inputs, blockUtility);
+        blockUtility.init(thread, blockId, stackFrame, branchInfo);
+        return blockFunction(inputs, blockUtility, visualReport);
     };
 
     let returnValue = executeBlock();
-
     if (isPromise(returnValue)) {
-        returnValue = yield* waitPromise(returnValue);
-        if (useFlags) {
-            hasResumedFromPromise = true;
-        }
+        returnValue = finish(yield* waitPromise(returnValue));
+        if (useFlags) hasResumedFromPromise = true;
         return returnValue;
     }
 
-    if (thread.status === 1 /* STATUS_PROMISE_WAIT */) {
+    if (thread.status === 1 /* STATUS_PROMISE_WAIT */ || thread.status === 4 /* STATUS_DONE */) {
         // Something external is forcing us to stop
         yield;
         // Make up a return value because whatever is forcing us to stop can't specify one
@@ -190,25 +206,31 @@ const executeInCompatibilityLayer = function*(inputs, blockFunction, isWarp, use
         }
 
         returnValue = executeBlock();
-
         if (isPromise(returnValue)) {
-            returnValue = yield* waitPromise(returnValue);
-            if (useFlags) {
-                hasResumedFromPromise = true;
-            }
+            returnValue = finish(yield* waitPromise(returnValue));
+            if (useFlags) hasResumedFromPromise = true;
             return returnValue;
         }
 
-        if (thread.status === 1 /* STATUS_PROMISE_WAIT */) {
+        if (thread.status === 1 /* STATUS_PROMISE_WAIT */ || thread.status === 4 /* STATUS_DONE */) {
             yield;
-            return '';
+            return finish('');
         }
     }
-
-    // todo: do we have to do anything extra if status is STATUS_DONE?
-
-    return returnValue;
+    return finish(returnValue);
 }`;
+
+/**
+ * @param {boolean} isLoop True if the block is a LOOP by default (can be overridden by startBranch() call)
+ * @returns {unknown} Branch info object for compatibility layer.
+ */
+runtimeFunctions.createBranchInfo = `const createBranchInfo = (isLoop) => ({
+    defaultIsLoop: isLoop,
+    isLoop: false,
+    branch: 0,
+    stackFrame: {},
+    onEnd: [],
+});`;
 
 /**
  * End the current script.
@@ -501,6 +523,16 @@ runtimeFunctions.listContains = `const listContains = (list, item) => {
 }`;
 
 /**
+ * pm: Returns whether a list contains a value, using Array.some
+ * @param {import('../engine/variable')} list The list.
+ * @param {*} item The value to search for.
+ * @returns {boolean} True if the list contains the item
+ */
+runtimeFunctions.listContainsFastest = `const listContainsFastest = (list, item) => {
+    return list.value.some(litem => compareEqual(litem, item));
+}`;
+
+/**
  * Find the 1-indexed index of an item in a list.
  * @param {import('../engine/variable')} list The list.
  * @param {*} item The item to search for
@@ -564,6 +596,65 @@ runtimeFunctions.tan = `const tan = (angle) => {
     return Math.round(Math.tan((Math.PI * angle) / 180) * 1e10) / 1e10;
 }`;
 
+runtimeFunctions.resolveImageURL = `const resolveImageURL = imgURL => 
+    typeof imgURL === 'object' && imgURL.type === 'canvas'
+        ? Promise.resolve(imgURL.canvas)
+        : new Promise(resolve => {
+            const image = new Image();
+            image.crossOrigin = "anonymous";
+            image.onload = resolve(image);
+            image.onerror = resolve; // ignore loading errors lol!
+            image.src = ''+imgURL;
+        })`;
+
+runtimeFunctions.parseJSONSafe = `const parseJSONSafe = json => {
+    try return JSON.parse(json)
+    catch return {}
+}`;
+
+runtimeFunctions._resolveKeyPath = `const _resolveKeyPath = (obj, keyPath) => {
+    const path = keyPath.matchAll(/(\\.|^)(?<key>[^.[]+)|\\[(?<litkey>(\\\\\\]|\\\\|[^]])+)\\]/g);
+    let top = obj;
+    let pre;
+    let tok;
+    let key;
+    while (!(tok = path.next()).done) {
+        key = tok.value.groups.key ?? tok.value.groups.litKey.replaceAll('\\\\\\\\', '\\\\').replaceAll('\\\\]', ']');
+        pre = top;
+        top = top?.get?.(key) ?? top?.[key];
+        if (top === undefined) return [obj, keyPath];
+    }
+    return [pre, key];
+}`;
+
+runtimeFunctions.get = `const get = (obj, keyPath) => {
+    const [root, key] = _resolveKeyPath(obj, keyPath);
+    return typeof root === 'undefined' 
+        ? '' 
+        : root.get?.(key) ?? root[key];
+}`;
+
+runtimeFunctions.set = `const set = (obj, keyPath, val) => {
+    const [root, key] = _resolveKeyPath(obj, keyPath);
+    return typeof root === 'undefined' 
+        ? '' 
+        : root.set?.(key) ?? (root[key] = val);
+}`;
+
+runtimeFunctions.remove = `const remove = (obj, keyPath) => {
+    const [root, key] = _resolveKeyPath(obj, keyPath);
+    return typeof root === 'undefined' 
+        ? '' 
+        : root.delete?.(key) ?? root.remove?.(key) ?? (delete root[key]);
+}`;
+
+runtimeFunctions.includes = `const includes = (obj, keyPath) => {
+    const [root, key] = _resolveKeyPath(obj, keyPath);
+    return typeof root === 'undefined' 
+        ? '' 
+        : root.has?.(key) ?? (key in root);
+}`;
+
 /**
  * Step a compiled thread.
  * @param {Thread} thread The thread to step.
@@ -587,6 +678,12 @@ const insertRuntime = source => {
         if (source.includes(functionName)) {
             result += `${runtimeFunctions[functionName]};`;
         }
+    }
+    if (result.includes('executeInCompatibilityLayer') && !result.includes('const waitPromise')) {
+        result = result.replace('let hasResumedFromPromise = false;', `let hasResumedFromPromise = false;\n${runtimeFunctions.waitPromise}`);
+    }
+    if (result.includes('_resolveKeyPath') && !result.includes('const _resolveKeyPath')) {
+        result = runtimeFunctions._resolveKeyPath + ';' + result;
     }
     result += `return ${source}`;
     return result;
@@ -612,5 +709,7 @@ execute.scopedEval = scopedEval;
 execute.runtimeFunctions = runtimeFunctions;
 execute.saveGlobalState = saveGlobalState;
 execute.restoreGlobalState = restoreGlobalState;
+// not actually used, this is an export for extensions
+execute.globalState = globalState;
 
 module.exports = execute;

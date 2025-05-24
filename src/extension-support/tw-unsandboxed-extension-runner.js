@@ -1,4 +1,5 @@
 const ScratchCommon = require('./tw-extension-api-common');
+const createScratchX = require('./tw-scratchx-compatibility-layer');
 const AsyncLimiter = require('../util/async-limiter');
 const createTranslate = require('./tw-l10n');
 
@@ -80,10 +81,7 @@ const setupUnsandboxedExtensionAPI = vm => new Promise(resolve => {
         if (!await Scratch.canFetch(actualURL)) {
             throw new Error(`Permission to fetch ${actualURL} rejected.`);
         }
-        return fetch(url, {
-            ...options,
-            redirect: 'error'
-        });
+        return fetch(url, options);
     };
 
     Scratch.openWindow = async (url, features) => {
@@ -110,10 +108,22 @@ const setupUnsandboxedExtensionAPI = vm => new Promise(resolve => {
 
     Scratch.canGeolocate = async () => vm.securityManager.canGeolocate();
 
+    Scratch.canEmbed = async url => {
+        const parsed = parseURL(url);
+        if (!parsed) {
+            return false;
+        }
+        return vm.securityManager.canEmbed(parsed.href);
+    };
+
+    Scratch.canUnsandbox = async () => vm.securityManager.canUnsandbox();
+
     Scratch.translate = createTranslate(vm);
 
     global.Scratch = Scratch;
-    global.ScratchExtensions = require('./tw-scratchx-compatibility-layer');
+    global.ScratchExtensions = createScratchX(Scratch);
+
+    vm.emit('CREATE_UNSANDBOXED_EXTENSION_API', Scratch);
 });
 
 /**

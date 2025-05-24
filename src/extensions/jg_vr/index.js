@@ -109,6 +109,18 @@ class jgVr {
                         }
                     }
                 },
+                {
+                    opcode: 'placement169',
+                    text: '[SIDE] x placement',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: true,
+                    arguments: {
+                        SIDE: {
+                            type: ArgumentType.STRING,
+                            menu: 'side'
+                        }
+                    }
+                },
                 '---', // HEADSET POSITION
                 {
                     opcode: 'headsetPosition',
@@ -164,19 +176,6 @@ class jgVr {
                         VECTOR3: {
                             type: ArgumentType.STRING,
                             menu: 'vector3'
-                        }
-                    }
-                },
-                '---', // HELPER BLOCKS
-                {
-                    opcode: 'placement169',
-                    text: '[SIDE] x placement',
-                    blockType: BlockType.REPORTER,
-                    disableMonitor: true,
-                    arguments: {
-                        SIDE: {
-                            type: ArgumentType.STRING,
-                            menu: 'side'
                         }
                     }
                 },

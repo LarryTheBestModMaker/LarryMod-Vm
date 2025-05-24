@@ -27,10 +27,10 @@ const KEY_NAME = {
 };
 
 /**
- * An array of the names of scratch keys.
- * @type {Array<string>}
+ * An set of the names of scratch keys.
+ * @type {Set<string>}
  */
-const KEY_NAME_LIST = Object.keys(KEY_NAME).map(name => KEY_NAME[name]);
+const KEY_NAME_SET = new Set(Object.values(KEY_NAME));
 
 class Keyboard {
     constructor (runtime) {
@@ -46,6 +46,7 @@ class Keyboard {
         this._keysPressed = [];
         // pm: keep track of hit keys
         this._keysHit = [];
+        this._keysHitOnStep = {}; // key: the key pressed, value: the step they were pressed on
         // pm: keep track of how long keys have been pressed for
         this._keyTimestamps = {};
         /**
@@ -57,6 +58,20 @@ class Keyboard {
         // tw: track last pressed key
         this.lastKeyPressed = '';
         this._numeralKeyCodesToStringKey = new Map();
+        
+        // after processing all blocks, we can check if this step is after any keys we pressed
+        this.runtime.on("RUNTIME_STEP_END", () => {
+            const newHitKeys = [];
+            for (const key of this._keysHit) {
+                const stepKeyPressedOn = this._keysHitOnStep[key] || -1;
+                if (this.runtime.frameLoop._stepCounter <= stepKeyPressedOn) {
+                    newHitKeys.push(key);
+                }
+            }
+
+            // replace with the keys that are now pressed
+            this._keysHit = newHitKeys;
+        });
     }
 
     /**
@@ -125,7 +140,9 @@ class Keyboard {
         keyArg = Cast.toString(keyArg);
 
         // If the arg matches a special key name, return it.
-        if (KEY_NAME_LIST.includes(keyArg)) {
+        // No special keys have a name that is only 1 character long, so we can avoid the lookup
+        // entirely in the most common case.
+        if (keyArg.length > 1 && KEY_NAME_SET.has(keyArg)) {
             return keyArg;
         }
 
@@ -174,15 +191,7 @@ class Keyboard {
                 this._keyTimestamps[scratchKey] = Date.now();
                 // pm: keep track of hit keys
                 this._keysHit.push(scratchKey);
-                // wait 2 ticks then remove from list
-                this.runtime.once("RUNTIME_STEP_START", () => {
-                    this.runtime.once("RUNTIME_STEP_START", () => {
-                        const index = this._keysHit.indexOf(scratchKey);
-                        if (index > -1) {
-                            this._keysHit.splice(index, 1);
-                        }
-                    })
-                })
+                this._keysHitOnStep[scratchKey] = this.runtime.frameLoop._stepCounter;
             }
         } else if (index > -1) {
             // If already present, remove from the list.

@@ -1,7 +1,12 @@
 const BlockType = require('../../extension-support/block-type');
+const BlockShape = require('../../extension-support/block-shape');
 const ArgumentType = require('../../extension-support/argument-type');
+const ArgumentAlignment = require('../../extension-support/argument-alignment');
 const Cast = require('../../util/cast');
 const MathUtil = require('../../util/math-util');
+const test_indicator = require('./test_indicator.png');
+
+const pathToMedia = 'static/blocks-media';
 
 /**
  * Class for Dev blocks
@@ -109,6 +114,18 @@ class JgDevBlocks {
                     }
                 },
                 {
+                    opcode: 'restartFromTheTop',
+                    text: 'restart from the top [ICON]',
+                    blockType: BlockType.COMMAND,
+                    isTerminal: true,
+                    arguments: {
+                        ICON: {
+                            type: ArgumentType.IMAGE,
+                            dataURI: pathToMedia + "/repeat.svg"
+                        }
+                    }
+                },
+                {
                     opcode: 'doodooBlockLolol',
                     text: 'ignore blocks inside [INPUT]',
                     branchCount: 1,
@@ -138,7 +155,7 @@ class JgDevBlocks {
                 },
                 {
                     opcode: 'compiledIfNot',
-                    text: 'if not [CONDITION] then',
+                    text: 'if not [CONDITION] then (compiled)',
                     branchCount: 1,
                     blockType: BlockType.CONDITIONAL,
                     arguments: {
@@ -192,8 +209,147 @@ class JgDevBlocks {
                     text: 'boolean monitor',
                     blockType: BlockType.BOOLEAN
                 },
+                {
+                    opcode: 'ifFalseReturned',
+                    text: 'if [INPUT] is false (return)',
+                    branchCount: 1,
+                    blockType: BlockType.CONDITIONAL,
+                    arguments: {
+                        INPUT: { type: ArgumentType.BOOLEAN }
+                    }
+                },
+                {
+                    opcode: 'turbrowaorploop',
+                    blockType: BlockType.LOOP,
+                    text: 'my repeat [TIMES]',
+                    arguments: {
+                        TIMES: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 10
+                        }
+                    }
+                },
+                {
+                    opcode: 'alignmentTestate',
+                    blockType: BlockType.CONDITIONAL,
+                    text: [
+                        'this block tests alignments',
+                        'left',
+                        'middle',
+                        'right'
+                    ],
+                    alignments: [
+                        null,
+                        null,
+                        ArgumentAlignment.LEFT,
+                        null,
+                        ArgumentAlignment.CENTER,
+                        null,
+                        ArgumentAlignment.RIGHT
+                    ],
+                    branchCount: 3
+                },
+                {
+                    opcode: 'squareReporter',
+                    text: 'square boy',
+                    blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.SQUARE
+                },
+                {
+                    opcode: 'branchIndicatorTest',
+                    text: 'this has a custom branchIndicator',
+                    branchCount: 1,
+                    blockType: BlockType.CONDITIONAL,
+                    branchIndicator: test_indicator
+                },
+                {
+                    opcode: 'givesAnError',
+                    text: 'throw an error',
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'hiddenBoolean',
+                    text: 'im actually a boolean output',
+                    blockType: BlockType.REPORTER,
+                    forceOutputType: 'Boolean',
+                    disableMonitor: true
+                },
+                {
+                    opcode: 'varvarvavvarvarvar',
+                    text: 'varibles!?!?!??!?!?!?!?!!!?!?! [variable]',
+                    arguments: {
+                        variable: {
+                            menu: 'variableInternal'
+                        }
+                    },
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'green',
+                    text: 'im literally just green',
+                    blockType: BlockType.REPORTER,
+                    color1: '#00ff00',
+                    color2: '#000000',
+                    color3: '#000000',
+                    disableMonitor: true
+                },
+                {
+                    opcode: 'duplicato',
+                    text: 'duplicato',
+                    blockType: BlockType.REPORTER,
+                    canDragDuplicate: true,
+                    disableMonitor: true,
+                    hideFromPalette: true
+                },
+                {
+                    opcode: 'theheheuoihew9h9',
+                    blockType: BlockType.COMMAND,
+                    text: 'This block will appear in the penguinmod wiki [SEP] [DUPLIC]',
+                    arguments: {
+                        SEP: {
+                            type: ArgumentType.SEPERATOR,
+                        },
+                        DUPLIC: {
+                            type: ArgumentType.STRING,
+                            fillIn: 'duplicato',
+                        }
+                    }
+                },
+                {
+                    opcode: 'costumeTypeTest',
+                    blockType: BlockType.REPORTER,
+                    text: 'test custom type updating/rendering (new instance)'
+                },
+                {
+                    opcode: 'costumeTypeTestSame',
+                    blockType: BlockType.REPORTER,
+                    text: 'test custom type updating/rendering (same instance)'
+                },
+                {
+                    opcode: 'spriteDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get this target'
+                },
+                {
+                    opcode: 'spriteDefaultTypeOther',
+                    blockType: BlockType.REPORTER,
+                    text: 'get stage target'
+                },
+                {
+                    opcode: 'costumeDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get current costume'
+                },
+                {
+                    opcode: 'soundDefaultType',
+                    blockType: BlockType.REPORTER,
+                    text: 'get first sound'
+                }
             ],
             menus: {
+                variableInternal: {
+                    variableType: 'scalar'
+                },
                 variable: "getVariablesMenu",
                 numericTypeableTest: {
                     items: [
@@ -216,6 +372,58 @@ class JgDevBlocks {
             }
         };
     }
+    spriteDefaultType(args, util) {
+        return util.target;
+    }
+    spriteDefaultTypeOther(args, util) {
+        return this.runtime.getTargetForStage();
+    }
+    costumeDefaultType(args, util) {
+        return util.target.getCostumeType(util.target.currentCostume);
+    }
+    soundDefaultType(args, util) {
+        return util.target.getSoundType(0);
+    }
+    costumeTypeTest() {
+        return {
+            _monitorUpToDate: false,
+            costumId: 'thing',
+            num: Math.sin(Date.now() / 1000),
+            toReporterContent() {
+                const el = document.createElement('span');
+                el.style.color = '#F00';
+                el.textContent = this.num;
+                return el;
+            },
+            toMonitorContent() {
+                this._monitorUpToDate = true;
+                const el = document.createElement('span');
+                el.style.color = '#0F0';
+                el.textContent = this.num;
+                return el;
+            },
+            toListItem() {
+                this._monitorUpToDate = true;
+                const el = document.createElement('span');
+                el.style.color = '#00F';
+                el.textContent = this.num;
+                return el;
+            },
+            toListEditor() {
+                return `[num ${this.num}]`;
+            },
+            fromListEditor(thing) {
+                this.num = Number(thing.slice(5, -1));
+                return this;
+            }
+        };
+    }
+    costumeTypeTestSame() {
+        if (!this.custom) this.custom = this.costumeTypeTest();
+        this.custom.num = Math.sin(Date.now() / 1000);
+        this.custom._monitorUpToDate = false;
+        return this.custom;
+    }
     /**
      * This function is used for any compiled blocks in the extension if they exist.
      * Data in this function is given to the IR & JS generators.
@@ -234,6 +442,9 @@ class JgDevBlocks {
                 compiledReturn: (generator, block) => ({
                     kind: 'stack',
                     return: generator.descendInputOfBlock(block, 'RETURN')
+                }),
+                restartFromTheTop: () => ({
+                    kind: 'stack'
                 }),
                 compiledOutput: () => ({
                     kind: 'input' /* input is output :troll: (it makes sense in the ir & jsgen implementation ok) */
@@ -254,12 +465,20 @@ class JgDevBlocks {
                 compiledReturn: (node, compiler) => {
                     compiler.source += `return ${compiler.descendInput(node.return).asString()};`;
                 },
+                restartFromTheTop: (_, compiler) => {
+                    compiler.source += `runtime._restartThread(thread);`;
+                    compiler.source += `return;`;
+                },
                 compiledOutput: (_, compiler, imports) => {
                     const code = Cast.toString(compiler.source);
                     return new imports.TypedInput(JSON.stringify(code), imports.TYPE_STRING);
                 }
             }
         };
+    }
+
+    varvarvavvarvarvar(args) {
+        return JSON.stringify(args);
     }
 
     // menu
@@ -278,6 +497,10 @@ class JgDevBlocks {
         });
         // check if menu has 0 items because pm throws an error if theres no items
         return (menu.length > 0) ? menu : emptyMenu;
+    }
+
+    branchIndicatorTest() {
+        return; // dude logs wont shut up because i didnt define this func
     }
 
     // util
@@ -319,14 +542,13 @@ class JgDevBlocks {
     // blocks
 
     branchNewThread(_, util) {
-        const currentBlockId = util.thread.peekStack();
-        const branchBlock = util.thread.target.blocks.getBranch(
-            currentBlockId,
-            0
-        );
-
-        if (branchBlock) {
-            util.sequencer.runtime._pushThread(branchBlock, util.target, {});
+        // CubesterYT probably
+        if (util.thread.target.blocks.getBranch(util.thread.peekStack(), 0)) {
+            util.sequencer.runtime._pushThread(
+                util.thread.target.blocks.getBranch(util.thread.peekStack(), 0),
+                util.target,
+                {}
+            );
         }
     }
 
@@ -380,6 +602,10 @@ class JgDevBlocks {
         soundBank.soundPlayers[soundId].stopFadeDecay = Cast.toNumber(args.SEX);
     }
 
+    green() {
+        return 'g';
+    }
+
     logArgs1(args) {
         console.log(args);
         return JSON.stringify(args);
@@ -419,6 +645,21 @@ class JgDevBlocks {
             util.startBranch(1, false);
         }
     }
+    ifFalseReturned(args) {
+        if (!args.INPUT) {
+            return 1;
+        }
+    }
+    turbrowaorploop ({TIMES}, util) {
+        const times = Math.round(Cast.toNumber(TIMES));
+        if (typeof util.stackFrame.loopCounter === 'undefined') {
+            util.stackFrame.loopCounter = times;
+        }
+        util.stackFrame.loopCounter--;
+        if (util.stackFrame.loopCounter >= 0) {
+            return true;
+        }
+    }
     // compiled blocks should have interpreter versions
     compiledIfNot(args, util) {
         const condition = Cast.toBoolean(args.CONDITION);
@@ -429,8 +670,15 @@ class JgDevBlocks {
     compiledReturn() {
         return 'noop';
     }
+    restartFromTheTop() {
+        return 'noop';
+    }
     compiledOutput() {
         return '<unavailable without compiler>';
+    }
+
+    hiddenBoolean() {
+        return true;
     }
 
     multiplyTest(args, util) {
@@ -448,6 +696,16 @@ class JgDevBlocks {
 
     whatthescallop(args) {
         return JSON.stringify(args);
+    }
+
+    squareReporter() {
+        return 0;
+    }
+    alignmentTestate() {
+        return;
+    }
+    givesAnError() {
+        throw new Error('woah an error');
     }
 }
 

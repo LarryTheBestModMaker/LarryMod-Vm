@@ -6,6 +6,7 @@ const ArgumentType = require('../extension-support/argument-type');
 const Blocks = require('./blocks');
 const BlocksRuntimeCache = require('./blocks-runtime-cache');
 const BlockType = require('../extension-support/block-type');
+const BlockShape = require('../extension-support/block-shape');
 const Profiler = require('./profiler');
 const Sequencer = require('./sequencer');
 const execute = require('./execute.js');
@@ -23,6 +24,8 @@ const FontManager = require('./tw-font-manager');
 const { validateJSON } = require('../util/json-block-utilities');
 const Color = require('../util/color');
 const TabManager = require('../extension-support/pm-tab-manager');
+const ModalManager = require('../extension-support/pm-modal-manager');
+const MathUtil = require('../util/math-util');
 
 // Virtual I/O devices.
 const Clock = require('../io/clock');
@@ -37,6 +40,11 @@ const Touch = require('../io/touch');
 const StringUtil = require('../util/string-util');
 const uid = require('../util/uid');
 
+const coreVariableTypes = [
+    Variable.SCALAR_TYPE,
+    Variable.LIST_TYPE,
+    Variable.BROADCAST_MESSAGE_TYPE
+];
 const defaultBlockPackages = {
     scratch3_control: require('../blocks/scratch3_control'),
     scratch3_event: require('../blocks/scratch3_event'),
@@ -148,6 +156,10 @@ const ArgumentTypeMap = (() => {
         fieldName: "BROADCAST",
         variableType: 'broadcast_msg'
     };
+    map[ArgumentType.SEPERATOR] = {
+        fieldType: 'field_vertical_separator'
+    };
+
     return map;
 })();
 
@@ -321,6 +333,11 @@ class Runtime extends EventEmitter {
         this.tabManager = new TabManager(this);
 
         /**
+         * pm: The current modal manager for this runtime.
+         */
+        this.modalManager = new ModalManager(this);
+
+        /**
          * Currently known number of clones, used to enforce clone limit.
          * @type {number}
          */
@@ -477,7 +494,9 @@ class Runtime extends EventEmitter {
         this.runtimeOptions = {
             maxClones: Runtime.MAX_CLONES,
             miscLimits: true,
-            fencing: true
+            fencing: true,
+            dangerousOptimizations: false,
+            disableOffscreenRendering: false
         };
 
         this.compilerOptions = {
@@ -485,10 +504,20 @@ class Runtime extends EventEmitter {
             warpTimer: false
         };
 
+        this.optimizationUtil = {
+            sin: new Array(360),
+            cos: new Array(360)
+        };
+        for (let i = 0; i < 360; i++) {
+            this.optimizationUtil.sin[i] = Math.round(Math.sin((Math.PI * i) / 180) * 1e10) / 1e10;
+            this.optimizationUtil.cos[i] = Math.round(Math.cos((Math.PI * i) / 180) * 1e10) / 1e10;
+        }
+
         this.debug = false;
 
         this._lastStepTime = Date.now();
         this.interpolationEnabled = false;
+        this.interpolate = interpolate;
 
         this._defaultStoredSettings = this._generateAllProjectOptions();
 
@@ -553,13 +582,50 @@ class Runtime extends EventEmitter {
          */
         this.fontManager = new FontManager(this);
 
-        this.cameraStates = [
-            {
+        this.cameraStates = {
+            default: {
                 pos: [0, 0],
                 dir: 0,
                 scale: 1
             }
-        ];
+        };
+
+        // list of variable types declared by extensions
+        this._extensionVariables = {};
+        // lists all custom serializers
+        this.serializers = {
+            'pm-rendered-target': {
+                serialize: target => ({ id: target.id, name: target.getName() }),
+                deserialize: ({ id, name }) => this.getTargetById(id) ?? this.getSpriteTargetByName(name)
+            },
+            'pm-costume-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getCostumes();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            },
+            'pm-sound-asset': {
+                serialize: asset => ({ id: asset.assetId, name: asset.name }),
+                deserialize: ({ assetId, name }) => {
+                    for (let i = 0; i < this.targets.length; i++) {
+                        const assets = this.targets[i].getSounds();
+                        const found = assets.find(asset => asset.assetId === assetId || asset.name === name);
+                        if (found) return found;
+                    }
+                }
+            }
+        };
+
+        /**
+         * An object to contain runtime variables from the
+         * LilyMakesThings Thread Variables extension
+         * @type {Object}
+         */
+        this.variables = Object.create(null);
     }
 
     /**
@@ -667,6 +733,34 @@ class Runtime extends EventEmitter {
      */
     static get INTERPOLATION_CHANGED () {
         return 'INTERPOLATION_CHANGED';
+    }
+
+    /**
+     * Event called before interpolation data is set.
+     */
+    static get BEFORE_INTERPOLATE () {
+        return 'BEFORE_INTERPOLATE';
+    }
+
+    /**
+     * Event called after interpolation data is set.
+     */
+    static get AFTER_INTERPOLATE () {
+        return 'AFTER_INTERPOLATE';
+    }
+
+    /**
+     * Event called before any block is executed.
+     */
+    static get BEFORE_EXECUTE () {
+        return 'BEFORE_EXECUTE';
+    }
+
+    /**
+     * Event called after every block in the project has been executed.
+     */
+    static get AFTER_EXECUTE () {
+        return 'AFTER_EXECUTE';
     }
 
     /**
@@ -947,6 +1041,15 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Event name when the runtime is about to be paused temporarily.
+     * Fires before runtime.paused = true.
+     * @const {string}
+     */
+    static get RUNTIME_PRE_PAUSED () {
+        return 'RUNTIME_PRE_PAUSED';
+    }
+
+    /**
      * Event name when the runtime is unpaused.
      * @const {string}
      */
@@ -968,6 +1071,14 @@ class Runtime extends EventEmitter {
      */
     static get RUNTIME_STEP_START () {
         return 'RUNTIME_STEP_START';
+    }
+
+    /**
+     * Event name when _step() has finished all processing within the function.
+     * @const {string}
+     */
+    static get RUNTIME_STEP_END () {
+        return 'RUNTIME_STEP_END';
     }
 
     /**
@@ -1000,6 +1111,15 @@ class Runtime extends EventEmitter {
      */
     static get CAMERA_CHANGED () {
         return 'CAMERA_CHANGED';
+    }
+
+   /**
+    * Event name for the starting of hats.
+    * @const {string}
+    */
+
+    static get HATS_STARTED () {
+        return 'HATS_STARTED'
     }
 
     /**
@@ -1197,6 +1317,8 @@ class Runtime extends EventEmitter {
             categoryInfo.orderBlocks = extensionInfo.orderBlocks;
         }
 
+        categoryInfo.tbShow = extensionInfo.tbShow || false
+
         this._blockInfo.push(categoryInfo);
 
         this._fillExtensionCategory(categoryInfo, extensionInfo);
@@ -1232,8 +1354,20 @@ class Runtime extends EventEmitter {
     }
 
     _removeExtensionPrimitive(extensionId) {
-        this._blockInfo = this._blockInfo.filter(ext => ext.id !== extensionId);
+        const extIdx = this._blockInfo.findIndex(ext => ext.id === extensionId);
+        const info = this._blockInfo[extIdx];
+        this._blockInfo.splice(extIdx, 1);
         this.emit(Runtime.EXTENSION_REMOVED);
+        // cleanup blocks
+        for (const target of this.targets) {
+            for (const blockId in target.blocks._blocks) {
+                const {opcode} = target.blocks.getBlock(blockId);
+                if (info.blocks.find(block => block.json?.type === opcode)) {
+                    target.blocks.deleteBlock(blockId, true);
+                }
+            }
+        }
+        this.emit(Runtime.BLOCKS_NEED_UPDATE);
     }
 
     /**
@@ -1317,7 +1451,7 @@ class Runtime extends EventEmitter {
      * @private
      */
     _convertMenuItems (menuItems) {
-        if (typeof menuItems !== 'function') {
+        if (Array.isArray(menuItems)) {
             const extensionMessageContext = this.makeMessageContextForTarget();
             return menuItems.map(item => {
                 const formattedItem = maybeFormatMessage(item, extensionMessageContext);
@@ -1325,6 +1459,7 @@ class Runtime extends EventEmitter {
                 case 'string':
                     return [formattedItem, formattedItem];
                 case 'object':
+                    if (Array.isArray(item)) return item.slice(0, 2);
                     return [maybeFormatMessage(item.text, extensionMessageContext), item.value];
                 default:
                     throw new Error(`Can't interpret menu item: ${JSON.stringify(item)}`);
@@ -1365,13 +1500,13 @@ class Runtime extends EventEmitter {
                 outputShape: menuInfo.acceptReporters || menuInfo.isTypeable ?
                     ScratchBlocksConstants.OUTPUT_SHAPE_ROUND : ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE,
                 args0: [
-                    (typeof menuInfo.variableType === 'string' ? 
+                    (typeof menuInfo.variableType !== 'undefined' ? 
                         {
-                            type: 'field_variable_getter',
+                            type: 'field_variable',
                             name: menuName,
-                            variableType: menuInfo.variableType === 'scalar' 
-                                ? '' 
-                                : menuInfo.variableType
+                            variableTypes: [menuInfo.variableType === 'scalar' 
+                                ? Variable.SCALAR_TYPE 
+                                : menuInfo.variableType]
                         } : (menuInfo.isTypeable ? 
                             {
                                 type: menuInfo.isNumeric 
@@ -1480,9 +1615,11 @@ class Runtime extends EventEmitter {
             type: extendedOpcode,
             inputsInline: true,
             category: categoryInfo.name,
-            colour: categoryInfo.color1,
-            colourSecondary: categoryInfo.color2,
-            colourTertiary: categoryInfo.color3
+            extensions: blockInfo.extensions ?? [],
+            colour: blockInfo.color1 ?? categoryInfo.color1,
+            colourSecondary: blockInfo.color2 ?? categoryInfo.color2,
+            colourTertiary: blockInfo.color3 ?? categoryInfo.color3,
+            canDragDuplicate: blockInfo.canDragDuplicate === true
         };
         const context = {
             // TODO: store this somewhere so that we can map args appropriately after translation.
@@ -1502,7 +1639,9 @@ class Runtime extends EventEmitter {
         const iconURI = blockInfo.blockIconURI || categoryInfo.blockIconURI;
 
         if (iconURI) {
-            blockJSON.extensions = ['scratch_extension'];
+            if (!blockJSON.extensions.includes('scratch_extension')) {
+                blockJSON.extensions.push('scratch_extension');
+            }
             blockJSON.message0 = '%1 %2';
             const iconJSON = {
                 type: 'field_image',
@@ -1519,12 +1658,14 @@ class Runtime extends EventEmitter {
             ];
         }
 
+        let notchAccepts = blockInfo.notchAccepts ?? 'normal'
+
         switch (blockInfo.blockType) {
         case BlockType.COMMAND:
             blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
-            blockJSON.previousStatement = 'normal'; // null = available connection; undefined = hat
+            blockJSON.previousStatement = notchAccepts; // null = available connection; undefined = hat
             if (!blockInfo.isTerminal) {
-                blockJSON.nextStatement = 'normal'; // null = available connection; undefined = terminal
+                blockJSON.nextStatement = notchAccepts; // null = available connection; undefined = terminal
             }
             break;
         case BlockType.REPORTER:
@@ -1542,18 +1683,20 @@ class Runtime extends EventEmitter {
                 blockInfo.isEdgeActivated = true;
             }
             blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
-            blockJSON.nextStatement = 'normal'; // null = available connection; undefined = terminal
+            blockJSON.nextStatement = notchAccepts; // null = available connection; undefined = terminal
             break;
         case BlockType.CONDITIONAL:
         case BlockType.LOOP:
-            blockInfo.branchCount = blockInfo.branchCount || 1;
+            blockInfo.branchCount = blockInfo.branchCount ?? 1;
             blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
-            blockJSON.previousStatement = 'normal'; // null = available connection; undefined = hat
+            blockJSON.previousStatement = notchAccepts; // null = available connection; undefined = hat
             if (!blockInfo.isTerminal) {
-                blockJSON.nextStatement = 'normal'; // null = available connection; undefined = terminal
+                blockJSON.nextStatement = notchAccepts; // null = available connection; undefined = terminal
             }
             break;
         }
+
+        blockInfo.branches = blockInfo.branches || Array(Math.max(blockInfo.branchCount || 0, 0)).fill({})
 
         const blockText = Array.isArray(blockInfo.text) ? blockInfo.text : [blockInfo.text];
         let inTextNum = 0; // text for the next block "arm" is blockText[inTextNum]
@@ -1563,7 +1706,7 @@ class Runtime extends EventEmitter {
         const extensionMessageContext = this.makeMessageContextForTarget();
 
         // alternate between a block "arm" with text on it and an open slot for a substack
-        while (inTextNum < blockText.length || inBranchNum < blockInfo.branchCount) {
+        while (inTextNum < blockText.length || inBranchNum < blockInfo.branches.length) {
             if (inTextNum < blockText.length) {
                 context.outLineNum = outLineNum;
                 const lineText = maybeFormatMessage(blockText[inTextNum], extensionMessageContext);
@@ -1576,12 +1719,12 @@ class Runtime extends EventEmitter {
                 ++inTextNum;
                 ++outLineNum;
             }
-            if (inBranchNum < blockInfo.branchCount) {
+            if (inBranchNum < blockInfo.branches.length) {
                 blockJSON[`message${outLineNum}`] = '%1';
                 blockJSON[`args${outLineNum}`] = [{
                     type: 'input_statement',
                     name: `SUBSTACK${inBranchNum > 0 ? inBranchNum + 1 : ''}`,
-                    check: 'normal'
+                    check: blockInfo.branches[inBranchNum].accepts ?? 'normal'
                 }];
                 ++inBranchNum;
                 ++outLineNum;
@@ -1592,19 +1735,38 @@ class Runtime extends EventEmitter {
             if (!blockInfo.disableMonitor && context.inputList.length === 0) {
                 blockJSON.checkboxInFlyout = true;
             }
-        } else if (blockInfo.blockType === BlockType.LOOP) {
+        }
+        if (blockInfo.blockType === BlockType.LOOP || ('branchIndicator' in blockInfo || 'branchIconURI' in blockInfo)) {
             // Add icon to the bottom right of a loop block
             blockJSON[`lastDummyAlign${outLineNum}`] = 'RIGHT';
             blockJSON[`message${outLineNum}`] = '%1';
             blockJSON[`args${outLineNum}`] = [{
                 type: 'field_image',
-                src: './static/blocks-media/repeat.svg', // TODO: use a constant or make this configurable?
-                width: 24,
-                height: 24,
+                src: blockInfo.branchIndicator ?? blockInfo.branchIconURI ?? './static/blocks-media/repeat.svg',
+                width: blockInfo.branchIndicatorWidth ?? 24,
+                height: blockInfo.branchIndicatorHeight ?? 24,
                 alt: '*', // TODO remove this since we don't use collapsed blocks in scratch
                 flip_rtl: true
             }];
             ++outLineNum;
+        }
+
+        if (Array.isArray(blockInfo.alignments)) {
+            let idx = 0;
+            // i love for (const of)
+            for (const alignment of blockInfo.alignments) {
+                if (typeof alignment === "string") {
+                    blockJSON[`lastDummyAlign${idx}`] = alignment.toUpperCase();
+                }
+                idx++;
+            }
+        }
+
+        if (typeof blockInfo.blockShape === 'number') {
+            blockJSON.outputShape = blockInfo.blockShape;
+        }
+        if (blockInfo.forceOutputType) {
+            blockJSON.output = blockInfo.forceOutputType;
         }
 
         const mutation = blockInfo.isDynamic 
@@ -1691,8 +1853,8 @@ class Runtime extends EventEmitter {
             type: 'field_image',
             src: argInfo.dataURI || '',
             // TODO these probably shouldn't be hardcoded...?
-            width: 24,
-            height: 24,
+            width: argInfo.width ?? 24,
+            height: argInfo.height ?? 24,
             // Whether or not the inline image should be flipped horizontally
             // in RTL languages. Defaults to false, indicating that the
             // image will not be flipped.
@@ -1748,6 +1910,10 @@ class Runtime extends EventEmitter {
             argJSON = this._constructInlineImageJson(argInfo);
         } else if (argTypeInfo.fieldType === 'field_variable') {
             argJSON = this._constructVariableDropdown(argInfo, placeholder);
+        } else if (argTypeInfo.fieldType === 'field_vertical_separator') {
+            argJSON = {
+                type: 'field_vertical_separator',
+            };
         } else {
             // Construct input value
 
@@ -1762,30 +1928,53 @@ class Runtime extends EventEmitter {
                     xmlEscape.escapeAttribute(maybeFormatMessage(
                         argInfo.defaultValue, this.makeMessageContextForTarget()).toString());
 
-            if (argTypeInfo.check) {
+            if (argTypeInfo.check || argInfo.check) {
                 // Right now the only type of 'check' we have specifies that the
                 // input slot on the block accepts Boolean reporters, so it should be
                 // shaped like a hexagon
-                argJSON.check = argTypeInfo.check;
+                argJSON.check = argInfo.check || argTypeInfo.check;
+            }
+            if (argInfo.shape) {
+                argJSON.shape = argInfo.shape;
             }
 
             let valueName;
             let shadowType;
+            let blockType;
             let fieldName;
+            let variableID;
+            let variableName;
+            let variableType;
             if (argInfo.menu) {
                 const menuInfo = context.categoryInfo.menuInfo[argInfo.menu];
                 if (menuInfo.acceptReporters || menuInfo.isTypeable) {
                     valueName = placeholder;
                     shadowType = this._makeExtensionMenuId(argInfo.menu, context.categoryInfo.id);
                     fieldName = argInfo.menu;
-                } else if (typeof menuInfo.variableType === 'string') {
-                    argJSON.type = 'field_variable';
+                } else if (typeof menuInfo.variableType !== 'undefined') {
+                    const args = Object.keys(context.blockInfo.arguments);
+                    const blockText = context.blockInfo.text.toString();
+                    const isVariableGetter = args.length === 1 && blockText.length === args[0].length + 2;
+                    if (isVariableGetter) {
+                        context.blockJSON.extensions ??= [];
+                        context.blockJSON.extensions.push('contextMenu_getVariableBlockAnyType');
+                    }
+                    argJSON.type = isVariableGetter
+                        ? 'field_variable_getter'
+                        : 'field_variable';
                     argJSON.variableTypes = [menuInfo.variableType === 'scalar' 
-                        ? '' 
+                        ? Variable.SCALAR_TYPE 
                         : menuInfo.variableType];
+                    argJSON.variableType = argJSON.variableTypes[0];
                     valueName = null;
                     shadowType = null;
                     fieldName = placeholder;
+                    variableType = menuInfo.variableType === 'scalar' 
+                        ? Variable.SCALAR_TYPE 
+                        : menuInfo.variableType
+                    const defaultVar = argInfo.defaultValue ?? [];
+                    variableID = defaultVar[0];
+                    variableName = defaultVar[1];
                 } else {
                     argJSON.type = 'field_dropdown';
                     argJSON.options = this._convertMenuItems(menuInfo.items);
@@ -1798,6 +1987,12 @@ class Runtime extends EventEmitter {
                 shadowType = (argTypeInfo.shadow && argTypeInfo.shadow.type) || null;
                 fieldName = (argTypeInfo.shadow && argTypeInfo.shadow.fieldName) || null;
             }
+            // TODO: Allow fillIn to work with non-shadow.
+            if (argInfo.fillIn/* && argInfo.fillInShadow*/) {
+                shadowType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
+            }/* else if (argInfo.fillIn) {
+                blockType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
+            }*/
 
             // <value> is the ScratchBlocks name for a block input.
             if (valueName) {
@@ -1809,10 +2004,10 @@ class Runtime extends EventEmitter {
             if (shadowType) {
                 context.inputList.push(`<shadow type="${xmlEscape.escapeAttribute(shadowType)}">`);
             }
-
-            if (shadowType === 'polygon') {
-                // eslint-disable-next-line max-len
-                context.inputList.push(`<mutation expanded="false" points="${argInfo.nodes}" color="${context.blockJSON.colour}" midle="[0,0]" scale="${argInfo.defaultSize || 30}"/>`);
+            
+            // TODO: This doesnt seem to work properly with fillIn. Default to shadow for now.
+            if (blockType) {
+                context.inputList.push(`<block type="${xmlEscape.escapeAttribute(blockType)}">`);
             }
 
             if (shadowType === 'polygon') {
@@ -1822,10 +2017,19 @@ class Runtime extends EventEmitter {
 
             // A <field> displays a dynamic value: a user-editable text field, a drop-down menu, etc.
             // Leave out the field if defaultValue or fieldName are not specified
-            if (fieldName) {
+            if (fieldName && !variableID) {
                 if ((defaultValue) || ((argInfo.type === "string") && (!argInfo.menu))) {
                     context.inputList.push(`<field name="${fieldName}">${defaultValue}</field>`);
                 }
+            }
+
+            if (variableID) {
+                // eslint-disable-next-line max-len
+                context.inputList.push(`<field name="${fieldName}" id="${variableID}" variableType="${variableType}">${variableName}</field>`);
+            }
+            
+            if (blockType) {
+                context.inputList.push('</block>');
             }
 
             if (shadowType) {
@@ -1893,8 +2097,8 @@ class Runtime extends EventEmitter {
                 statusButtonXML = 'showStatusButton="true"';
             }
 
-            let xml = `<category name="${xmlEscape(name)}"`;
-            xml += ` id="${xmlEscape(categoryInfo.id)}"`;
+            let xml = `<category name="${xmlEscape.escapeAttribute(name)}"`;
+            xml += ` id="${xmlEscape.escapeAttribute(categoryInfo.id)}"`;
             xml += ` options="extensionControls"`;
             xml += ` ${statusButtonXML}`;
             xml += ` ${colorXML}`;
@@ -2052,7 +2256,67 @@ class Runtime extends EventEmitter {
         this.renderer = renderer;
         this.renderer.setLayerGroupOrdering(StageLayering.LAYER_GROUPS);
         this.renderer.offscreenTouching = !this.runtimeOptions.fencing;
+        this.renderer.renderOffscreen = this.runtimeOptions.disableOffscreenRendering;
         this.updatePrivacy();
+    }
+
+    /**
+     * registers a custom serializer to allow saving custom data into standard variables
+     * @param {Function} validate validates if a given chunk of data is correctly for this serializer
+     * @param {Function} serialize the function to be ran on serialized data in variables.
+     * @param {Function} deserialize the function to be ran on serialized data in variables
+     */
+    registerSerializer (id, serialize, deserialize) {
+        if (typeof serialize !== 'function') {
+            throw new TypeError('serialize must be of type function');
+        }
+        if (typeof deserialize !== 'function') {
+            throw new TypeError('deserialize must be of type function');
+        }
+        this.serializers[id] = {
+            serialize, 
+            deserialize
+        };
+    }
+
+    /**
+     * Register a variable type
+     * @param {string} type the type name of this variable
+     * @param {ObjectConstructor} varClass the class to handle the data this variable contains
+     */
+    registerVariable (type, varClass) {
+        this._extensionVariables[type] = varClass;
+    }
+
+    /**
+     * Remove a variable type
+     * @param {string} type the type name of this variable
+     */
+    unregisterVariable (type) {
+        const variable = this._extensionVariables[type];
+        if (!variable) throw new Error(`can not remove a variable type that does not exist. removing ${type}`);
+        delete this._extensionVariables[type];
+    }
+
+    /**
+     * create a new variable instance
+     * @param {string} type variable type
+     * @param  {...any} args the arguments to pass down to the variable
+     * @returns {Variable|InstanceType} the new variable instance
+     */
+    newVariableInstance (type, ...args) {
+        if (coreVariableTypes.includes(type)) {
+            args.splice(2, 0, type);
+            return new Variable(...args);
+        }
+        const variable = this._extensionVariables[type];
+        // return a fake variable, this is because of loading variables from the sb3 parser
+        if (!variable) return {
+            type,
+            value: args,
+            mustRecreate: true
+        };
+        return new variable(this, ...args);
     }
 
     /**
@@ -2104,6 +2368,7 @@ class Runtime extends EventEmitter {
      * @param {?object} opts optional arguments
      * @param {?boolean} opts.stackClick true if the script was activated by clicking on the stack
      * @param {?boolean} opts.updateMonitor true if the script should update a monitor value
+     * @param {?Target} opts.targetBlockLocation where the blocks are located
      * @return {!Thread} The newly created thread.
      */
     _pushThread (id, target, opts) {
@@ -2113,7 +2378,7 @@ class Runtime extends EventEmitter {
         thread.updateMonitor = Boolean(opts && opts.updateMonitor);
         thread.blockContainer = thread.updateMonitor ?
             this.monitorBlocks :
-            target.blocks;
+            ((opts && opts.targetBlockLocation) || target.blocks);
 
         thread.pushStack(id);
         this.threads.push(thread);
@@ -2376,6 +2641,7 @@ class Runtime extends EventEmitter {
                 thread.goToNextBlock();
             }
         });
+        this.emit(Runtime.HATS_STARTED, requestedHatOpcode, optMatchFields, optTarget, newThreads);
         return newThreads;
     }
 
@@ -2429,6 +2695,19 @@ class Runtime extends EventEmitter {
      * @param {Target} target target to add
      */
     addTarget (target) {
+        for (const varId in target.variables) {
+            const variable = target.variables[varId];
+            if (variable.mustRecreate) {
+                // variable must be fully created now as we couldnt earlier
+                const newVar = this.newVariableInstance(variable.type, ...variable.value);
+                // variable type doesnt exist, remove variable entirely
+                if (newVar.mustRecreate) {
+                    delete target.variable[varId];
+                    continue;
+                }
+                target.variables[varId] = newVar;
+            }
+        }
         this.targets.push(target);
         this.executableTargets.push(target);
         if (target.isStage && !this._stageTarget) {
@@ -2544,47 +2823,15 @@ class Runtime extends EventEmitter {
         this.startHats('event_whenflagclicked');
     }
 
-    _accountForExtendedSoundsAudioContexts() {
-        // extended audio
-        if ("ext_jgExtendedAudio" in this) {
-            const extension = this.ext_jgExtendedAudio;
-            const helper = extension.helper;
-            // audio context might not be created, make it for him
-            if (!helper.audioContext) helper.audioContext = new AudioContext();
-            // gain node for volume slidor might not be created, make it for him
-            if (!helper.audioGlobalVolumeNode) {
-                helper.audioGlobalVolumeNode = helper.audioContext.createGain();
-                helper.audioGlobalVolumeNode.gain.value = 1;
-                helper.audioGlobalVolumeNode.connect(helper.audioContext.destination);
-                if (this.audioEngine) {
-                    helper.audioGlobalVolumeNode.gain.value = this.audioEngine.inputNode.gain.value;
-                }
-            }
-        }
-    }
-    _getExtendedSoundsAudioContext() {
-        // extended audio
-        if ("ext_jgExtendedAudio" in this) {
-            const extension = this.ext_jgExtendedAudio;
-            const helper = extension.helper;
-            return helper.audioContext;
-        }
-    }
-
     /**
      * Pause running scripts
      */
     pause() {
         if (this.paused) return;
+        this.emit(Runtime.RUNTIME_PRE_PAUSED);
         this.paused = true;
-        // pause all audio contexts (that includes you, extended audio)
-        // yea extended audio gets extra permissions :3
+        // pause all audio contexts (that includes exts with their own AC or gain node)
         this.audioEngine.audioContext.suspend();
-        this._accountForExtendedSoundsAudioContexts();
-        const extAudioAC = this._getExtendedSoundsAudioContext();
-        if (extAudioAC) {
-            extAudioAC.suspend();
-        }
         for (const audioData of this._extensionAudioObjects.values()) {
             if (audioData.audioContext) {
                 audioData.audioContext.suspend();
@@ -2592,8 +2839,6 @@ class Runtime extends EventEmitter {
         }
 
         this.ioDevices.clock.pause();
-        // safest way to stop the threads from being steped /shrug
-        this.frameLoop.stop();
         for (const thread of this.threads) {
             thread.pause();
         }
@@ -2606,13 +2851,8 @@ class Runtime extends EventEmitter {
     play() {
         if (!this.paused) return;
         this.paused = false;
-        // resume all audio contexts (that includes you, extended audio)
+        // resume all audio contexts (that includes exts with their own AC or gain node)
         this.audioEngine.audioContext.resume();
-        this._accountForExtendedSoundsAudioContexts();
-        const extAudioAC = this._getExtendedSoundsAudioContext();
-        if (extAudioAC) {
-            extAudioAC.resume();
-        }
         for (const audioData of this._extensionAudioObjects.values()) {
             if (audioData.audioContext) {
                 audioData.audioContext.resume();
@@ -2620,8 +2860,6 @@ class Runtime extends EventEmitter {
         }
 
         this.ioDevices.clock.resume();
-        // frameloop is always stoped by pause() so restart it
-        this.frameLoop.start();
         for (const thread of this.threads) {
             thread.play();
         }
@@ -2636,6 +2874,8 @@ class Runtime extends EventEmitter {
         this.play();
         // Emit stop event to allow blocks to clean up any state.
         this.emit(Runtime.PROJECT_STOP_ALL);
+        // clear runtime variables
+        this.variables = Object.create(null);
 
         // Dispose all clones.
         const newTargets = [];
@@ -2685,7 +2925,9 @@ class Runtime extends EventEmitter {
      * inactive threads after each iteration.
      */
     _step () {
-        // pm: emit this event because i want it
+        // pm: RUNTIME_STEP_START runs before BEFORE_EXECUTE
+        // this runs before any processing of this new step
+        this.frameLoop._stepCounter++;
         this.emit(Runtime.RUNTIME_STEP_START);
 
         if (this.interpolationEnabled) {
@@ -2719,10 +2961,12 @@ class Runtime extends EventEmitter {
             }
             this.profiler.start(stepThreadsProfilerId);
         }
+        this.emit(Runtime.BEFORE_EXECUTE);
         const doneThreads = this.sequencer.stepThreads();
         if (this.profiler !== null) {
             this.profiler.stop();
         }
+        this.emit(Runtime.AFTER_EXECUTE);
         this._updateGlows(doneThreads);
         // Add done threads so that even if a thread finishes within 1 frame, the green
         // flag will still indicate that a script ran.
@@ -2756,7 +3000,21 @@ class Runtime extends EventEmitter {
             this._refreshTargets = false;
         }
 
-        if (!this._prevMonitorState.equals(this._monitorState)) {
+        let forceUpd = false;
+        // if a custom type set _monitorUpToDate to false on an existing instance, we need to report that update to the gui
+        if (this._monitorState.some(item => 
+            typeof item.get('value') === 'object' && 
+            '_monitorUpToDate' in item.get('value') && 
+            !item.get('value')._monitorUpToDate
+        )) { 
+            const old = this._monitorState;
+            // make a new instance so redux detects this as different later on
+            this._monitorState = this._monitorState.toOrderedMap();
+            if (!(old !== this._monitorState)) // why wont redux just accept the fucking value
+                throw new Error('Expected OrderedMap.toOrderedMap() to produce a truly unique value');
+            forceUpd = true;
+        }
+        if (!this._prevMonitorState.equals(this._monitorState) || forceUpd) {
             this.emit(Runtime.MONITORS_UPDATE, this._monitorState);
             this._prevMonitorState = this._monitorState;
         }
@@ -2769,6 +3027,9 @@ class Runtime extends EventEmitter {
         if (this.interpolationEnabled) {
             this._lastStepTime = Date.now();
         }
+        
+        // pm: RUNTIME_STEP_END runs after AFTER_EXECUTE
+        this.emit(Runtime.RUNTIME_STEP_END);
     }
 
     /**
@@ -2856,6 +3117,10 @@ class Runtime extends EventEmitter {
         this.emit(Runtime.RUNTIME_OPTIONS_CHANGED, this.runtimeOptions);
         if (this.renderer) {
             this.renderer.offscreenTouching = !this.runtimeOptions.fencing;
+            // if these miss match then update (do full rerender as the state drastically changes output)
+            if (this.runtimeOptions.disableOffscreenRendering === this.renderer.renderOffscreen) {
+                this.renderer.setRenderOffscreen(!this.runtimeOptions.disableOffscreenRendering);
+            }
         }
     }
 
@@ -2903,8 +3168,8 @@ class Runtime extends EventEmitter {
                     height / 2
                 );
             }
+            this.emit(Runtime.STAGE_SIZE_CHANGED, width, height);
         }
-        this.emit(Runtime.STAGE_SIZE_CHANGED, width, height);
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -3040,8 +3305,8 @@ class Runtime extends EventEmitter {
         if (parsed.runtimeOptions) {
             this.setRuntimeOptions(parsed.runtimeOptions);
         }
-        if (parsed.nohq && this.renderer) {
-            this.renderer.setUseHighQualityRender(false);
+        if (typeof parsed.hq === 'boolean' && this.renderer) {
+            this.renderer.setUseHighQualityRender(parsed.hq);
         }
         const storedWidth = +parsed.width || this.stageWidth;
         const storedHeight = +parsed.height || this.stageHeight;
@@ -3056,7 +3321,7 @@ class Runtime extends EventEmitter {
             runtimeOptions: this.runtimeOptions,
             interpolation: this.interpolationEnabled,
             turbo: this.turboMode,
-            hq: this.renderer ? this.renderer.useHighQualityRender : false,
+            hq: this.renderer ? this.renderer.useHighQualityRender : true,
             width: this.stageWidth,
             height: this.stageHeight
         };
@@ -3085,7 +3350,7 @@ class Runtime extends EventEmitter {
     storeProjectOptions () {
         const options = this.generateDifferingProjectOptions();
         // TODO: translate
-        const text = `Configuration for https://turbowarp.org/\nYou can move, resize, and minimize this comment, but don't edit it by hand. This comment can be deleted to remove the stored settings.\n${ExtendedJSON.stringify(options)}${COMMENT_CONFIG_MAGIC}`;
+        const text = `Configuration for https://penguinmod.com/\nYou can move, resize, and minimize this comment, but don't edit it by hand. This comment can be deleted to remove the stored settings.\n${ExtendedJSON.stringify(options)}${COMMENT_CONFIG_MAGIC}`;
         const existingComment = this.findProjectOptionsComment();
         if (existingComment) {
             existingComment.text = text;
@@ -3252,7 +3517,7 @@ class Runtime extends EventEmitter {
      * @param {string} value Value to show associated with the block.
      */
     visualReport (blockId, value) {
-        this.emit(Runtime.VISUAL_REPORT, {id: blockId, value: String(value)});
+        this.emit(Runtime.VISUAL_REPORT, {id: blockId, value});
     }
 
     /**
@@ -3397,8 +3662,29 @@ class Runtime extends EventEmitter {
 
     /**
      * Report that the project has loaded in the Virtual Machine.
+     * and also handle the parsing of custom values to allow for 
+     * minimal code when making cross-target refences
      */
     emitProjectLoaded () {
+        for (const target of this.targets) {
+            for (const varId in target.variables) {
+                const variable = target.variables[varId];
+                if (variable.type === Variable.LIST_TYPE) {
+                    for (const idx in variable.value) {
+                        const item = variable.value[idx];
+                        if (item.customType) {
+                            const {deserialize} = this.serializers[item.typeId];
+                            variable.value[idx] = deserialize(item.serialized, target);
+                        }
+                    }
+                }
+                if (variable.value?.customType) {
+                    const customData = variable.value;
+                    const {deserialize} = this.serializers[customData.typeId];
+                    variable.value = deserialize(customData.serialized, target);
+                }
+            }
+        }
         this.emit(Runtime.PROJECT_LOADED);
     }
 
@@ -3429,14 +3715,62 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Get the branch for a particular C-shaped block, and it's target.
+     * @param {?string} id ID for block to get the branch for.
+     * @param {?string} branchId Which branch to select (e.g. for if-else).
+     * @return {?string} ID of block in the branch.
+     */
+    getBranchAndTarget (id, branchId) {
+        for (const target of this.targets) {
+            const result = target.blocks.getBranch(id, branchId);
+            if (result) {
+                return [result, target];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * gets a screen, if no screen can be found it will create one
+     * @param {string} screen the screen to get
+     * @returns {Object} the screen state object
+     */
+    getCamera(screen) {
+        if (typeof this.cameraStates[screen] !== 'object') {
+            this.cameraStates[screen] = {
+                pos: [0, 0],
+                dir: 0,
+                scale: 1
+            };
+        }
+        return this.cameraStates[screen];
+    }
+
+    /**
      * assign new camera state options
+     * @param {string} screen the screen
+     * @param {Object} state the state to apply to the screen
+     * @param {boolean} silent if we should emit an event because of this change
      */
     updateCamera(screen, state, silent) {
-        if (!this.cameraStates[screen]) {
-            this.cameraStates[screen] = screen;
+        if (state.dir) state.dir = MathUtil.wrapClamp(state.dir, -179, 180);
+        if (typeof this.cameraStates[screen] !== 'object') {
+            this.cameraStates[screen] = {
+                pos: [0, 0],
+                dir: 0,
+                scale: 1
+            };
         }
-        Object.assign(this.cameraStates[screen], state);
-        if (!silent) this.emit(Runtime.CAMERA_CHANGED, screen);
+        this.cameraStates[screen] = state = 
+            Object.assign(this.cameraStates[screen], state);
+        if (!silent ?? state.silent) this.emitCameraChanged(screen);
+    }
+    emitCameraChanged(screen) {
+        for (let i = 0; i < this.targets.length; i++) 
+            if (this.targets[i].cameraBound === screen)
+                this.targets[i].cameraUpdateEvent();
+        this.emit(Runtime.CAMERA_CHANGED, screen);
+        this.requestRedraw();
     }
 
     /**
@@ -3511,7 +3845,8 @@ class Runtime extends EventEmitter {
         const varType = (typeof optVarType === 'string') ? optVarType : Variable.SCALAR_TYPE;
         const allVariableNames = this.getAllVarNamesOfType(varType);
         const newName = StringUtil.unusedName(variableName, allVariableNames);
-        const variable = new Variable(optVarId || uid(), newName, varType);
+
+        const variable = this.newVariableInstance(varType, optVarId || uid(), newName);
         const stage = this.getTargetForStage();
         stage.variables[variable.id] = variable;
         return variable;

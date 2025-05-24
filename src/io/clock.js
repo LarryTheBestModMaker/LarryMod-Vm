@@ -4,7 +4,6 @@ class Clock {
     constructor (runtime) {
         this._projectTimer = new Timer({now: () => runtime.currentMSecs});
         this._projectTimer.start();
-        this._pausedTime = null;
         this._paused = false;
         /**
          * Reference to the owning Runtime.
@@ -14,23 +13,17 @@ class Clock {
     }
 
     projectTimer () {
-        if (this._paused) {
-            return this._pausedTime / 1000;
-        }
         return this._projectTimer.timeElapsed() / 1000;
     }
 
     pause () {
-        if (this._paused) return;
         this._paused = true;
-        this._pausedTime = this._projectTimer.timeElapsed();
+        this._projectTimer.pause();
     }
 
     resume () {
-        if (!this._paused) return;
         this._paused = false;
-        const dt = this._projectTimer.timeElapsed() - this._pausedTime;
-        this._projectTimer.startTime += dt;
+        this._projectTimer.play();
     }
 
     resetProjectTimer () {

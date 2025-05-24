@@ -9,18 +9,28 @@ const setupInitialState = runtime => {
 
     for (const target of runtime.targets) {
         const directionAndScale = target._getRenderedDirectionAndScale();
+        let camData = { ...runtime.getCamera(target.cameraBound) };
+        camData.dir = camData.dir / 180;
+        camData.scale = 1 + ((camData.scale - 1) / 100);
 
         // If sprite may have been interpolated in the previous frame, reset its renderer state.
         if (renderer && target.interpolationData) {
-            target.updateAllDrawableProperties();
+            const drawableID = target.drawableID;
+            renderer.updateDrawablePosition(drawableID, [target.x - camData.pos[0], target.y - camData.pos[1]]);
+            renderer.updateDrawableDirectionScale(
+                drawableID, 
+                directionAndScale.direction - camData.dir,
+                [directionAndScale.scale[0] * camData.scale, directionAndScale.scale[1] * camData.scale]
+            );
+            renderer.updateDrawableEffect(drawableID, 'ghost', target.effects.ghost);
         }
 
         if (target.visible && !target.isStage) {
             target.interpolationData = {
-                x: target.x,
-                y: target.y,
-                direction: directionAndScale.direction,
-                scale: directionAndScale.scale,
+                x: target.x - camData.pos[0],
+                y: target.y - camData.pos[1],
+                direction: directionAndScale.direction - camData.dir,
+                scale: [directionAndScale.scale[0] * camData.scale, directionAndScale.scale[1] * camData.scale],
                 costume: target.currentCostume,
                 ghost: target.effects.ghost
             };
@@ -50,19 +60,22 @@ const interpolate = (runtime, time) => {
         }
 
         // Don't waste time interpolating sprites that are hidden.
-        if (!target.visible) {
+        if (
+            !target.visible ||
+            /* special thanks to CST and Cubester for this new check */
+            (target.effects.ghost === 100 && interpolationData.ghost === 100)
+        ) {
             continue;
         }
 
+        runtime.emit(runtime.constructor.BEFORE_INTERPOLATE, target);
+        let camData = { ...runtime.getCamera(target.cameraBound) };
+        camData.scale = 1 + ((camData.scale - 1) / 100);
         const drawableID = target.drawableID;
 
         // Position interpolation.
-        const [icpX, icpY] = target.cameraBound >= 0 
-            ? translateForCamera(runtime, target.cameraBound, interpolationData.x, interpolationData.y)
-            : [interpolationData.x, interpolationData.y];
-        const [tX, tY] = target._translatePossitionToCamera();
-        const xDistance = tX - icpX;
-        const yDistance = tY - icpY;
+        const xDistance = target.x - interpolationData.x - camData.pos[0];
+        const yDistance = target.y - interpolationData.y - camData.pos[1];
         const absoluteXDistance = Math.abs(xDistance);
         const absoluteYDistance = Math.abs(yDistance);
         if (absoluteXDistance > 0.1 || absoluteYDistance > 0.1) {
@@ -73,8 +86,8 @@ const interpolate = (runtime, time) => {
             const tolerance = Math.min(240, Math.max(50, 1.5 * (bounds.width + bounds.height)));
             const distance = Math.sqrt((absoluteXDistance ** 2) + (absoluteYDistance ** 2));
             if (distance < tolerance) {
-                const newX = icpX + (xDistance * time);
-                const newY = icpY + (yDistance * time);
+                const newX = interpolationData.x + (xDistance * time);
+                const newY = interpolationData.y + (yDistance * time);
                 renderer.updateDrawablePosition(drawableID, [newX, newY]);
             }
         }
@@ -92,6 +105,7 @@ const interpolate = (runtime, time) => {
         const costumeUnchanged = interpolationData.costume === target.currentCostume;
         if (costumeUnchanged) {
             let {direction, scale} = target._getRenderedDirectionAndScale();
+            direction = direction - (camData.dir / 180);
             let updateDrawableDirectionScale = false;
 
             // Interpolate direction.
@@ -111,6 +125,8 @@ const interpolate = (runtime, time) => {
 
             // Interpolate scale.
             const startingScale = interpolationData.scale;
+            scale[0] = scale[0] * camData.scale;
+            scale[1] = scale[1] * camData.scale;
             if (scale[0] !== startingScale[0] || scale[1] !== startingScale[1]) {
                 // Do not interpolate size when the sign of either scale differs.
                 if (
@@ -123,8 +139,8 @@ const interpolate = (runtime, time) => {
                     const absoluteChangeY = Math.abs(changeY);
                     // Large changes are likely intended to be instantaneous.
                     if (absoluteChangeX < 100 && absoluteChangeY < 100) {
-                        scale[0] = startingScale[0] + (changeX * time);
-                        scale[1] = startingScale[1] + (changeY * time);
+                        scale[0] = (startingScale[0] + (changeX * time));
+                        scale[1] = (startingScale[1] + (changeY * time));
                         updateDrawableDirectionScale = true;
                     }
                 }
@@ -134,6 +150,7 @@ const interpolate = (runtime, time) => {
                 renderer.updateDrawableDirectionScale(drawableID, direction, scale);
             }
         }
+        runtime.emit(runtime.constructor.AFTER_INTERPOLATE, target);
     }
 };
 

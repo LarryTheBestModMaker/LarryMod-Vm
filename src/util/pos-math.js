@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-operators */
 const translateForCamera = (runtime, screen, x, y) => {
-    const {pos, scale, dir} = runtime.cameraStates[screen];
+    const {pos, scale, dir} = runtime.getCamera(screen);
     const radians = (dir / 180) * Math.PI;
     const sin = Math.sin(radians);
     const cos = Math.cos(radians);
@@ -13,17 +13,15 @@ const translateForCamera = (runtime, screen, x, y) => {
 };
 
 const translateScreenPos = (runtime, screen, x, y) => {
-    const {pos, scale, dir} = runtime.cameraStates[screen];
+    const {pos, scale, dir} = runtime.getCamera(screen);
+    const invScale = 1 / scale;
     const radians = (-dir / 180) * Math.PI;
     const sin = Math.sin(radians);
     const cos = Math.cos(radians);
-    let cx = pos[0];
-    let cy = pos[1];
-    cx *= scale;
-    cy *= scale;
-    cx += scale * (x * cos - y * sin);
-    cy += scale * (x * sin + y * cos);
-    return [cx, cy];
+    return [
+        pos[0] + invScale * (x * cos - y * sin),
+        pos[1] + invScale * (x * sin + y * cos)
+    ];
 };
 
 module.exports = {

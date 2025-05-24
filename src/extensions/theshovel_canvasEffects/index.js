@@ -1,6 +1,10 @@
 // Created by TheShovel
 // https://github.com/TheShovel
 //
+// Extra modifications: (their names will be listed nearby their changes for convenience)
+//      SharkPool
+//      https://github.com/SharkPool-SP
+//
 // 99% of the code here was not created by a PenguinMod developer!
 // Look above for proper crediting :)
 
@@ -27,17 +31,24 @@ let brightness = 100;
 let invert = 0;
 let resizeMode = "default";
 
+// SharkPool
+let imageC = ["", 100];
+let borderC = [0, "none", "#ff0000", "transparent"];
+
 let canvas;
 const updateStyle = () => {
     // Gotta keep the translation to % because of the stage size, window size and so on
-    const transform = `rotate(${rotation}deg) scale(${scale}%) skew(${skewX}deg, ${skewY}deg) translate(${offsetX}%, ${0 - offsetY
-        }%)`;
+    const transform = `rotate(${rotation}deg) scale(${scale}%) skew(${skewX}deg, ${skewY}deg) translate(${offsetX}%, ${
+        0 - offsetY
+    }%)`;
     if (canvas.style.transform !== transform) {
         canvas.style.transform = transform;
     }
-    const filter = `blur(${blur}px) contrast(${contrast / 100
-        }) saturate(${saturation}%) hue-rotate(${color}deg) brightness(${brightness}%) invert(${invert}%) sepia(${sepia}%) opacity(${100 - transparency
-        }%)`;
+    const filter = `blur(${blur}px) contrast(${
+        contrast / 100
+    }) saturate(${saturation}%) hue-rotate(${color}deg) brightness(${brightness}%) invert(${invert}%) sepia(${sepia}%) opacity(${
+        100 - transparency
+    }%)`;
     if (canvas.style.filter !== filter) {
         canvas.style.filter = filter;
     }
@@ -49,7 +60,16 @@ const updateStyle = () => {
     if (canvas.style.imageRendering !== imageRendering) {
         canvas.style.imageRendering = imageRendering;
     }
-}
+    // SharkPool
+    canvas.style.border = Cast.toString(
+        `${borderC[0]}px ${borderC[1]} ${borderC[2]}`
+    );
+    canvas.style.backgroundColor = Cast.toString(borderC[3]);
+    if (imageC[0].length > 3) {
+        canvas.style.backgroundImage = imageC[0];
+        canvas.style.backgroundSize = `${Cast.toNumber(imageC[1])}%`;
+    }
+};
 
 class CanvasEffects {
     constructor(runtime) {
@@ -61,6 +81,7 @@ class CanvasEffects {
             attributeFilter: ["style"],
             attributes: true,
         });
+        this.runtime.on("RUNTIME_DISPOSED", this.cleareffects);
     }
 
     getInfo() {
@@ -83,6 +104,21 @@ class CanvasEffects {
                     },
                 },
                 {
+                    opcode: "changeEffect",
+                    blockType: BlockType.COMMAND,
+                    text: "change canvas [EFFECT] by [NUMBER]",
+                    arguments: {
+                        EFFECT: {
+                            type: ArgumentType.STRING,
+                            menu: "EFFECTMENU",
+                        },
+                        NUMBER: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 5,
+                        },
+                    },
+                },
+                {
                     opcode: "geteffect",
                     blockType: BlockType.REPORTER,
                     text: "get canvas [EFFECT]",
@@ -90,6 +126,45 @@ class CanvasEffects {
                         EFFECT: {
                             type: ArgumentType.STRING,
                             menu: "EFFECTGETMENU",
+                        },
+                    },
+                },
+                {
+                    opcode: "setBorder",
+                    blockType: BlockType.COMMAND,
+                    text: "add [BORDER] border to canvas with color [COLOR1] and backup [COLOR2] and thickness [THICK]",
+                    arguments: {
+                        BORDER: {
+                            type: ArgumentType.STRING,
+                            menu: "BORDERTYPES",
+                        },
+                        THICK: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 5,
+                        },
+                        COLOR1: {
+                            type: ArgumentType.COLOR,
+                            defaultValue: "#ff0000",
+                        },
+                        COLOR2: {
+                            type: ArgumentType.COLOR,
+                            defaultValue: "#0000ff",
+                        },
+                    },
+                },
+                {
+                    opcode: "setImage",
+                    blockType: BlockType.COMMAND,
+                    text: "set canvas image to [IMAGE] scaled [AMT]%",
+                    hideFromPalette: true, // only appears when stage BG is transparent
+                    arguments: {
+                        IMAGE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "https://extensions.turbowarp.org/dango.png",
+                        },
+                        AMT: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 100,
                         },
                     },
                 },
@@ -172,6 +247,20 @@ class CanvasEffects {
                         "border radius",
                     ],
                 },
+                BORDERTYPES: {
+                    acceptReporters: true,
+                    items: [
+                        "dotted",
+                        "dashed",
+                        "solid",
+                        "double",
+                        "groove",
+                        "ridge",
+                        "inset",
+                        "outset",
+                        "none",
+                    ],
+                },
             },
         };
     }
@@ -246,6 +335,43 @@ class CanvasEffects {
         }
         updateStyle();
     }
+    changeEffect(args) {
+        const EFFECT = args.EFFECT;
+        const currentEffect = this.geteffect(args);
+        const NUMBER = Cast.toNumber(args.NUMBER) + currentEffect;
+        if (EFFECT === "blur") {
+            blur = NUMBER;
+        } else if (EFFECT === "contrast") {
+            contrast = NUMBER;
+        } else if (EFFECT === "saturation") {
+            saturation = NUMBER;
+        } else if (EFFECT === "color shift") {
+            color = NUMBER;
+        } else if (EFFECT === "brightness") {
+            brightness = NUMBER;
+        } else if (EFFECT === "invert") {
+            invert = NUMBER;
+        } else if (EFFECT === "sepia") {
+            sepia = NUMBER;
+        } else if (EFFECT === "transparency") {
+            transparency = NUMBER;
+        } else if (EFFECT === "scale") {
+            scale = NUMBER;
+        } else if (EFFECT === "skew X") {
+            skewX = NUMBER;
+        } else if (EFFECT === "skew Y") {
+            skewY = NUMBER;
+        } else if (EFFECT === "offset X") {
+            offsetX = NUMBER;
+        } else if (EFFECT === "offset Y") {
+            offsetY = NUMBER;
+        } else if (EFFECT === "rotation") {
+            rotation = NUMBER;
+        } else if (EFFECT === "border radius") {
+            borderRadius = NUMBER;
+        }
+        updateStyle();
+    }
     cleareffects() {
         borderRadius = 0;
         rotation = 0;
@@ -263,6 +389,8 @@ class CanvasEffects {
         brightness = 100;
         invert = 0;
         resizeMode = "default";
+        imageC = ["", 100];
+        borderC = [0, "none", "#ff0000", "transparent"];
         updateStyle();
     }
     setrendermode({ EFFECT }) {
@@ -271,6 +399,26 @@ class CanvasEffects {
     }
     renderscale({ X, Y }) {
         this.runtime.renderer.resize(X, Y);
+    }
+    setImage(args) {
+        this.runtime.vm.securityManager
+            .canFetch(encodeURI(args.IMAGE))
+            .then((canFetch) => {
+                if (canFetch) {
+                    imageC = [`url(${encodeURI(args.IMAGE)})`, args.AMT];
+                } else {
+                    console.log("Cannot fetch content from the URL.");
+                    imageC = [];
+                }
+                updateStyle();
+            });
+    }
+    setBorder(args) {
+        borderC = [args.THICK, args.BORDER, args.COLOR1, args.COLOR2];
+        if (args.BORDER === 'none') {
+            borderC[3] = 'transparent';
+        }
+        updateStyle();
     }
 }
 

@@ -8,10 +8,6 @@
 // haha cry about it - jerem
 
 const statementBlocks = [
-    'control_clear_counter',
-    'control_incr_counter',
-    'control_decr_counter',
-    'control_set_counter',
     'looks_hideallsprites',
     'looks_say',
     'looks_sayforsecs',
@@ -38,6 +34,7 @@ const statementBlocks = [
     'sound_setvolumeto',
     'sound_stopallsounds',
     "looks_setStretch",
+    "looks_changeStretch",
     "data_reverselist",
     "data_arraylist",
     "control_switch",
@@ -79,11 +76,11 @@ const statementBlocks = [
     'sound_set_stop_fadeout_to',
     'sound_play_at_seconds',
     'sound_play_at_seconds_until_done',
-    'sound_pauseallsounds'
+    'sound_pauseallsounds',
+    'argument_reporter_command'
 ];
 
 const outputBlocks = [
-    'control_get_counter',
     'motion_xscroll',
     'motion_yscroll',
     'sensing_loud',
@@ -99,16 +96,15 @@ const outputBlocks = [
     "sensing_thing_is_number",
     "sensing_regextest",
     "operator_indexOfTextInText",
-    "operator_randomBoolean",
-    "operator_falseBoolean",
-    "operator_trueBoolean",
     "operator_constrainnumber",
     "operator_advMath",
+    "operator_advMathExpanded",
     "operator_lerpFunc",
     "operator_stringify",
     "operator_newLine",
     "operator_readLineInMultilineText",
     "operator_getLettersFromIndexToIndexInText",
+    "operator_getLettersFromIndexToIndexInTextFixed",
     "operator_replaceAll",
     "operator_regexmatch",
     "data_itemexistslist",
@@ -136,6 +132,7 @@ const outputBlocks = [
     "sensing_thing_has_text",
     "sensing_thing_has_number",
     "sensing_objecttouchingobject",
+    "sensing_objecttouchingclonesprite",
     'looks_getOtherSpriteVisible',
     'operator_gtorequal',
     'operator_ltorequal',

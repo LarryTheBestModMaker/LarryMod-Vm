@@ -492,6 +492,7 @@ class Blocks {
                     }
                 }
                 stage.createVariable(e.varId, e.varName, e.varType, e.isCloud);
+                this.runtime.emit('variableCreate', e.varType, e.varId, e.varName, e.isCloud);
                 this.emitProjectChanged();
             }
             break;
@@ -512,12 +513,14 @@ class Blocks {
                     currTarget.blocks.updateBlocksAfterVarRename(e.varId, e.newName);
                 }
             }
+            this.runtime.emit('variableChange', e.varType, e.varId, e.varName);
             this.emitProjectChanged();
             break;
         case 'var_delete': {
             this.resetCache(); // tw: more aggressive cache resetting
             const target = (editingTarget && editingTarget.variables.hasOwnProperty(e.varId)) ?
                 editingTarget : stage;
+            this.runtime.emit('variableDelete', e.varType, e.varId);
             target.deleteVariable(e.varId);
             this.emitProjectChanged();
             break;
@@ -684,8 +687,8 @@ class Blocks {
 
             // Update block value
             if (!block.fields[args.name]) return;
-            if (args.name === 'VARIABLE' || args.name === 'LIST' ||
-                args.name === 'BROADCAST_OPTION') {
+            const field = block.fields[args.name];
+            if (typeof field.variableType === 'string') {
                 // Get variable name using the id in args.value.
                 const variable = this.runtime.getEditingTarget().lookupVariableById(args.value);
                 if (variable) {
@@ -898,8 +901,9 @@ class Blocks {
      * Block management: delete blocks and their associated scripts. Does nothing if a block
      * with the given ID does not exist.
      * @param {!string} blockId Id of block to delete
+     * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block 
      */
-    deleteBlock (blockId) {
+    deleteBlock (blockId, preserveStack) {
         // @todo In runtime, stop threads running on this script.
 
         // Get block
@@ -910,8 +914,20 @@ class Blocks {
         }
 
         // Delete children
-        if (block.next !== null) {
+        if (block.next !== null && !preserveStack) {
             this.deleteBlock(block.next);
+        }
+
+        if (preserveStack) {
+            const parent = this._blocks[block.parent];
+            const next = this._blocks[block.next];
+            const input = parent?.inputs
+                ? [...Object.entries(parent.inputs)]
+                    .find(ent => ent[1].block === blockId)?.[1]
+                : null;
+            if (parent && !input) parent.next = block.next;
+            if (next) next.parent = block.parent;
+            if (next && input) input.block = block.next;
         }
 
         // Delete inputs (including branches)
@@ -927,8 +943,21 @@ class Blocks {
             }
         }
 
-        // Delete any script starting with this block.
-        this._deleteScript(blockId);
+        if (!preserveStack) {
+            // Delete any script starting with this block.
+            this._deleteScript(blockId);
+        }
+        const i = this._scripts.indexOf(blockId);
+        if (preserveStack && i > -1) {
+            const next = this._blocks[block.next];
+            if (next) {
+                this._scripts.push(next.id);
+                next.topLevel = true;
+                next.x = block.x;
+                next.y = block.y;
+            }
+            this._scripts.splice(i, 1);
+        }
 
         // Delete block itself.
         delete this._blocks[blockId];
@@ -1247,6 +1276,7 @@ class Blocks {
      * @return {string} XML string representing a mutation.
      */
     mutationToXML (mutation) {
+        if (typeof mutation === 'string') return xmlEscape(mutation)
         let mutationString = `<${mutation.tagName}`;
         for (const prop in mutation) {
             if (prop === 'children' || prop === 'tagName') continue;

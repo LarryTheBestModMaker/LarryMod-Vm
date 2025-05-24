@@ -1,6 +1,7 @@
 const BlockType = require('../../extension-support/block-type');
 const ArgumentType = require('../../extension-support/argument-type');
 const Cast = require('../../util/cast');
+const uid = require('../../util/uid');
 
 /**
  * Class for storage blocks
@@ -14,12 +15,21 @@ class JgStorageBlocks {
          */
         this.runtime = runtime;
 
-        this.currentServer = "https://pmstorageapi.freshpenguin111.repl.co/";
+        this.currentServer = "https://storage-ext.penguinmod.com/";
         this.usePenguinMod = true;
         this.useGlobal = true;
         this.waitingForResponse = false;
         this.serverFailedResponse = false;
         this.serverError = "";
+
+        this.uniquePrefix = "u" + uid();
+        // A value stored in the PMP of the project.
+        // This value should always be globally unique to
+        // every project.
+        // The chance that 2 projects have the same "unique"
+        // prefix is about very small.
+        // The u at the start is to make sure that it can never
+        // be mistaken for a project id.
     }
 
     /**
@@ -87,7 +97,7 @@ class JgStorageBlocks {
                 },
                 {
                     opcode: 'getProjectValue',
-                    text: 'get project [KEY]',
+                    text: 'get uploaded project [KEY]',
                     disableMonitor: true,
                     blockType: BlockType.REPORTER,
                     arguments: {
@@ -99,7 +109,7 @@ class JgStorageBlocks {
                 },
                 {
                     opcode: 'setProjectValue',
-                    text: 'set project [KEY] to [VALUE]',
+                    text: 'set uploaded project [KEY] to [VALUE]',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         KEY: {
@@ -114,7 +124,7 @@ class JgStorageBlocks {
                 },
                 {
                     opcode: 'deleteProjectValue',
-                    text: 'delete project [KEY]',
+                    text: 'delete uploaded project [KEY]',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         KEY: {
@@ -125,7 +135,55 @@ class JgStorageBlocks {
                 },
                 {
                     opcode: 'getProjectKeys',
-                    text: 'get all stored names in this project',
+                    text: 'get all stored names in this uploaded project',
+                    disableMonitor: true,
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    blockType: BlockType.LABEL,
+                    text: "Local Project Storage"
+                },
+                {
+                    opcode: 'getUniqueValue',
+                    text: 'get local project [KEY]',
+                    disableMonitor: true,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        KEY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "key"
+                        },
+                    }
+                },
+                {
+                    opcode: 'setUniqueValue',
+                    text: 'set local project [KEY] to [VALUE]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        KEY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "key"
+                        },
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "value"
+                        },
+                    }
+                },
+                {
+                    opcode: 'deleteUniqueValue',
+                    text: 'delete local project [KEY]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        KEY: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "key"
+                        }
+                    }
+                },
+                {
+                    opcode: 'getUniqueKeys',
+                    text: 'get all stored names in this local project',
                     disableMonitor: true,
                     blockType: BlockType.REPORTER
                 },
@@ -220,6 +278,15 @@ class JgStorageBlocks {
             }
         };
     }
+    // Storage
+    serialize() {
+        return { uniqueId: this.uniquePrefix }
+    }
+
+    deserialize(data) {
+        this.uniquePrefix = data.uniqueId;
+    }
+
     // utilities
     /**
      * @returns {string} Prefix for any keys saved
@@ -285,7 +352,7 @@ class JgStorageBlocks {
     }
 
     getCurrentServer() {
-        return `https://pmstorageapi.freshpenguin111.repl.co/`
+        return `https://storage-ext.penguinmod.com/`
     }
 
     // blocks
@@ -297,11 +364,11 @@ class JgStorageBlocks {
 
         const returned = localStorage.getItem(key);
         if (returned === null) return "";
-        return isNaN(Number(args.KEY)) ? Cast.toString(returned) : Cast.toNumber(returned);
+        return Cast.toString(returned);
     }
     setValue(args) {
         const key = this.getPrefix() + Cast.toString(args.KEY);
-        const value = isNaN(Number(args.VALUE)) ? Cast.toString(args.VALUE) : Cast.toNumber(args.VALUE);
+        const value = Cast.toString(args.VALUE);
 
         return localStorage.setItem(key, value);
     }
@@ -320,16 +387,39 @@ class JgStorageBlocks {
 
         const returned = localStorage.getItem(key);
         if (returned === null) return "";
-        return isNaN(Number(args.KEY)) ? Cast.toString(returned) : Cast.toNumber(returned);
+        return Cast.toString(returned);
     }
     setProjectValue(args) {
         const key = this.getPrefix(this.getProjectId()) + Cast.toString(args.KEY);
-        const value = isNaN(Number(args.VALUE)) ? Cast.toString(args.VALUE) : Cast.toNumber(args.VALUE);
+        const value = Cast.toString(args.VALUE);
 
         return localStorage.setItem(key, value);
     }
     deleteProjectValue(args) {
         const key = this.getPrefix(this.getProjectId()) + Cast.toString(args.KEY);
+
+        return localStorage.removeItem(key);
+    }
+
+    // global unique blocks
+    getUniqueKeys() {
+        return JSON.stringify(this.getAllKeys(this.uniquePrefix));
+    }
+    getUniqueValue(args) {
+        const key = this.getPrefix(this.uniquePrefix) + Cast.toString(args.KEY);
+
+        const returned = localStorage.getItem(key);
+        if (returned === null) return "";
+        return Cast.toString(returned);
+    }
+    setUniqueValue(args) {
+        const key = this.getPrefix(this.uniquePrefix) + Cast.toString(args.KEY);
+        const value = Cast.toString(args.VALUE);
+
+        return localStorage.setItem(key, value);
+    }
+    deleteUniqueValue(args) {
+        const key = this.getPrefix(this.uniquePrefix) + Cast.toString(args.KEY);
 
         return localStorage.removeItem(key);
     }
@@ -342,7 +432,7 @@ class JgStorageBlocks {
         const serverType = Cast.toString(args.SERVER).toLowerCase();
         if (["project", "global"].includes(serverType)) {
             // this is a menu option
-            this.currentServer = "https://pmstorageapi.freshpenguin112.repl.co/";
+            this.currentServer = "https://storage-ext.penguinmod.com/";
             this.usePenguinMod = true;
             this.useGlobal = serverType === "global";
         } else {
@@ -374,7 +464,7 @@ class JgStorageBlocks {
     }
     setServerValue(args) {
         const key = Cast.toString(args.KEY);
-        const value = isNaN(Number(args.VALUE)) ? Cast.toString(args.VALUE) : Cast.toNumber(args.VALUE);
+        const value = Cast.toString(args.VALUE);
 
         return this.runPenguinWebRequest(`${this.currentServer}set?key=${key}${this.useGlobal ? "" : `&project=${this.getProjectId()}`}`, {
             method: "POST",

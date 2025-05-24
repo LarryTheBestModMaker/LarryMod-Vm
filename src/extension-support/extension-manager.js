@@ -13,11 +13,19 @@ const urlParams = new URLSearchParams(location.search);
 const IsLocal = String(window.location.href).startsWith(`http://localhost:`);
 const IsLiveTests = urlParams.has('livetests');
 
+// thhank yoh random stack droverflwo person
+async function sha256(source) {
+    const sourceBytes = new TextEncoder().encode(source);
+    const digest = await crypto.subtle.digest("SHA-256", sourceBytes);
+    const resultBytes = [...new Uint8Array(digest)];
+    return resultBytes.map(x => x.toString(16).padStart(2, '0')).join("");
+}
+
 // These extensions are currently built into the VM repository but should not be loaded at startup.
 // TODO: move these out into a separate repository?
 // TODO: change extension spec so that library info, including extension ID, can be collected through static methods
 
-const builtinExtensions = {
+const defaultBuiltinExtensions = {
     // This is an example that isn't loaded with the other core blocks,
     // but serves as a reference for loading core blocks as extensions.
     coreExample: () => require('../blocks/scratch3_core_example'),
@@ -107,8 +115,7 @@ const builtinExtensions = {
     // jgPathfinding: EZ pathfinding for beginners :D hopefully
     jgPathfinding: () => require("../extensions/jg_pathfinding"),
     // jgAnimation: animate idk
-    // hiding so fir doesnt touch
-    // jgAnimation: () => require("../extensions/jg_animation"),
+    jgAnimation: () => require("../extensions/jg_animation"),
 
     // jgStorage: event extension requested by Fir & silvxrcat
     jgStorage: () => require("../extensions/jg_storage"),
@@ -122,6 +129,10 @@ const builtinExtensions = {
     jgDev: () => require("../extensions/jg_dev"),
     // jgDooDoo: test extension used for making test extensions
     jgDooDoo: () => require("../extensions/jg_doodoo"),
+    // jgBestExtension: great extension used for making great extensions
+    jgBestExtension: () => require("../extensions/jg_bestextensioin"),
+    // jgChristmas: Christmas extension used for making Christmas extensions
+    jgChristmas: () => require("../extensions/jg_christmas"),
 
     // jw: hello it is i jwklong
     // jwUnite: literal features that should of been added in the first place
@@ -134,6 +145,22 @@ const builtinExtensions = {
     jwReflex: () => require("../extensions/jw_reflex"),
     // Blockly 2: a faithful recreation of the original blockly blocks
     blockly2math: () => require("../extensions/blockly-2/math.js"),
+    // jwXml: hi im back haha have funny xml
+    jwXml: () => require("../extensions/jw_xml"),
+    // vector type blah blah blah
+    jwVector: () => require("../extensions/jwVector"),
+    // my own array system yipee
+    jwArray: () => require("../extensions/jwArray"),
+    // mid extension but i need it
+    jwTargets: () => require("../extensions/jwTargets"),
+    // cool new physics extension
+    jwPsychic: () => require("../extensions/jwPsychic"),
+    // test ext for lambda functions or something
+    jwLambda: () => require("../extensions/jwLambda"),
+    // omega num port for penguinmod
+    jwNum: () => require("../extensions/jwNum"),
+    // good color utilties
+    jwColor: () => require("../extensions/jwColor"),
 
     // jw: They'll think its made by jwklong >:)
     // (but it's not (yet (maybe (probably not (but its made by ianyourgod)))))
@@ -159,13 +186,19 @@ const builtinExtensions = {
     // gsa: fill out your introduction stupet!!!
     // no >:(
     // canvas: kinda obvius if you know anything about html canvases
-    canvas: () => require('../extensions/gsa_canvas'),
+    canvas: () => require('../extensions/gsa_canvas_old'),
+    // the replacment for the above extension
+    newCanvas: () => require('../extensions/gsa_canvas'),
     // tempVars: fill out your introduction stupet!!!
     tempVars: () => require('../extensions/gsa_tempVars'),
     // colors: fill out your introduction stupet!!!
     colors: () => require('../extensions/gsa_colorUtilBlocks'),
     // Camera: camera
     pmCamera: () => require('../extensions/pm_camera'),
+
+    // sharkpool: insert sharkpools epic introduction here
+    // sharkpoolPrinting: ...
+    sharkpoolPrinting: () => require("../extensions/sharkpool_printing"),
 
     // silvxrcat: ...
     // oddMessage: ...
@@ -176,6 +209,7 @@ const builtinExtensions = {
     // lms: ...
     // lmsutilsblocks: ...
     lmsutilsblocks: () => require('../extensions/lmsutilsblocks'),
+    lmsTempVars2: () => require('../extensions/lily_tempVars2'),
 
     // xeltalliv: ...
     // xeltallivclipblend: ...
@@ -189,14 +223,14 @@ const builtinExtensions = {
     // griffpatch: () => require('../extensions/griffpatch_box2d')
 
     // iyg: erm a crep, erm a werdohhhh
-    // iygPerlin: 
+    // iygPerlin:
     iygPerlin: () => require('../extensions/iyg_perlin_noise'),
     // fr: waw 3d physics!!
     // fr3d:
     fr3d: () => require('../extensions/fr_3d')
 };
 
-const coreExtensionList = Object.getOwnPropertyNames(builtinExtensions);
+const coreExtensionList = Object.getOwnPropertyNames(defaultBuiltinExtensions);
 
 const preload = [];
 
@@ -300,6 +334,8 @@ class ExtensionManager {
         this.loadingAsyncExtensions = 0;
         this.asyncExtensionsLoadedCallbacks = [];
 
+        this.builtinExtensions = Object.assign({}, defaultBuiltinExtensions);
+
         dispatch.setService('extensions', createExtensionService(this)).catch(e => {
             log.error(`ExtensionManager was unable to register extension service: ${JSON.stringify(e)}`);
         });
@@ -307,17 +343,23 @@ class ExtensionManager {
         preload.forEach(value => {
             this.loadExtensionURL(value);
         });
+
+        this.extUrlCodes = {};
+        // extensions that the user has stated (when they where loaded) that they do not wnat updated
+        this.keepOlder = [];
+        // map of all new shas so we know when a new code update has happened and so ask the user about it
+        this.extensionHashes = {};
     }
 
     getCoreExtensionList() {
         return coreExtensionList;
     }
     getBuiltInExtensionsList() {
-        return builtinExtensions;
+        return this.builtinExtensions;
     }
 
     getAddonBlockSwitches() {
-        return AddonSwitches();
+        return AddonSwitches(this.vm);
     }
 
     /**
@@ -338,7 +380,7 @@ class ExtensionManager {
      * @returns {boolean}
      */
     isBuiltinExtension(extensionId) {
-        return Object.prototype.hasOwnProperty.call(builtinExtensions, extensionId);
+        return Object.prototype.hasOwnProperty.call(this.builtinExtensions, extensionId);
     }
 
     /**
@@ -359,7 +401,7 @@ class ExtensionManager {
             return;
         }
 
-        const extension = builtinExtensions[extensionId]();
+        const extension = this.builtinExtensions[extensionId]();
         const extensionInstance = new extension(this.runtime);
         const serviceName = this._registerInternalExtension(extensionInstance);
         // devs are stupid so uh
@@ -367,6 +409,10 @@ class ExtensionManager {
         const realId = extensionInstance.getInfo().id;
         this._loadedExtensions.set(extensionId, serviceName);
         this.runtime.compilerRegisterExtension(realId, extensionInstance);
+    }
+
+    addBuiltinExtension (extensionId, extensionClass) {
+        this.builtinExtensions[extensionId] = () => extensionClass;
     }
 
     _isValidExtensionURL(extensionURL) {
@@ -385,37 +431,60 @@ class ExtensionManager {
 
     /**
      * Load an extension by URL or internal extension ID
-     * @param {string} extensionURL - the URL for the extension to load OR the ID of an internal extension
+     * @param {string} normalURL - the URL for the extension to load OR the ID of an internal extension
+     * @param {string|null} oldHash - included when loading, contains the known hash that is from the loaded file so it can be compared with the one gotten over the url
      * @returns {Promise} resolved once the extension is loaded and initialized or rejected on failure
      */
-    async loadExtensionURL(extensionURL) {
+    async loadExtensionURL(extensionURL, oldHash = '') {
         if (this.isBuiltinExtension(extensionURL)) {
             this.loadExtensionIdSync(extensionURL);
-            return extensionURL;
+            return [extensionURL];
         }
 
         if (this.isExtensionURLLoaded(extensionURL)) {
             // Extension is already loaded.
-            return;
+            return [];
         }
 
         if (!this._isValidExtensionURL(extensionURL)) {
             throw new Error(`Invalid extension URL: ${extensionURL}`);
         }
 
+        if (extensionURL.includes("penguinmod.site")) {
+            alert("Extensions using penguinmod.site are deprecated, please swap them over to use penguinmod.com instead.")
+        }
+        const normalURL = extensionURL.replace("penguinmod.site", "penguinmod.com");
+
         this.runtime.setExternalCommunicationMethod('customExtensions', true);
 
         this.loadingAsyncExtensions++;
 
-        const sandboxMode = await this.securityManager.getSandboxMode(extensionURL);
+        const sandboxMode = await this.securityManager.getSandboxMode(normalURL);
+        const rewritten = await this.securityManager.rewriteExtensionURL(normalURL);
+        const blob = (await fetch(rewritten).then(req => req.blob()))
+        const blobUrl = URL.createObjectURL(blob)
+        const newHash = await new Promise(resolve => {
+            const reader = new FileReader()
+            reader.onload = async ({ target: { result } }) => {
+                console.log(result)
+                this.extUrlCodes[extensionURL] = result
+                resolve(await sha256(result))
+            }
+            reader.onerror = err => {
+                console.error('couldnt read the contents of url', url, err)
+            }
+            reader.readAsText(blob)
+        })
+        this.extensionHashes[extensionURL] = newHash
+        if (oldHash && oldHash !== newHash && this.securityManager.shouldUseLocal(extensionURL)) return Promise.reject('useLocal')
 
         if (sandboxMode === 'unsandboxed') {
             const { load } = require('./tw-unsandboxed-extension-runner');
-            const extensionObjects = await load(extensionURL, this.vm)
+            const extensionObjects = await load(blobUrl, this.vm)
                 .catch(error => this._failedLoadingExtensionScript(error));
             const fakeWorkerId = this.nextExtensionWorker++;
             const returnedIDs = [];
-            this.workerURLs[fakeWorkerId] = extensionURL;
+            this.workerURLs[fakeWorkerId] = normalURL;
 
             for (const extensionObject of extensionObjects) {
                 const extensionInfo = extensionObject.getInfo();
@@ -443,7 +512,7 @@ class ExtensionManager {
         /* eslint-enable max-len */
 
         return new Promise((resolve, reject) => {
-            this.pendingExtensions.push({ extensionURL, resolve, reject });
+            this.pendingExtensions.push({ extensionURL: blobUrl, resolve, reject });
             dispatch.addWorker(new ExtensionWorker());
         }).catch(error => this._failedLoadingExtensionScript(error));
     }
@@ -502,16 +571,25 @@ class ExtensionManager {
         return Promise.all(allPromises);
     }
 
-    removeExtension(id) {
+    prepareSwap(id) {
         const serviceName = this._loadedExtensions.get(id);
-        const {provider} = dispatch._getServiceProvider(serviceName)
-        if (typeof provider.remove === 'function') {
-            dispatch.call(serviceName, 'dispose');
-        }
+        dispatch.call(serviceName, 'dispose');
+        delete dispatch.services[serviceName];
+        delete this.runtime[`ext_${id}`];
 
         this._loadedExtensions.delete(id);
         const workerId = +serviceName.split('.')[1];
-        delete this.workerURLs[workerId]
+        delete this.workerURLs[workerId];
+    }
+    removeExtension(id) {
+        const serviceName = this._loadedExtensions.get(id);
+        dispatch.call(serviceName, 'dispose');
+        delete dispatch.services[serviceName];
+        delete this.runtime[`ext_${id}`];
+
+        this._loadedExtensions.delete(id);
+        const workerId = +serviceName.split('.')[1];
+        delete this.workerURLs[workerId];
         dispatch.call('runtime', '_removeExtensionPrimitive', id);
         this.refreshBlocks();
     }
@@ -621,6 +699,8 @@ class ExtensionManager {
         extensionInfo.name = extensionInfo.name || extensionInfo.id;
         extensionInfo.blocks = extensionInfo.blocks || [];
         extensionInfo.targetTypes = extensionInfo.targetTypes || [];
+        extensionInfo.menus = extensionInfo.menus || {};
+        extensionInfo.menus = this._prepareMenuInfo(serviceName, extensionInfo.menus);
         extensionInfo.blocks = extensionInfo.blocks.reduce((results, blockInfo) => {
             try {
                 let result;
@@ -629,7 +709,7 @@ class ExtensionManager {
                     result = '---';
                     break;
                 default: // an ExtensionBlockMetadata object
-                    result = this._prepareBlockInfo(serviceName, blockInfo);
+                    result = this._prepareBlockInfo(serviceName, blockInfo, extensionInfo.menus);
                     break;
                 }
                 results.push(result);
@@ -639,8 +719,6 @@ class ExtensionManager {
             }
             return results;
         }, []);
-        extensionInfo.menus = extensionInfo.menus || {};
-        extensionInfo.menus = this._prepareMenuInfo(serviceName, extensionInfo.menus);
         return extensionInfo;
     }
 
@@ -659,7 +737,7 @@ class ExtensionManager {
 
             // If the menu description is in short form (items only) then normalize it to general form: an object with
             // its items listed in an `items` property.
-            if (!menuInfo.items) {
+            if (!menuInfo.items && (typeof menuInfo.variableType !== 'string')) {
                 menuInfo = {
                     items: menuInfo
                 };
@@ -698,6 +776,7 @@ class ExtensionManager {
                 item = maybeFormatMessage(item, extensionMessageContext);
                 switch (typeof item) {
                 case 'object':
+                    if (Array.isArray(item)) return item.slice(0, 2);
                     return [
                         maybeFormatMessage(item.text, extensionMessageContext),
                         item.value
@@ -717,12 +796,12 @@ class ExtensionManager {
 
     _normalize(thing, to) {
         switch (to) {
-            case 'string': return Cast.toString(thing);
-            case 'bigint':
-            case 'number': return Cast.toNumber(thing);
-            case 'boolean': return Cast.toBoolean(thing);
-            case 'function': return new Function(thing);
-            default: return Cast.toString(thing);
+        case 'string': return Cast.toString(thing);
+        case 'bigint':
+        case 'number': return Cast.toNumber(thing);
+        case 'boolean': return Cast.toBoolean(thing);
+        case 'function': return new Function(thing);
+        default: return Cast.toString(thing);
         }
     }
 
@@ -733,13 +812,13 @@ class ExtensionManager {
      * @returns {ExtensionBlockMetadata} - a new block info object which has values for all relevant optional fields.
      * @private
      */
-    _prepareBlockInfo(serviceName, blockInfo) {
+    _prepareBlockInfo(serviceName, blockInfo, menus) {
         if (blockInfo.blockType === BlockType.XML) {
             blockInfo = Object.assign({}, blockInfo);
             blockInfo.xml = String(blockInfo.xml) || '';
             return blockInfo;
         }
-        
+
         blockInfo = Object.assign({}, {
             blockType: BlockType.COMMAND,
             terminal: false,
@@ -817,7 +896,7 @@ class ExtensionManager {
                     serviceObject[funcName](args, util, realBlockInfo);
             })();
 
-            blockInfo.func = (args, util) => {
+            blockInfo.func = (args, util, visualReport) => {
                 const normal = {
                     'angle': "number",
                     'Boolean': "boolean",
@@ -833,14 +912,21 @@ class ExtensionManager {
                     'broadcast': "exception"
                 };
                 const realBlockInfo = getBlockInfo(args);
-                Object.keys(realBlockInfo.arguments).forEach(arg => {
+                for (const arg in realBlockInfo.arguments) {
                     const expected = normal[realBlockInfo.arguments[arg].type];
-                    if (expected === 'exception') return;
-                    if (arg.startsWith('substack')) return;
+                    if (realBlockInfo.arguments[arg].exemptFromNormalization === true) continue;
+                    if (expected === 'exception') continue;
+                    if (!expected) continue;
+                    // stupidly long check but :Trollhands
+                    // if this argument is for a variable dropdown, do not type cast it
+                    // as variable dropdowns report an object and not something we can or should cast
+                    if (typeof menus[realBlockInfo.arguments[arg].menu]?.variableType === 'string') continue;
                     if (!(typeof args[arg] === expected)) args[arg] = this._normalize(args[arg], expected);
-                });
+                }
                 // TODO: filter args using the keys of realBlockInfo.arguments? maybe only if sandboxed?
-                return callBlockFunc(args, util, realBlockInfo);
+                const returnValue = callBlockFunc(args, util, realBlockInfo);
+                if (!visualReport && (returnValue?.value ?? false)) return returnValue.value;
+                return returnValue;
             };
             break;
         }
@@ -849,13 +935,17 @@ class ExtensionManager {
         return blockInfo;
     }
 
+    extensionUrlFromId(extId) {
+        for (const [extensionId, serviceName] of this._loadedExtensions.entries()) {
+            if (extensionId !== extId) continue;
+            // Service names for extension workers are in the format "extension.WORKER_ID.EXTENSION_ID"
+            const workerId = +serviceName.split('.')[1];
+            return this.workerURLs[workerId];
+        }
+    }
     getExtensionURLs() {
         const extensionURLs = {};
         for (const [extensionId, serviceName] of this._loadedExtensions.entries()) {
-            if (builtinExtensions.hasOwnProperty(extensionId)) {
-                continue;
-            }
-
             // Service names for extension workers are in the format "extension.WORKER_ID.EXTENSION_ID"
             const workerId = +serviceName.split('.')[1];
             const extensionURL = this.workerURLs[workerId];

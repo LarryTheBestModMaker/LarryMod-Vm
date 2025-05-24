@@ -37,6 +37,12 @@ class Scratch3SensingBlocks {
         this._cachedLoudnessTimestamp = 0;
 
         /**
+         * The list of loudness values to determine the average.
+         * @type {!Array}
+         */
+        this._loudnessList = [];
+
+        /**
          * The list of queued questions and respective `resolve` callbacks.
          * @type {!Array}
          */
@@ -56,6 +62,7 @@ class Scratch3SensingBlocks {
     getPrimitives () {
         return {
             sensing_objecttouchingobject: this.objectTouchingObject,
+            sensing_objecttouchingclonesprite: this.objectTouchingCloneOfSprite,
             sensing_touchingobject: this.touchingObject,
             sensing_touchingcolor: this.touchingColor,
             sensing_coloristouchingcolor: this.colorTouchingColor,
@@ -75,6 +82,7 @@ class Scratch3SensingBlocks {
             sensing_askandwait: this.askAndWait,
             sensing_answer: this.getAnswer,
             sensing_username: this.getUsername,
+            sensing_loggedin: this.getLoggedIn,
             sensing_userid: () => {}, // legacy no-op block
             sensing_regextest: this.regextest,
             sensing_thing_is_number: this.thing_is_number,
@@ -105,23 +113,23 @@ class Scratch3SensingBlocks {
     getOS () {
         if (!('userAgent' in navigator)) return 'Unknown';
         const agent = navigator.userAgent;
-        if (agent.includes('Mac OS')) {
-            return 'MacOS';
-        }
-        if (agent.includes('CrOS')) {
-            return 'ChromeOS';
-        }
-        if (agent.includes('Linux')) {
-            return 'Linux';
-        }
         if (agent.includes('Windows')) {
             return 'Windows';
+        }
+        if (agent.includes('Android')) {
+            return 'Android';
         }
         if (agent.includes('iPad') || agent.includes('iPod') || agent.includes('iPhone')) {
             return 'iOS';
         }
-        if (agent.includes('Android')) {
-            return 'Android';
+        if (agent.includes('Linux')) {
+            return 'Linux';
+        }
+        if (agent.includes('CrOS')) {
+            return 'ChromeOS';
+        }
+        if (agent.includes('Mac OS')) {
+            return 'MacOS';
         }
         return 'Unknown';
     }
@@ -206,7 +214,7 @@ class Scratch3SensingBlocks {
     getDirectionToFrom (args) {
         const dx = args.x2 - args.x1;
         const dy = args.y2 - args.y1;
-        const direction = 90 - MathUtil.radToDeg(Math.atan2(dy, dx));
+        const direction = MathUtil.wrapClamp(90 - MathUtil.radToDeg(Math.atan2(dy, dx)), -179, 180);
         return direction;
     }
 
@@ -288,14 +296,27 @@ class Scratch3SensingBlocks {
             sensing_mousedown: {
                 getId: () => 'mousedown'
             },
+            sensing_mouseclicked: {
+                getId: () => 'mouseclicked'
+            },
             sensing_mousex: {
                 getId: () => 'mousex'
             },
             sensing_mousey: {
                 getId: () => 'mousey'
             },
+            sensing_getclipboard: {
+                getId: () => 'getclipboard'
+            },
+            sensing_getdragmode: {
+                isSpriteSpecific: true,
+                getId: targetId => `${targetId}_getdragmode`
+            },
             sensing_loudness: {
                 getId: () => 'loudness'
+            },
+            sensing_loud: {
+                getId: () => 'loud'
             },
             sensing_timer: {
                 getId: () => 'timer'
@@ -308,7 +329,10 @@ class Scratch3SensingBlocks {
                 // importing multiple monitors from the same opcode from sb2 files,
                 // something that is not currently supported in scratch 3.
                 getId: (_, fields) => getMonitorIdForBlockWithArgs('current', fields) // _${param}`
-            }
+            },
+            sensing_loggedin: {
+                getId: () => 'loggedin'
+            },
         };
     }
 
@@ -393,6 +417,33 @@ class Scratch3SensingBlocks {
         const target = this.runtime.getSpriteTargetByName(object2);
         if (!target) return false;
         return target.isTouchingObject(object1);
+    }
+    objectTouchingCloneOfSprite (args, util) {
+        const object1 = args.FULLTOUCHINGOBJECTMENU;
+        let object2 = args.SPRITETOUCHINGOBJECTMENU;
+        if (object2 === "_myself_") {
+            object2 = util.target.getName();
+        }
+        if (object1 === "_myself_") {
+            return util.target.isTouchingObject(object2, true);
+        }
+
+        const target = this.runtime.getSpriteTargetByName(object2);
+        if (!target) return false;
+        if (object1 === "_mouse_") {
+            if (!this.runtime.ioDevices.mouse) return false;
+            const mouseX = this.runtime.ioDevices.mouse.getClientX();
+            const mouseY = this.runtime.ioDevices.mouse.getClientY();
+            const clones = target.sprite.clones.filter(clone => !clone.isOriginal && clone.isTouchingPoint(mouseX, mouseY));
+            return clones.length > 0;
+        } else if (object1 === '_edge_') {
+            const clones = target.sprite.clones.filter(clone => !clone.isOriginal && clone.isTouchingEdge());
+            return clones.length > 0;
+        }
+        
+        const originalSprite = this.runtime.getSpriteTargetByName(object1);
+        if (!originalSprite) return false;
+        return originalSprite.isTouchingObject(object2, true);
     }
 
     touchingObject (args, util) {
@@ -530,13 +581,21 @@ class Scratch3SensingBlocks {
 
         this._cachedLoudnessTimestamp = this._timer.time();
         this._cachedLoudness = this.runtime.audioEngine.getLoudness();
+        this.pushLoudness(this._cachedLoudness);
         return this._cachedLoudness;
     }
 
     isLoud () {
-        return this.getLoudness() > 10;
+      this.pushLoudness();
+      let sum = this._loudnessList.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+      sum /= this._loudnessList.length;
+      return this.getLoudness() > sum + 15;
     }
-
+    pushLoudness (value) {
+      if (this._loudnessList.length >= 30) this._loudnessList.shift(); // remove first item
+      this._loudnessList.push(value ?? this.getLoudness());
+    }
+    
     getAttributeOf (args) {
         let attrTarget;
 
@@ -571,6 +630,7 @@ class Scratch3SensingBlocks {
             case 'costume #': return attrTarget.currentCostume + 1;
             case 'costume name':
                 return attrTarget.getCostumes()[attrTarget.currentCostume].name;
+            case 'layer': return attrTarget.getLayerOrder();
             case 'size': return attrTarget.size;
             case 'volume': return attrTarget.volume;
             }
@@ -589,6 +649,10 @@ class Scratch3SensingBlocks {
 
     getUsername (args, util) {
         return util.ioQuery('userData', 'getUsername');
+    }
+
+    getLoggedIn(args, util) {
+        return util.ioQuery('userData', 'getLoggedIn');
     }
 }
 

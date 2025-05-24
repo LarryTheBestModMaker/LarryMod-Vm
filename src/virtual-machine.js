@@ -16,7 +16,9 @@ const MathUtil = require('./util/math-util');
 const Runtime = require('./engine/runtime');
 const StringUtil = require('./util/string-util');
 const RenderedTarget = require('./sprites/rendered-target');
+const StageLayering = require('./engine/stage-layering');
 const Sprite = require('./sprites/sprite');
+const Blocks = require('./engine/blocks');
 const formatMessage = require('format-message');
 
 const Variable = require('./engine/variable');
@@ -31,6 +33,11 @@ const Base64Util = require('./util/base64-util');
 
 const RESERVED_NAMES = ['_mouse_', '_stage_', '_edge_', '_myself_', '_random_'];
 const PM_LIBRARY_API = "https://library.penguinmod.com/";
+
+const IRGenerator = require('./compiler/irgen');
+const JSGenerator = require('./compiler/jsgen');
+const jsexecute = require('./compiler/jsexecute');
+const { SyntheticModule } = require('vm');
 
 const CORE_EXTENSIONS = [
     // 'motion',
@@ -199,6 +206,12 @@ class VirtualMachine extends EventEmitter {
         this.runtime.on(Runtime.INTERPOLATION_CHANGED, framerate => {
             this.emit(Runtime.INTERPOLATION_CHANGED, framerate);
         });
+        this.runtime.on(Runtime.BEFORE_INTERPOLATE, target => {
+            this.emit(Runtime.BEFORE_INTERPOLATE, target);
+        });
+        this.runtime.on(Runtime.AFTER_INTERPOLATE, target => {
+            this.emit(Runtime.AFTER_INTERPOLATE, target);
+        });
         this.runtime.on(Runtime.STAGE_SIZE_CHANGED, (width, height) => {
             this.emit(Runtime.STAGE_SIZE_CHANGED, width, height);
         });
@@ -215,7 +228,7 @@ class VirtualMachine extends EventEmitter {
         this.extensionManager = new ExtensionManager(this);
         this.securityManager = this.extensionManager.securityManager;
         this.runtime.extensionManager = this.extensionManager;
-        this.runtime.vm = this
+        this.runtime.vm = this;
 
         // Load core extensions
         for (const id of CORE_EXTENSIONS) {
@@ -236,7 +249,17 @@ class VirtualMachine extends EventEmitter {
         this.exports = {
             Sprite,
             RenderedTarget,
-            JSZip
+            JSZip,
+            JSGenerator,
+            IRGenerator,
+            jsexecute,
+            loadCostume,
+            loadSound,
+            Blocks,
+            StageLayering,
+            Variable,
+            Thread: require('./engine/thread.js'),
+            execute: require('./engine/execute.js')
         };
     }
 
@@ -420,64 +443,56 @@ class VirtualMachine extends EventEmitter {
         return this.runtime.getPeripheralIsConnected(extensionId);
     }
 
+    isSB2(json) {
+        return Array.isArray(json.children) && !Array.isArray(json.targets);
+    }
     /**
      * Load a Scratch project from a .sb, .sb2, .sb3 or json string.
      * @param {string | object} input A json string, object, or ArrayBuffer representing the project to load.
      * @return {!Promise} Promise that resolves after targets are installed.
      */
     loadProject (input) {
-        if (typeof input === 'object' && !(input instanceof ArrayBuffer) &&
-          !ArrayBuffer.isView(input)) {
-            // If the input is an object and not any ArrayBuffer
-            // or an ArrayBuffer view (this includes all typed arrays and DataViews)
-            // turn the object into a JSON string, because we suspect
-            // this is a project.json as an object
-            // validate expects a string or buffer as input
-            // TODO not sure if we need to check that it also isn't a data view
-            input = JSON.stringify(input);
-        }
-
-        const validationPromise = new Promise((resolve, reject) => {
-            const validate = require('scratch-parser');
-            // The second argument of false below indicates to the validator that the
-            // input should be parsed/validated as an entire project (and not a single sprite)
-            validate(input, false, (error, res) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(res);
-            });
-        })
-            .catch(error => {
-                const {SB1File, ValidationError} = require('scratch-sb1-converter');
-
-                try {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const arr = new Uint8Array(input);
+                const tag = [...arr.slice(0, 7)]
+                    .map(char => String.fromCharCode(char))
+                    .join('');
+                if (tag === 'Scratch') {
+                    const { SB1File } = require('scratch-sb1-converter');
                     const sb1 = new SB1File(input);
                     const json = sb1.json;
                     json.projectVersion = 2;
-                    return Promise.resolve([json, sb1.zip]);
-                } catch (sb1Error) {
-                    if (
-                        sb1Error instanceof ValidationError ||
-                        `${sb1Error}`.includes('Non-ascii character in FixedAsciiString')
-                    ) {
-                        // The input does not validate as a Scratch 1 file.
-                    } else {
-                        // The project appears to be a Scratch 1 file but it
-                        // could not be successfully translated into a Scratch 2
-                        // project.
-                        return Promise.reject(sb1Error);
-                    }
+                    return resolve([json, sb1.zip]);
                 }
-                // Throw original error since the input does not appear to be
-                // an SB1File.
-                return Promise.reject(error);
-            });
 
-        return validationPromise
+                // if it isnt a zip, maby its the project.json in ArrayBuffer form
+                if (tag.slice(0, 2) !== 'PK') {
+                    const decoder = new TextDecoder('UTF-8');
+                    input = decoder.decode(input);
+                }
+                if (typeof input === 'string') 
+                    input = JSON.parse(input);
+                // generic objects return [object Object] on stringify
+                if (input.toString() === '[object Object]') {
+                    input.projectVersion = this.isSB2(input) ? 2 : 3;
+                    return resolve([input, null]);
+                }
+                const zip = await JSZip.loadAsync(input);
+                const proj = zip.file('project.json');
+                if (!proj) return reject('No project.json file inside the given project');
+                const json = JSON.parse(await proj.async('string'));
+                delete json.meta;
+                json.projectVersion = this.isSB2(json) ? 2 : 3;
+                return resolve([json, zip]);
+            } catch (err) {
+                reject(err.toString());
+            }
+        })
             .then(validatedInput => this.deserializeProject(validatedInput[0], validatedInput[1]))
             .then(() => this.runtime.emitProjectLoaded())
             .catch(error => {
+                console.error(error);
                 // Intentionally rejecting here (want errors to be handled by caller)
                 if (error.hasOwnProperty('validationError')) {
                     return Promise.reject(JSON.stringify(error, null, 4));
@@ -521,6 +536,13 @@ class VirtualMachine extends EventEmitter {
         zip.file('project.json', projectJson);
         this._addFileDescsToZip(this.serializeAssets(), zip);
 
+        // Use a fixed modification date for the files in the zip instead of letting JSZip use the
+        // current time to avoid a very small metadata leak and make zipping deterministic. The magic
+        // number is from the first TurboWarp/scratch-vm commit after forking
+        const date = new Date(1591657163000);
+        for (const file of Object.values(zip.files)) {
+            file.date = date;
+        }
         return zip;
     }
 
@@ -714,23 +736,21 @@ class VirtualMachine extends EventEmitter {
     async _loadExtensions (extensionIDs, extensionURLs = new Map()) {
         const extensionPromises = [];
         for (const extensionID of extensionIDs) {
+            const url = extensionURLs.get(extensionID);
             if (this.extensionManager.isExtensionLoaded(extensionID)) {
                 // Already loaded
-            } else if (this.extensionManager.isBuiltinExtension(extensionID)) {
-                // Builtin extension
-                this.extensionManager.loadExtensionIdSync(extensionID);
-                continue;
-            } else {
-                // Custom extension
-                const url = extensionURLs.get(extensionID);
-                if (!url) {
-                    throw new Error(`Unknown extension: ${extensionID}`);
-                }
+            } else if (url) {
+                // extension url
                 if (await this.securityManager.canLoadExtensionFromProject(url)) {
                     extensionPromises.push(this.extensionManager.loadExtensionURL(url));
                 } else {
                     throw new Error(`Permission to load extension denied: ${extensionID}`);
                 }
+            } else if (this.extensionManager.isBuiltinExtension(extensionID)) {
+                // Builtin extension
+                this.extensionManager.loadExtensionIdSync(extensionID);
+            } else {
+                throw new Error(`Unknown extension: ${extensionID}`);
             }
         }
         return Promise.all(extensionPromises);
@@ -815,7 +835,7 @@ class VirtualMachine extends EventEmitter {
         const validationPromise = new Promise((resolve, reject) => {
             const validate = require('scratch-parser');
             // The second argument of true below indicates to the parser/validator
-            // that the given input should be treated as a single sprite and not
+            //  the given input should be treated as a single sprite and not
             // an entire project
             validate(input, true, (error, res) => {
                 if (error) return reject(error);
@@ -1310,7 +1330,36 @@ class VirtualMachine extends EventEmitter {
      * @property {number} [bitmapResolution] - the resolution scale for a bitmap backdrop.
      * @returns {?Promise} - a promise that resolves when the backdrop has been added
      */
-    addBackdrop (md5ext, backdropObject) {
+    addBackdrop(md5ext, backdropObject) {
+        if (backdropObject.fromPenguinModLibrary === true) {
+            return new Promise((resolve, reject) => {
+                fetch(`${PM_LIBRARY_API}files/${backdropObject.libraryId}`)
+                    .then((r) => r.arrayBuffer())
+                    .then((arrayBuffer) => {
+                        const dataFormat = backdropObject.dataFormat;
+                        const storage = this.runtime.storage;
+                        const asset = new storage.Asset(
+                            storage.AssetType[dataFormat === 'svg' ? "ImageVector" : "ImageBitmap"],
+                            null,
+                            storage.DataFormat[dataFormat.toUpperCase()],
+                            new Uint8Array(arrayBuffer),
+                            true
+                        );
+                        const newCostumeObject = {
+                            md5: asset.assetId + '.' + asset.dataFormat,
+                            asset: asset,
+                            name: backdropObject.name
+                        }
+                        loadCostume(newCostumeObject.md5, newCostumeObject, this.runtime).then(costumeAsset => {
+                            const stage = this.runtime.getTargetForStage();
+                            stage.addCostume(newCostumeObject);
+                            stage.setCostume(stage.getCostumes().length - 1);
+                            this.runtime.emitProjectChanged();
+                            resolve(costumeAsset, newCostumeObject);
+                        })
+                    }).catch(reject);
+            });
+        }
         return loadCostume(md5ext, backdropObject, this.runtime).then(() => {
             const stage = this.runtime.getTargetForStage();
             stage.addCostume(backdropObject);
@@ -1602,6 +1651,16 @@ class VirtualMachine extends EventEmitter {
     }
 
     /**
+     * @param {Block[]} blockObjects
+     * @returns {object}
+     */
+    exportStandaloneBlocks (blockObjects) {
+        const sb3 = require('./serialization/sb3');
+        const serialized = sb3.serializeStandaloneBlocks(blockObjects, this.runtime);
+        return serialized;
+    }
+
+    /**
      * Called when blocks are dragged from one sprite to another. Adds the blocks to the
      * workspace of the given target.
      * @param {!Array<object>} blocks Blocks to add.
@@ -1613,7 +1672,7 @@ class VirtualMachine extends EventEmitter {
     shareBlocksToTarget (blocks, targetId, optFromTargetId) {
         const sb3 = require('./serialization/sb3');
 
-        const copiedBlocks = JSON.parse(JSON.stringify(blocks));
+        const {blocks: copiedBlocks, extensionURLs} = sb3.deserializeStandaloneBlocks(blocks);
         newBlockIds(copiedBlocks);
         const target = this.runtime.getTargetById(targetId);
 
@@ -1631,7 +1690,7 @@ class VirtualMachine extends EventEmitter {
             .filter(id => !this.extensionManager.isExtensionLoaded(id)) // and remove loaded extensions
         );
 
-        return this._loadExtensions(extensionIDs).then(() => {
+        return this._loadExtensions(extensionIDs, extensionURLs).then(() => {
             copiedBlocks.forEach(block => {
                 target.blocks.createBlock(block);
             });

@@ -1,3 +1,6 @@
+const Cast = require("../../util/cast");
+const Timer = require("./timer");
+
 function MathOver(number, max) {
     let num = number;
     while (num > max) {
@@ -6,111 +9,144 @@ function MathOver(number, max) {
     return num;
 }
 function Clamp(number, min, max) {
-    if (number < min) return min;
-    if (number > max) return max;
-    return number;
+    return Math.min(Math.max(number, min), max);
 }
-function SafeNumberConvert(tonumber) {
-    const n = Number(tonumber);
-    if (n == null || n == undefined) return 0;
-    if (isNaN(n)) return 0;
-    return n;
-}
-
-const AudioNodeStorage = [];
 
 class AudioSource {
-    constructor(audioContext, audioGroup, source, data, parent) {
+    /**
+     * @param {AudioContext} audioContext 
+     * @param {object} audioGroup 
+     * @param {AudioBuffer} source 
+     * @param {object} data 
+     * @param {object} parent 
+     */
+    constructor(audioContext, audioGroup, source, data, parent, runtime) {
         if (source == null) source = "";
         if (data == null) data = {};
-        
-        this.src = source;
-        this.volume = data.volume != null ? data.volume : 1;
-        this.speed = data.speed != null ? data.speed : 1;
-        this.pitch = data.pitch != null ? data.pitch : 0;
-        this.pan = data.pan != null ? data.pan : 0;
-        this.looping = data.looping != null ? data.looping : false;
+        this.runtime = runtime;
 
-        this._startingTime = 0;
-        this._endingTime = null;
-        this.timePosition = data.timePosition != null ? data.timePosition : 0;
+        this.src = source;
+        this.duration = source.duration;
+        this.originAudioName = "";
+
+        this.volume = data.volume ?? 1;
+        this.speed = data.speed ?? 1;
+        this.pitch = data.pitch ?? 0;
+        this.pan = data.pan ?? 0;
+        this.looping = data.looping ?? false;
+
+        this.startPosition = data.startPosition ?? 0;
+        this.endPosition = data.endPosition ?? Infinity;
+        this.loopStartPosition = data.loopStartPosition ?? 0;
+        this.loopEndPosition = data.loopEndPosition ?? Infinity;
+
         this.resumeSpot = 0;
         this.paused = false;
         this.notPlaying = true;
-        this._pauseTime = null;
-        this._pauseTimeOffset = null;
         this.parent = parent;
 
-        this._audioContext = audioContext == null ? new AudioContext() : audioContext;
         this._audioNode = null;
+        this._audioContext = audioContext;
         this._audioGroup = audioGroup;
+
         this._audioPanner = this._audioContext.createPanner();
-        this._audioPanner.panningModel = 'equalpower';
-        this._audioPanner.connect(parent.audioGlobalVolumeNode);
         this._audioGainNode = this._audioContext.createGain();
+        this._audioAnalyzerNode = this._audioContext.createAnalyser();
+        
+        this._audioPanner.panningModel = 'equalpower';
         this._audioGainNode.gain.value = 1;
+
         this._audioGainNode.connect(this._audioPanner);
+        this._audioPanner.connect(this._audioAnalyzerNode);
+        this._audioAnalyzerNode.connect(parent.audioGlobalVolumeNode);
 
-        this.duration = source.duration;
+        this._originalConfig = data;
+        this._playingSrc = null;
 
-        this.originAudioName = "";
+        this._timer = new Timer(runtime, audioContext);
+        this._disposed = false;
     }
 
-    play() {
+    play(atTime) {
+        if (!this.src) throw "Cannot play an empty audio source";
         try {
             if (this._audioNode) {
                 this._audioNode.onended = null;
                 this._audioNode.stop();
             }
         } catch {
-            // do nothing
+            // ... idk
+        } finally {
+            this._audioNode = null;
         }
-        this._audioNode = this._audioContext.createBufferSource();
-        AudioNodeStorage.push(this._audioNode);
-        const source = this._audioNode
+
+        const source = this._audioContext.createBufferSource();
+        this._audioNode = source;
         this.update();
+
         source.buffer = this.src;
         source.connect(this._audioGainNode);
-        this._endingTime = null;
+        this._playingSrc = source.buffer;
+        
+        if (!this.paused) {
+            this._timer.reset();
+            this._timer.setTime(Clamp(atTime ?? this.startPosition, 0, this.duration) * 1000);
+            this._timer.start();
+        } else {
+            this.resumeSpot = this.getTimePosition();
+            this._timer.start();
+        }
+
+        // we need to know when the sound starts, so we know how long to play for
+        // we also need to change endTimePos if we are looping
+        let startTimePos = this.resumeSpot;
+        let endTimePos = this.endPosition;
         if (this.paused) {
             this.paused = false;
-            source.start(0, this.resumeSpot);
-            this._startingTime = this._pauseTime - this._pauseTimeOffset;
-            this._pauseTime = null;
-            this._pauseTimeOffset = null;
         } else {
-            source.start(0, this.timePosition);
-            this._startingTime = Date.now();
+            startTimePos = atTime ?? this.startPosition;
         }
+        if (this.looping) {
+            endTimePos = this.loopEndPosition;
+        }
+
+        // dont play the sound if the playback duration is less than 1 sample frame, otherwise the ended event will not fire
         this.notPlaying = false;
-        source.onended = () => {
-            if (this.paused) return;
-            this._endingTime = Date.now();
-            source.onended = null;
-            this.notPlaying = true;
+        const playbackDuration = Clamp(endTimePos - startTimePos, 0, this.duration);
+        if (playbackDuration < 1 / this.src.sampleRate) {
+            this._onNodeStop(true);
+        } else {
+            source.start(0, Clamp(startTimePos, 0, this.duration), playbackDuration);
+    
+            source.onended = () => {
+                this._onNodeStop();
+            }
         }
     }
     stop() {
+        this.notPlaying = true;
+        this.paused = false;
+        this._timer.stop();
         try {
             if (this._audioNode) {
                 this._audioNode.stop();
-                this._audioNode = null;
-                this.notPlaying = true;
             }
-            this.paused = false;
         } catch {
-            // do nothing
+            // ... idk
+        } finally {
+            this._audioNode = null;
         }
     }
     pause() {
         if (!this._audioNode) return;
         this.paused = true;
-        this.resumeSpot = MathOver((Date.now() - this._startingTime) * this.speed, this.duration * 1000) / 1000;
+        this.notPlaying = true;
+        this._timer.pause();
+        
+        // onended is already ignored when paused, and stopped nodes cannot restart
+        this._audioNode.onended = null;
         this._audioNode.stop();
         this._audioNode = null;
-        this._pauseTime = Date.now();
-        this._pauseTimeOffset = (Date.now() - this._startingTime);
-        this.notPlaying = true;
     }
 
     update() {
@@ -120,29 +156,120 @@ class AudioSource {
         const audioGainNode = this._audioGainNode;
         const audioPanner = this._audioPanner;
 
-        audioNode.loop = this.looping;
-        audioNode.detune.value = this.pitch;
-        audioNode.playbackRate.value = this.speed;
+        // we need to manually calculate detune to prevent problems when using playbackRate for other things
+        audioNode.playbackRate.value = this.speed * Math.pow(2, this.pitch / 1200);
         audioGainNode.gain.value = this.volume;
 
-        audioNode.detune.value += audioGroup.globalPitch;
-        audioNode.playbackRate.value *= audioGroup.globalSpeed;
+        audioNode.playbackRate.value *= audioGroup.globalSpeed * Math.pow(2, audioGroup.globalPitch / 1200);
         audioGainNode.gain.value *= audioGroup.globalVolume;
+        this._timer.speed = audioNode.playbackRate.value;
 
-        const position = this.calculatePannerPosition(Clamp(SafeNumberConvert(this.pan / audioGroup.globalPan), -1, 1));
-        audioPanner.setPosition(position.x, position.y, position.z);
+        const pan = Clamp(this.pan + audioGroup.globalPan, -1, 1);
+        audioPanner.positionX.value = pan;
+        audioPanner.positionY.value = 0;
+        audioPanner.positionZ.value = 1 - Math.abs(pan);
+    }
+    dispose() {
+        this._disposed = true;
+        this._timer.dispose();
+        this.stop();
+    }
+    clone() {
+        const newSource = new AudioSource(this._audioContext, this._audioGroup, this.src, this._originalConfig, this.parent, this.runtime);
+        return newSource;
+    }
+    reverse() {
+        if (!this.src) throw "Cannot reverse an empty audio source";
+
+        const buffer = this.src;
+        const reversedBuffer = this._audioContext.createBuffer(
+            buffer.numberOfChannels,
+            buffer.length,
+            buffer.sampleRate
+        );
+    
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const sourceData = buffer.getChannelData(channel);
+            const destinationData = reversedBuffer.getChannelData(channel);
+    
+            for (let i = 0; i < buffer.length; i++) {
+                destinationData[i] = sourceData[buffer.length - 1 - i];
+            }
+        }
+        this.src = reversedBuffer;
     }
 
-    calculateTimePosition() {
-        if (this._endingTime != null) return (this._endingTime - this._startingTime) * this.speed;
-        return MathOver((Date.now() - this._startingTime) * this.speed, this.duration * 1000);
+    setTimePosition(newSeconds) {
+        if (!this._audioNode && !this.paused) return;
+        const src = this._getActiveSource();
+        newSeconds = Clamp(newSeconds, 0, src.duration);
+        if (this.paused) {
+            // only update the time
+            this._timer.setTime(newSeconds * 1000);
+            return;
+        }
+
+        this._timer.setTime(newSeconds * 1000);
+        this.play(newSeconds);
     }
-    calculatePannerPosition(pan) {
-        return {
-            x: pan,
-            y: 0,
-            z: 1 - Math.abs(pan)
-        };
+
+    getVolume() {
+        const analyserNode = this._audioAnalyzerNode;
+
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserNode.getByteTimeDomainData(dataArray);
+
+        let sumSquares = 0.0;
+        for (let i = 0; i < bufferLength; i++) {
+          const sample = (dataArray[i] / 128.0) - 1.0;
+          sumSquares += sample * sample;
+        }
+        const volume = Math.sqrt(sumSquares / bufferLength);
+        return volume;
+    }
+    getFrequency() {
+        const analyserNode = this._audioAnalyzerNode;
+        const src = this._getActiveSource();
+    
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserNode.getByteFrequencyData(dataArray);
+    
+        // find the max frequency
+        let maxIndex = 0;
+        for (let i = 1; i < bufferLength; i++) {
+            if (dataArray[i] > dataArray[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+    
+        // return the dominant freq
+        const nyquist = src.sampleRate / 2;
+        return maxIndex * nyquist / bufferLength;
+    }
+    getTimePosition() {
+        const src = this._getActiveSource();
+        return Clamp(this._timer.getTime(true), 0, src.duration);
+    }
+
+    _getActiveSource() {
+        if (this._audioNode) return this._playingSrc;
+        return this.src;
+    }
+    _onNodeStop(didNotPlay) {
+        if (this.paused || !this._audioNode) return;
+        if (!didNotPlay) {
+            if (this.looping && !this.notPlaying) {
+                this.play(this.loopStartPosition || 0);
+                return;
+            }
+        }
+
+        this._audioNode.onended = null;
+        this.notPlaying = true;
+        this._audioNode = null;
+        this._timer.stop();
     }
 }
 class AudioExtensionHelper {
@@ -153,16 +280,13 @@ class AudioExtensionHelper {
         */
         this.runtime = runtime;
         this.audioGroups = {};
-        this.audioContext = null;
-        this.audioGlobalVolumeNode = null;
+        this.audioContext = new AudioContext();
+        this.audioGlobalVolumeNode = this.audioContext.createGain();
+
+        this.audioGlobalVolumeNode.gain.value = 1;
+        this.audioGlobalVolumeNode.connect(this.audioContext.destination);
     }
-    /**
-        * Sets a new runtime that the helper will use for all functions.
-        * @type {runtime}
-    */
-    SetRuntime(runtime) {
-        this.runtime = runtime;
-    }
+    
     /**
         * Creates a new AudioGroup.
         * @type {string} AudioGroup name
@@ -186,7 +310,9 @@ class AudioExtensionHelper {
         * @type {string}
     */
     DeleteAudioGroup(name) {
-        if (this.audioGroups[name] == null) return;
+        const audioGroup = this.audioGroups[name];
+        if (!audioGroup) return;
+        this.DisposeAudioGroupSources(audioGroup);
         delete this.audioGroups[name];
     }
     /**
@@ -213,6 +339,17 @@ class AudioExtensionHelper {
             source.update();
         }
     }
+    /**
+        * Gets all AudioSources in an AudioGroup and disposes them.
+        * @type {AudioGroup}
+    */
+    DisposeAudioGroupSources(audioGroup) {
+        const audioSources = this.GrabAllGrabAudioSources(audioGroup);
+        for (let i = 0; i < audioSources.length; i++) {
+            const source = audioSources[i];
+            source.dispose();
+        }
+    }
 
     /**
         * Creates a new AudioSource inside of an AudioGroup.
@@ -224,17 +361,7 @@ class AudioExtensionHelper {
     AppendAudioSource(parent, name, src, settings) {
         const group = typeof parent == "string" ? this.GetAudioGroup(parent) : parent;
         if (!group) return;
-        if (!this.audioContext) this.audioContext = new AudioContext();
-        // gain node for volume slidor
-        if (!this.audioGlobalVolumeNode) {
-            this.audioGlobalVolumeNode = this.audioContext.createGain();
-            this.audioGlobalVolumeNode.gain.value = 1;
-            if (this.runtime.audioEngine) {
-                this.audioGlobalVolumeNode.gain.value = this.runtime.audioEngine.inputNode.gain.value;
-            }
-            this.audioGlobalVolumeNode.connect(this.audioContext.destination);
-        }
-        group.sources[name] = new AudioSource(this.audioContext, group, src, settings, this);
+        group.sources[name] = new AudioSource(this.audioContext, group, src, settings, this, this.runtime);
         return group.sources[name];
     }
     /**
@@ -245,7 +372,10 @@ class AudioExtensionHelper {
     RemoveAudioSource(parent, name) {
         const group = typeof parent == "string" ? this.GetAudioGroup(parent) : parent;
         if (!group) return;
-        if (group.sources[name] == null) return;
+        const audioSource = group.sources[name];
+        if (!audioSource) return;
+
+        audioSource.dispose();
         delete group.sources[name];
     }
     /**
@@ -293,43 +423,11 @@ class AudioExtensionHelper {
         return null;
     }
     /**
-        * Safely converts things to numbers.
-    */
-    SafeNumberConvert(tonumber) {
-        const n = Number(tonumber);
-        if (n == null || n == undefined) return 0;
-        if (isNaN(n)) return 0;
-        return n;
-    }
-    /**
         * Clamps numbers to stay inbetween 2 values.
         * @type {number}
     */
     Clamp(number, min, max) {
-        if (number < min) return min;
-        if (number > max) return max;
-        return number;
-    }
-
-    /**
-        * Kills all sounds and other things. For use when the stop button is clicked or a stop all block is used.
-    */
-    KillAllProcesses() {
-        function PCall(func, catc) {
-            try {
-                func();
-            } catch (err) {
-                if (catc) catc(err);
-            }
-        }
-
-        console.info("Attempting to kill", AudioNodeStorage.length, "audio nodes");
-        AudioNodeStorage.forEach(node => {
-            PCall(() => {
-                node.stop();
-            })
-        });
-        AudioNodeStorage.splice(0, AudioNodeStorage.length);
+        return Math.min(Math.max(number, min), max);
     }
 }
 

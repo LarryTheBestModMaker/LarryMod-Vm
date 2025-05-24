@@ -167,14 +167,14 @@ class Target extends EventEmitter {
      * @param {string} name Name of the variable.
      * @return {?Variable} Variable object.
      */
-    lookupBroadcastByInputValue (name) {
-        const vars = this.variables;
-        for (const propName in vars) {
-            if ((vars[propName].type === Variable.BROADCAST_MESSAGE_TYPE) &&
-                (vars[propName].name.toLowerCase() === name.toLowerCase())) {
-                return vars[propName];
-            }
-        }
+    lookupBroadcastByInputValue(name) {
+        const variables = Object.values(this.variables);
+        return variables.find(varData => {
+            return (
+                varData.type === Variable.BROADCAST_MESSAGE_TYPE &&
+                varData.name.toLowerCase() === name.toLowerCase()
+            );
+        });
     }
 
     /**
@@ -207,30 +207,25 @@ class Target extends EventEmitter {
      * @param {?bool} skipStage Optional flag to skip checking the stage
      * @return {?Variable} Variable object if found, or null if not.
      */
-    lookupVariableByNameAndType (name, type, skipStage) {
+    lookupVariableByNameAndType(name, type, skipStage) {
         if (typeof name !== 'string') return;
         if (typeof type !== 'string') type = Variable.SCALAR_TYPE;
         skipStage = skipStage || false;
-
-        for (const varId in this.variables) {
-            const currVar = this.variables[varId];
-            if (currVar.name === name && currVar.type === type) {
-                return currVar;
-            }
-        }
-
+    
+        // Search variables in the current target
+        const variables = Object.values(this.variables);
+        const foundInCurrent = variables.find(varData => varData.name === name && varData.type === type);
+        if (foundInCurrent) return foundInCurrent;
+    
+        // Search variables in the stage if applicable
         if (!skipStage && this.runtime && !this.isStage) {
             const stage = this.runtime.getTargetForStage();
             if (stage) {
-                for (const varId in stage.variables) {
-                    const currVar = stage.variables[varId];
-                    if (currVar.name === name && currVar.type === type) {
-                        return currVar;
-                    }
-                }
+                const stageVariables = Object.values(stage.variables);
+                const foundInStage = stageVariables.find(varData => varData.name === name && varData.type === type);
+                if (foundInStage) return foundInStage;
             }
         }
-
         return null;
     }
 
@@ -265,7 +260,7 @@ class Target extends EventEmitter {
      */
     createVariable (id, name, type, isCloud) {
         if (!this.variables.hasOwnProperty(id)) {
-            const newVariable = new Variable(id, name, type, false);
+            const newVariable = this.runtime.newVariableInstance(type, id, name, false);
             if (isCloud && this.isStage && this.runtime.canAddCloudVariable()) {
                 newVariable.isCloud = true;
                 this.runtime.addCloudVariable();
@@ -410,10 +405,10 @@ class Target extends EventEmitter {
     duplicateVariable (id, optKeepOriginalId) {
         if (this.variables.hasOwnProperty(id)) {
             const originalVariable = this.variables[id];
-            const newVariable = new Variable(
+            const newVariable = this.runtime.newVariableInstance(
+                originalVariable.type,
                 optKeepOriginalId ? id : null, // conditionally keep original id or generate a new one
                 originalVariable.name,
-                originalVariable.type,
                 originalVariable.isCloud
             );
             if (newVariable.type === Variable.LIST_TYPE) {
@@ -595,7 +590,7 @@ class Target extends EventEmitter {
         if (existingLocalVar) {
             newVarId = existingLocalVar.id;
         } else {
-            const newVar = new Variable(null, varName, varType);
+            const newVar = this.runtime.newVariableInstance(varType, null, varName);
             newVarId = newVar.id;
             sprite.variables[newVarId] = newVar;
         }

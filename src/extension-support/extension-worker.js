@@ -1,6 +1,7 @@
 /* eslint-env worker */
 
 const ScratchCommon = require('./tw-extension-api-common');
+const createScratchX = require('./tw-scratchx-compatibility-layer');
 const dispatch = require('../dispatch/worker-dispatch');
 const log = require('../util/log');
 const {isWorker} = require('./tw-extension-worker-context');
@@ -84,6 +85,8 @@ Object.assign(global.Scratch, ScratchCommon, {
     canReadClipboard: () => Promise.resolve(false),
     canNotify: () => Promise.resolve(false),
     canGeolocate: () => Promise.resolve(false),
+    canEmbed: () => Promise.resolve(false),
+    canUnsandbox: () => Promise.resolve(false),
     translate
 });
 
@@ -95,4 +98,4 @@ global.Scratch.extensions = {
     register: extensionWorker.register.bind(extensionWorker)
 };
 
-global.ScratchExtensions = require('./tw-scratchx-compatibility-layer');
+global.ScratchExtensions = createScratchX(global.Scratch);

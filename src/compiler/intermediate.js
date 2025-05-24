@@ -45,6 +45,18 @@ class IntermediateScript {
         this.isWarp = false;
 
         /**
+         * pm: Whether this script should use dangerous optimizations.
+         * @type {boolean}
+         */
+        this.isOptimized = false;
+
+        /**
+         * pm: An object containing stuff for optimization.
+         * @type {object}
+         */
+        this.optimizationUtil = {};
+
+        /**
          * Whether this script can `yield`
          * If false, this script will be compiled as a regular JavaScript function (function)
          * If true, this script will be compiled as a generator function (function*)

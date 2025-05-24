@@ -421,7 +421,7 @@ class pmMotionExpansion {
         }
         target.setDraggable(homeState.draggable);
         target.setCostume(homeState.currentCostume);
-        target.tintColor = homeState.tintColor; // tintColor isnt fully implemented yet so just do this
+        target.tintColor = homeState.tintColor; // tintColor no longer exists but we'll do this anyways incase it somehow breaks things
         target.volume = homeState.volume;
         this.runtime.requestRedraw();
     }

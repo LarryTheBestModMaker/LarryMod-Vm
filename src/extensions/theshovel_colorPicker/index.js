@@ -30,7 +30,7 @@ class ColorPicker {
         this.runtime.renderer.addOverlay(input, "scale-centered");
 
         input.addEventListener("input", () => {
-            this.runtime.runtime.startHats("shovelColorPicker_whenChanged");
+            this.runtime.startHats("shovelColorPicker_whenChanged");
         });
 
         updatePosition();

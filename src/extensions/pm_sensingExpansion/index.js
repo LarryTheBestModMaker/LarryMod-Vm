@@ -1,5 +1,6 @@
 const BlockType = require('../../extension-support/block-type');
 const ArgumentType = require('../../extension-support/argument-type');
+const formatMessage = require('format-message');
 const Cast = require('../../util/cast');
 const Color = require('../../util/color');
 
@@ -41,6 +42,7 @@ ${blockSeparator}
 %b16>
 %b17>
 %b20>
+%b22>
 <block type="pmSensingExpansion_amountOfTimeKeyHasBeenHeld">
     <value name="KEY">
         <shadow type="sensing_keyoptions" />
@@ -48,6 +50,8 @@ ${blockSeparator}
 </block>
 %b18>
 %b19>
+%b23>
+%b24>
 ${blockSeparator}
 %b14>
 <block type="sensing_getspritewithattrib">
@@ -108,6 +112,8 @@ class pmSensingExpansion {
         this.loudnessArray = [0];
 
         this.scrollDistance = 0;
+
+        this.lastValues = {};
     }
 
     orderCategoryBlocks(extensionBlocks) {
@@ -323,8 +329,72 @@ class pmSensingExpansion {
                         }
                     }
                 },
+                {
+                    opcode: 'getLastKeyPressed',
+                    text: formatMessage({
+                        id: 'tw.blocks.lastKeyPressed',
+                        default: 'last key pressed',
+                        description: 'Block that returns the last key that was pressed'
+                    }),
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'getButtonIsDown',
+                    text: formatMessage({
+                        id: 'tw.blocks.buttonIsDown',
+                        default: '[MOUSE_BUTTON] mouse button down?',
+                        description: 'Block that returns whether a specific mouse button is down'
+                    }),
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        MOUSE_BUTTON: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'mouseButton',
+                            defaultValue: '0'
+                        }
+                    }
+                },
+                {
+                    opcode: 'changed',
+                    blockType: BlockType.BOOLEAN,
+                    text: '[ONE] changed?',
+                    arguments: {
+                        ONE: {
+                          type: null,
+                        },
+                    },
+                }
             ],
             menus: {
+                mouseButton: {
+                    items: [
+                        {
+                            text: formatMessage({
+                                id: 'tw.blocks.mouseButton.primary',
+                                default: '(0) primary',
+                                description: 'Dropdown item to select primary (usually left) mouse button'
+                            }),
+                            value: '0'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'tw.blocks.mouseButton.middle',
+                                default: '(1) middle',
+                                description: 'Dropdown item to select middle mouse button'
+                            }),
+                            value: '1'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'tw.blocks.mouseButton.secondary',
+                                default: '(2) secondary',
+                                description: 'Dropdown item to select secondary (usually right) mouse button'
+                            }),
+                            value: '2'
+                        }
+                    ],
+                    acceptReporters: true
+                },
                 urlSections: {
                     acceptReporters: true,
                     items: [
@@ -342,6 +412,26 @@ class pmSensingExpansion {
                 }
             }
         };
+    }
+
+    getLastKeyPressed (_, util) {
+        return util.ioQuery('keyboard', 'getLastKeyPressed');
+    }
+
+    getButtonIsDown (args, util) {
+        const button = Cast.toNumber(args.MOUSE_BUTTON);
+        return util.ioQuery('mouse', 'getButtonIsDown', [button]);
+    }
+
+    changed(args, util) {
+      const id = util.thread.peekStack()
+      if (!this.lastValues[id])
+        this.lastValues[id] = Cast.toString(args.ONE);
+      if (Cast.toString(args.ONE) !== this.lastValues[id]) {
+        this.lastValues[id] = Cast.toString(args.ONE);
+        return true;
+      }
+      return false;
     }
 
     pickColor(args) {
@@ -584,7 +674,8 @@ class pmSensingExpansion {
     setUsername(args) {
         const username = Cast.toString(args.NAME);
         vm.postIOData('userData', {
-            username: username
+            username: username,
+            loggedIn: false,
         });
     }
 

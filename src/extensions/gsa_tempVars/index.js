@@ -17,7 +17,7 @@ class tempVars {
 
     getThreadVars (thread) {
         if (!thread.tempVars) {
-            thread.tempVars = {};
+            thread.tempVars = Object.create(null);
         }
         return thread.tempVars;
     }
@@ -72,6 +72,7 @@ class tempVars {
                             defaultValue: 'Variable'
                         }
                     },
+                    allowDropAnywhere: true,
                     blockType: BlockType.REPORTER
                 },
                 '---',
@@ -212,7 +213,7 @@ class tempVars {
     
     deleteAllVariables (_, util) {
         // resets the vars
-        util.thread.tempVars = {};
+        util.thread.tempVars = Object.create(null);
     }
     
     variableExists (args, util) {
