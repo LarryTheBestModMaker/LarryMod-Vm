@@ -25,7 +25,8 @@
  * @property {Boolean} [shouldRestartExistingThreads] - sets whether a hat/event block should restart existing threads.
  * @property {int} [branchCount] - for flow control blocks, the number of branches/substacks for this block.
  * @property {Object.<ExtensionArgumentMetadata>} [arguments] - map of argument placeholder to metadata about each arg.
- * @property {Array.<string>} [switches] - array of the opcodes that this block is able to be swapped to.
+ * @property {Array.<string|ExtensionBlockSwitchElement>} [switches] - array of the opcodes that this block is able to be swapped to.
+ * @property {string} [switch_text] - text used for block switching
  */
 
 /**
@@ -63,3 +64,11 @@
  * @property {*} value - the value of the block argument when this menu item is selected.
  * @property {string} text - the human-readable label of this menu item in the menu.
  */
+
+/**
+ * @typedef {object} ExtensionBlockSwitchElement
+ * A menu item for which the label and value can differ.
+ * @property {string} opcode - the opcode to switch to.
+ * @property {bool} isNoop - if this switch should be a noop.
+ * @property {Object.<string, string>} remapArguments - map of current block's arguments to this block's arguments.
+*/
