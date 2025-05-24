@@ -98,10 +98,14 @@ function getSwitches({runtime}) {
                         };
                     });
 
+                const splitInputs = Object.keys(block.info.arguments)
+                    .filter(arg => !Object.keys(get_block.info.arguments).includes(arg));
+
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
                     createInputs,
+                    splitInputs,
                     mapFieldValues: current.remapMenus ?? {},
                     msg: get_block.info.switchText ?? get_block.info.text
                 };
