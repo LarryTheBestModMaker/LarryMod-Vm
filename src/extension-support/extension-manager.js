@@ -223,7 +223,7 @@ const defaultBuiltinExtensions = {
     // griffpatch: () => require('../extensions/griffpatch_box2d')
 
     // iyg: erm a crep, erm a werdohhhh
-    // iygPerlin: 
+    // iygPerlin:
     iygPerlin: () => require('../extensions/iyg_perlin_noise'),
     // fr: waw 3d physics!!
     // fr3d:
@@ -359,7 +359,7 @@ class ExtensionManager {
     }
 
     getAddonBlockSwitches() {
-        return AddonSwitches();
+        return AddonSwitches(this.vm);
     }
 
     /**
@@ -476,7 +476,7 @@ class ExtensionManager {
             reader.readAsText(blob)
         })
         this.extensionHashes[extensionURL] = newHash
-        if (oldHash && oldHash !== newHash && this.securityManager.shouldUseLocal(extensionURL)) return Promise.reject('useLocal') 
+        if (oldHash && oldHash !== newHash && this.securityManager.shouldUseLocal(extensionURL)) return Promise.reject('useLocal')
 
         if (sandboxMode === 'unsandboxed') {
             const { load } = require('./tw-unsandboxed-extension-runner');
@@ -818,7 +818,7 @@ class ExtensionManager {
             blockInfo.xml = String(blockInfo.xml) || '';
             return blockInfo;
         }
-        
+
         blockInfo = Object.assign({}, {
             blockType: BlockType.COMMAND,
             terminal: false,
