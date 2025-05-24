@@ -84,22 +84,23 @@ function getSwitches({runtime}) {
                 let createInputs = {};
                 let currargs = current.createArguments ?? {};
 
-                new DOMParser().parseFromString(get_block.xml)
+                new DOMParser().parseFromString(get_block.xml, "text/xml")
                     .querySelectorAll(`[type="${get_block.json.type}"] > value`)
                     .forEach(el => {
                         let name = el.getAttribute("name");
-                        let shadow_type = el.getElementsByName("shadow").getAttribute("type");
+                        console.log(name);
+                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
 
-                        let value = currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "";
+                        let value = (currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "").toString();
 
                         createInputs[name] = {
-                            shadow_type,
+                            shadowType,
                             value
                         };
                     });
 
                 const splitInputs = Object.keys(block.info.arguments)
-                    .filter(arg => !Object.keys(get_block.info.arguments).includes(arg));
+                    .filter(arg => !Object.keys(get_block.info.arguments).includes(arg) && !Object.keys(current.remapArguments ?? {}).includes(arg));
 
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
