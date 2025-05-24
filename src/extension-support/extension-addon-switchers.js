@@ -81,9 +81,28 @@ function getSwitches({runtime}) {
                 }
                 get_block = get_block[0];
 
+                let createInputs = {};
+                let currargs = current.createArguments ?? {};
+
+                new DOMParser().parseFromString(get_block.xml)
+                    .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                    .forEach(el => {
+                        let name = el.getAttribute("name");
+                        let shadow_type = el.getElementsByName("shadow").getAttribute("type");
+
+                        let value = get_block.info.arguments[name].defaultValue ?? currargs[name] ?? "";
+
+                        createInputs[name] = {
+                            shadow_type,
+                            value
+                        };
+                    });
+
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
+                    createInputs,
+                    mapFieldValues: current.remapMenus ?? {},
                     msg: get_block.info.switchText ?? get_block.info.text
                 };
             });
