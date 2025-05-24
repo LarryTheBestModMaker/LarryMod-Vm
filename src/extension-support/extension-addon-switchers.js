@@ -55,6 +55,7 @@ Object.getOwnPropertyNames(extensions).forEach(extID => {
 function getSwitches({runtime}) {
     var _switches = switches;
     for (let ext of runtime._blockInfo) {
+        if (ext.id in _switches) continue;
         _switches[ext.id] = {};
         for (let block of ext.blocks) {
             var blockswitches = block.info.switches;
