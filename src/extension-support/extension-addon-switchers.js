@@ -84,7 +84,7 @@ function getSwitches({runtime}) {
                 return {
                     opcode: `${ext.id}_${current.opcode}`,
                     remapInputName: current.remapArguments ?? {},
-                    msg: get_block.info.switch_text ?? get_block.info.text
+                    msg: get_block.info.switchText ?? get_block.info.text
                 };
             });
         }
