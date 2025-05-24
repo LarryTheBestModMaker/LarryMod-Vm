@@ -52,8 +52,44 @@ Object.getOwnPropertyNames(extensions).forEach(extID => {
     switches[extID] = extension;
 })
 
-function getSwitches() {
-    return switches;
+function getSwitches({runtime}) {
+    var _switches = switches;
+    for (let ext of runtime._blockInfo) {
+        _switches[ext.id] = {};
+        for (let block of ext.blocks) {
+            var blockswitches = block.info.switches;
+            if (!blockswitches) continue;
+            let opcode = block.json.type;
+            _switches[ext.id][opcode] = blockswitches.map(current => {
+                if (typeof current === "string") {
+                    current = {opcode: current}
+                } else if (typeof current !== "object") {
+                    return noopSwitch;
+                }
+
+                if (!("opcode" in current)) {
+                    return noopSwitch;
+                }
+
+                if (current.isNoop) {
+                    return noopSwitch;
+                }
+
+                let get_block = ext.blocks.filter(e => e.info.opcode === current.opcode);
+                if (get_block.length === 0) { // block doesn't exist.
+                    return noopSwitch;
+                }
+                get_block = get_block[0];
+
+                return {
+                    opcode: current.opcode,
+                    remapInputName: current.remapArguments ?? {},
+                    msg: get_block.info.switch_text
+                };
+            });
+        }
+    }
+    return _switches;
 }
 
 module.exports = getSwitches;

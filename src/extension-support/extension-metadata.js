@@ -25,6 +25,7 @@
  * @property {Boolean} [shouldRestartExistingThreads] - sets whether a hat/event block should restart existing threads.
  * @property {int} [branchCount] - for flow control blocks, the number of branches/substacks for this block.
  * @property {Object.<ExtensionArgumentMetadata>} [arguments] - map of argument placeholder to metadata about each arg.
+ * @property {Array.<string>} [switches] - array of the opcodes that this block is able to be swapped to.
  */
 
 /**
