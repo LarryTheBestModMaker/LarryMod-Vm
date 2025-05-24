@@ -26,7 +26,7 @@
  * @property {int} [branchCount] - for flow control blocks, the number of branches/substacks for this block.
  * @property {Object.<ExtensionArgumentMetadata>} [arguments] - map of argument placeholder to metadata about each arg.
  * @property {Array.<string|ExtensionBlockSwitchElement>} [switches] - array of the opcodes that this block is able to be swapped to.
- * @property {string} [switch_text] - text used for block switching
+ * @property {string} [switchText] - text used for block switching
  */
 
 /**
