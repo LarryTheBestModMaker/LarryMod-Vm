@@ -59,7 +59,7 @@ function getSwitches({runtime}) {
         for (let block of ext.blocks) {
             var blockswitches = block.info.switches;
             if (!blockswitches) continue;
-            let opcode = block.json.type;
+            let opcode = block.info.opcode;
             _switches[ext.id][opcode] = blockswitches.map(current => {
                 if (typeof current === "string") {
                     current = {opcode: current}
@@ -84,7 +84,7 @@ function getSwitches({runtime}) {
                 return {
                     opcode: current.opcode,
                     remapInputName: current.remapArguments ?? {},
-                    msg: get_block.info.switch_text
+                    msg: get_block.info.switch_text ?? get_block.info.text
                 };
             });
         }
