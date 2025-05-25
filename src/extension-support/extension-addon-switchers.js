@@ -68,11 +68,14 @@ function getSwitches({runtime}) {
                     return noopSwitch;
                 }
 
-                if (!("opcode" in current)) {
-                    return noopSwitch;
+                if ("isNoop" in current && current.isNoop) {
+                    return {
+                        isNoop: true,
+                        msg: current.overwriteText ?? block.info.switchText ?? block.info.text
+                    };
                 }
 
-                if (current.isNoop) {
+                if (!("opcode" in current)) {
                     return noopSwitch;
                 }
 
@@ -138,7 +141,7 @@ function getSwitches({runtime}) {
                     splitInputs,
                     remapShadowType,
                     mapFieldValues: current.remapMenus ?? {},
-                    msg: get_block.info.switchText ?? get_block.info.text
+                    msg: current.overwriteText ?? get_block.info.switchText ?? get_block.info.text,
                 };
             });
         }
