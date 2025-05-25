@@ -3,7 +3,8 @@ const ArgumentType = require('../../extension-support/argument-type');
 const { validateArray } = require('../../util/json-block-utilities');
 const AHHHHHHHHHHHHHH = require('../../util/array buffer');
 const BufferStuff = new AHHHHHHHHHHHHHH();
-const {noopSwitch} = require('../../extension-support/extension-addon-switchers.js');
+
+const noopSwitch = { isNoop: true };
 
 /**
  * Class for File blocks
