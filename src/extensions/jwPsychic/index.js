@@ -266,6 +266,24 @@ class Extension {
                     blockType: BlockType.REPORTER,
                     filter: [TargetType.SPRITE]
                 },
+                {
+                    opcode: 'setRest',
+                    text: 'set restitution to [NUMBER]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        NUMBER: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
+                    filter: [TargetType.SPRITE]
+                },
+                {
+                    opcode: 'getRest',
+                    text: 'friction',
+                    blockType: BlockType.REPORTER,
+                    filter: [TargetType.SPRITE]
+                },
                 "---",
                 {
                     opcode: 'getCollides',
@@ -554,6 +572,18 @@ class Extension {
         let body = this.bodies[util.target.id]
         if (!body) return 0.01
         return body.frictionAir
+    }
+
+    setRest({NUMBER}, util) {
+        let body = this.bodies[util.target.id]
+        if (!body) return
+        body.restitution = Cast.toNumber(NUMBER)
+    }
+
+    getRest({}, util) {
+        let body = this.bodies[util.target.id]
+        if (!body) return 0.01
+        return body.restitution
     }
 
     getCollides({OPTION}, util) {
