@@ -280,7 +280,7 @@ class Extension {
                 },
                 {
                     opcode: 'getRest',
-                    text: 'friction',
+                    text: 'restitution',
                     blockType: BlockType.REPORTER,
                     filter: [TargetType.SPRITE]
                 },
