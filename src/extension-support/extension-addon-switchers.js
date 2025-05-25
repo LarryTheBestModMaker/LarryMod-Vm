@@ -68,7 +68,7 @@ function getSwitches({runtime}) {
                     return noopSwitch;
                 }
 
-                if (current.isNoop) {
+                if ("isNoop" in current && current.isNoop) {
                     return {
                         isNoop: true,
                         msg: current.overwriteText ?? block.info.switchText ?? block.info.text
