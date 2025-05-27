@@ -103,7 +103,7 @@ class Extension {
         if (!vm.jwArray) vm.extensionManager.loadExtensionIdSync('jwArray')
         jwArray = vm.jwArray
 
-        let oldInitDrawable = vm.exports.RenderedTarget.prototype.initDrawable
+        /*let oldInitDrawable = vm.exports.RenderedTarget.prototype.initDrawable
         vm.exports.RenderedTarget.prototype.initDrawable = function(...args) {
             oldInitDrawable.call(this, ...args)
 
@@ -112,7 +112,7 @@ class Extension {
                     'jwTargets_whenStart', {TARGET: new Target.Type(this.id)}, this
                 );
             }
-        }
+        }*/
     }
 
     getInfo() {
@@ -286,7 +286,7 @@ class Extension {
                         TARGET: Target.Argument
                     }
                 },
-                '---',
+                /*'---',
                 {
                     opcode: 'whenStart',
                     text: 'when I start as a clone of [TARGET]',
@@ -295,7 +295,7 @@ class Extension {
                     arguments: {
                         TARGET: Target.Argument
                     }
-                },
+                },*/
                 '---',
                 {
                     blockType: BlockType.XML,
