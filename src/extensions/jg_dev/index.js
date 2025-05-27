@@ -344,7 +344,27 @@ class JgDevBlocks {
                     opcode: 'soundDefaultType',
                     blockType: BlockType.REPORTER,
                     text: 'get first sound'
-                }
+                },
+                {
+                    opcode: 'epicLabelTest',
+                    text: 'look at my cool label',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    label: "Wow this is a nice label",
+                },
+                {
+                    opcode: 'epicLabelTest2',
+                    text: 'i have a COOLER label, with my [TYPE]',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    labelFn: "epicLabelTest2Label",
+                    arguments: {
+                        TYPE: {
+                            type: ArgumentType.STRING,
+                            menu: 'epicLabelTestMenu',
+                        }
+                    }
+                },
             ],
             menus: {
                 variableInternal: {
@@ -368,6 +388,12 @@ class JgDevBlocks {
                     ],
                     isTypeable: true,
                     isNumeric: false
+                },
+                epicLabelTestMenu: {
+                    items: [
+                        { text: "BLOCK!!!", value: "block" },
+                        { text: "Label Function ;D", value: "function" },
+                    ]
                 }
             }
         };
@@ -501,6 +527,18 @@ class JgDevBlocks {
 
     branchIndicatorTest() {
         return; // dude logs wont shut up because i didnt define this func
+    }
+
+    epicLabelTest() {
+        return "get out !!! 🗣";
+    }
+    epicLabelTest2() {
+        return "hmm quite peculiar";
+    }
+    epicLabelTest2Label(params) {
+        return params.TYPE === "block" ?
+            "Your block is BORING!!!!!"
+            : "Yes, this function is very cool";
     }
 
     // util
