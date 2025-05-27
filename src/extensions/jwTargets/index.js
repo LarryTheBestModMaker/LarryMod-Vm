@@ -102,6 +102,17 @@ class Extension {
 
         if (!vm.jwArray) vm.extensionManager.loadExtensionIdSync('jwArray')
         jwArray = vm.jwArray
+
+        let oldInitDrawable = vm.exports.RenderedTarget.prototype.initDrawable
+        vm.exports.RenderedTarget.prototype.initDrawable = function(...args) {
+            oldInitDrawable.call(this, ...args)
+
+            if (!this.isOriginal) {
+                this.runtime.startHats(
+                    'jwTargets_whenStart', {TARGET: new Target.Type(this.id)}, this
+                );
+            }
+        }
     }
 
     getInfo() {
@@ -188,6 +199,17 @@ class Extension {
                         B: Target.Argument
                     }
                 },
+                {
+                    opcode: 'isTouchingObject',
+                    text: 'is [A] touching [B]',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        A: Target.Argument,
+                        B: {
+                            menu: "touchingObject"
+                        },
+                    }
+                },
                 '---',
                 {
                     opcode: 'getVar',
@@ -266,6 +288,16 @@ class Extension {
                 },
                 '---',
                 {
+                    opcode: 'whenStart',
+                    text: 'when I start as a clone of [TARGET]',
+                    blockType: BlockType.EVENT,
+                    isEdgeActivated: false,
+                    arguments: {
+                        TARGET: Target.Argument
+                    }
+                },
+                '---',
+                {
                     blockType: BlockType.XML,
                     xml: `<block type="control_run_as_sprite" />`
                 }
@@ -279,6 +311,7 @@ class Extension {
                     acceptReporters: true,
                     items: [
                         "name",
+                        "id",
                         "x",
                         "y",
                         "direction",
@@ -287,6 +320,7 @@ class Extension {
                         "stretch y",
                         "costume #",
                         "costume name",
+                        "visible"
                     ]
                 },
                 targetPropertySet: {
@@ -300,8 +334,13 @@ class Extension {
                         "stretch y",
                         "costume #",
                         "costume name",
+                        "visible"
                     ]
-                }
+                },
+                touchingObject: [
+                    { text: "mouse-pointer", value: "_mouse_" },
+                    { text: "edge", value: "_edge_" }
+                ]
             }
         };
     }
@@ -344,15 +383,17 @@ class Extension {
         if (!TARGET.target) return ""
 
         switch(MENU) {
+            case "name": return TARGET.target.sprite.name
+            case "id": return TARGET.target.id
             case "x": return TARGET.target.x
             case "y": return TARGET.target.y
             case "direction": return TARGET.target.direction
             case "size": return TARGET.target.size
-            case "name": return TARGET.target.sprite.name
             case "stretch x": return TARGET.target.stretch[0]
             case "stretch y": return TARGET.target.stretch[1]
             case "costume #": return TARGET.target.currentCostume + 1
             case "costume name": return TARGET.target.getCurrentCostume().name
+            case "visible": return TARGET.target.visible
         }
 
         return ""
@@ -390,6 +431,9 @@ class Extension {
                 let index = TARGET.target.getCostumes().indexOf(TARGET.target.getCostumes().find(v => v.name === Cast.toString(VALUE)))
                 TARGET.target.setCostume(index)
                 break
+            case "visible":
+                TARGET.target.setVisible(Cast.toBoolean(VALUE))
+                break
         }
     }
 
@@ -404,9 +448,17 @@ class Extension {
         A = Target.Type.toTarget(A)
         B = Target.Type.toTarget(B)
 
-        if (!A.target) return
+        if (!A.target || !B.target) return false
 
-        return A.target.isTouchingTarget(B.targetId)
+        return A.target.isTouchingTarget(B.target.id)
+    }
+
+    isTouchingObject({A, B}) {
+        A = Target.Type.toTarget(A)
+
+        if (!A.target) return false
+
+        return A.target.isTouchingObject(B)
     }
 
     getVar({TARGET, NAME}) {

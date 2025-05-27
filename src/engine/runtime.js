@@ -26,6 +26,7 @@ const Color = require('../util/color');
 const TabManager = require('../extension-support/pm-tab-manager');
 const ModalManager = require('../extension-support/pm-modal-manager');
 const MathUtil = require('../util/math-util');
+const Cast = require('../util/cast');
 
 // Virtual I/O devices.
 const Clock = require('../io/clock');
@@ -2572,7 +2573,7 @@ class Runtime extends EventEmitter {
 
         for (const opts in optMatchFields) {
             if (!optMatchFields.hasOwnProperty(opts)) continue;
-            optMatchFields[opts] = optMatchFields[opts].toUpperCase();
+            optMatchFields[opts] = Cast.toString(optMatchFields[opts]).toUpperCase();
         }
 
         // tw: By assuming that all new threads will not interfere with eachother, we can optimize the loops
