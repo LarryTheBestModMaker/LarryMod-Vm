@@ -227,7 +227,7 @@ class Scratch3SensingBlocks {
     getspritewithattrib (args, util) {
         // strip out usless data
         const sprites = util.runtime.targets.map(x => ({
-            id: x.id, 
+            id: x.id,
             name: x.sprite ? x.sprite.name : "Unknown",
             variables: Object.values(x.variables).reduce((obj, value) => {
                 if (!value.name) return obj;
@@ -239,10 +239,10 @@ class Scratch3SensingBlocks {
         let res = "No sprites found";
         for (
             // define the index and the sprite
-            let idx = 1, sprite = sprites[0]; 
+            let idx = 1, sprite = sprites[0];
             // standard for loop thing
             idx < sprites.length;
-            // set sprite to a new item  
+            // set sprite to a new item
             sprite = sprites[idx++]
         ) {
             if (sprite.variables[args.var] === args.val) {
@@ -250,7 +250,7 @@ class Scratch3SensingBlocks {
                 break;
             }
         }
-        
+
         return res;
     }
     thing_is_number (args) {
@@ -407,7 +407,7 @@ class Scratch3SensingBlocks {
     getAnswer () {
         return this._answer;
     }
-    
+
     objectTouchingObject (args, util) {
         const object1 = (args.FULLTOUCHINGOBJECTMENU) === "_myself_" ? util.target.getName() : args.FULLTOUCHINGOBJECTMENU;
         const object2 = args.SPRITETOUCHINGOBJECTMENU;
@@ -440,7 +440,7 @@ class Scratch3SensingBlocks {
             const clones = target.sprite.clones.filter(clone => !clone.isOriginal && clone.isTouchingEdge());
             return clones.length > 0;
         }
-        
+
         const originalSprite = this.runtime.getSpriteTargetByName(object1);
         if (!originalSprite) return false;
         return originalSprite.isTouchingObject(object2, true);
@@ -551,6 +551,7 @@ class Scratch3SensingBlocks {
         case 'hour': return date.getHours();
         case 'minute': return date.getMinutes();
         case 'second': return date.getSeconds();
+        case 'timestamp': return Date.now();
         }
         return 0;
     }
@@ -595,7 +596,7 @@ class Scratch3SensingBlocks {
       if (this._loudnessList.length >= 30) this._loudnessList.shift(); // remove first item
       this._loudnessList.push(value ?? this.getLoudness());
     }
-    
+
     getAttributeOf (args) {
         let attrTarget;
 
