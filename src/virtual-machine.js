@@ -242,7 +242,7 @@ class VirtualMachine extends EventEmitter {
         this.addListener('workspaceUpdate', () => {
             this.extensionManager.refreshDynamicCategorys();
         });
-        
+
         /**
          * Export some internal classes for extensions.
          */
@@ -471,7 +471,7 @@ class VirtualMachine extends EventEmitter {
                     const decoder = new TextDecoder('UTF-8');
                     input = decoder.decode(input);
                 }
-                if (typeof input === 'string') 
+                if (typeof input === 'string')
                     input = JSON.parse(input);
                 // generic objects return [object Object] on stringify
                 if (input.toString() === '[object Object]') {
@@ -771,7 +771,7 @@ class VirtualMachine extends EventEmitter {
         return this._loadExtensions(extensions.extensionIDs, extensions.extensionURLs).then(() => {
             for (const extension of extensions.extensionIDs) {
                 if (`ext_${extension}` in this.runtime) {
-                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') && 
+                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') &&
                         extensions.extensionData[extension]) {
                         this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
                     }
@@ -782,6 +782,20 @@ class VirtualMachine extends EventEmitter {
                 (/** @type RenderedTarget */ target).updateAllDrawableProperties();
                 // Ensure unique sprite name
                 if (target.isSprite()) this.renameSprite(target.id, target.getName());
+
+                for (const extension of extensions.extensionIDs) {
+                    if (
+                        `ext_${extension}` in this.runtime &&
+                        typeof this.runtime[`ext_${extension}`].deserializeForTarget === 'function' &&
+                        "extensionData" in target &&
+                        extension in target.extensionData
+                    ) {
+                        this.runtime[`ext_${extension}`].deserializeForTarget(
+                            target.extensionData[extension],
+                            target,
+                        );
+                    }
+                }
             });
             // Sort the executable targets by layerOrder.
             // Remove layerOrder property after use.
