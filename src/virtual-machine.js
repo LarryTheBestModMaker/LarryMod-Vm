@@ -783,11 +783,12 @@ class VirtualMachine extends EventEmitter {
                 // Ensure unique sprite name
                 if (target.isSprite()) this.renameSprite(target.id, target.getName());
 
+                if (!("extensionData" in target)) return;
+
                 for (const extension of extensions.extensionIDs) {
                     if (
                         `ext_${extension}` in this.runtime &&
                         typeof this.runtime[`ext_${extension}`].deserializeForTarget === 'function' &&
-                        "extensionData" in target &&
                         extension in target.extensionData
                     ) {
                         this.runtime[`ext_${extension}`].deserializeForTarget(
@@ -796,6 +797,7 @@ class VirtualMachine extends EventEmitter {
                         );
                     }
                 }
+                delete target["extensionData"]
             });
             // Sort the executable targets by layerOrder.
             // Remove layerOrder property after use.
