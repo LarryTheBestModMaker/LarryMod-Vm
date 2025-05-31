@@ -747,6 +747,11 @@ const serializeTarget = function (runtime, target) {
             extensionData[extension] = runtime[`ext_${extension}`].serializeForTarget(target);
             continue;
         }
+        if (extension in (target.extensionStorage ?? {})) {
+            extensionData[extension] = target.extensionStorage[extension];
+            continue;
+        }
+
     }
     if (extensionData) {
         obj.extensionData = extensionData;
@@ -840,6 +845,11 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
         for (const extension of extensions) {
             if (`ext_${extension}` in runtime && typeof runtime[`ext_${extension}`].serialize === 'function') {
                 target.extensionData[extension] = runtime[`ext_${extension}`].serialize();
+                continue;
+            }
+            if (extension in runtime.extensionStorage) {
+                target.extensionData[extension] = runtime.extensionStorage[extension]
+                continue;
             }
         }
 
@@ -858,6 +868,11 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
     for (const extension of extensions) {
         if (`ext_${extension}` in runtime && typeof runtime[`ext_${extension}`].serialize === 'function') {
             obj.extensionData[extension] = runtime[`ext_${extension}`].serialize();
+            continue;
+        }
+        if (extension in runtime.extensionStorage) {
+            obj.extensionData[extension] = runtime.extensionStorage[extension]
+            continue;
         }
     }
 

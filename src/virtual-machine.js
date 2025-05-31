@@ -20,6 +20,7 @@ const StageLayering = require('./engine/stage-layering');
 const Sprite = require('./sprites/sprite');
 const Blocks = require('./engine/blocks');
 const formatMessage = require('format-message');
+const ExtensionStorage = require('./util/deprecated-extension-storage.js');
 
 const Variable = require('./engine/variable');
 const newBlockIds = require('./util/new-block-ids');
@@ -769,14 +770,21 @@ class VirtualMachine extends EventEmitter {
         targets = targets.filter(target => !!target);
 
         return this._loadExtensions(extensions.extensionIDs, extensions.extensionURLs).then(() => {
+            const deprecated_extensionStorage = {};
             for (const extension of extensions.extensionIDs) {
-                if (`ext_${extension}` in this.runtime) {
-                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') &&
-                        extensions.extensionData[extension]) {
-                        this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
-                    }
+                if (!extensions.extensionData[extension]) continue;
+                if (
+                    `ext_${extension}` in this.runtime &&
+                    typeof this.runtime[`ext_${extension}`].deserialize === 'function'
+                ) {
+                    this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
+                    continue;
                 }
+                deprecated_extensionStorage[extension] = extensions.extensionData[extension];
             }
+            if (deprecated_extensionStorage)
+                this.runtime.extensionStorage = ExtensionStorage(deprecated_extensionStorage);
+
             targets.forEach(target => {
                 this.runtime.addTarget(target);
                 (/** @type RenderedTarget */ target).updateAllDrawableProperties();
@@ -785,18 +793,27 @@ class VirtualMachine extends EventEmitter {
 
                 if (!("extensionData" in target)) return;
 
+                const deprecated_extensionStorage_pertarget = {};
+
                 for (const extension of extensions.extensionIDs) {
+                    if (!(extension in target.extensionData)) continue;
+
                     if (
                         `ext_${extension}` in this.runtime &&
-                        typeof this.runtime[`ext_${extension}`].deserializeForTarget === 'function' &&
-                        extension in target.extensionData
+                        typeof this.runtime[`ext_${extension}`].deserializeForTarget === 'function'
                     ) {
                         this.runtime[`ext_${extension}`].deserializeForTarget(
                             target.extensionData[extension],
                             target,
                         );
+                        continue;
                     }
+                    deprecated_extensionStorage_pertarget[extension] = target.extensionData[extension];
                 }
+
+                if (deprecated_extensionStorage)
+                    target.extensionStorage = ExtensionStorage(deprecated_extensionStorage_pertarget);
+
                 delete target["extensionData"]
             });
             // Sort the executable targets by layerOrder.

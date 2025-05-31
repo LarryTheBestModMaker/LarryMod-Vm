@@ -8,6 +8,7 @@ const {Map} = require('immutable');
 const log = require('../util/log');
 const StringUtil = require('../util/string-util');
 const VariableUtil = require('../util/variable-util');
+const ExtensionStorage = require('../util/deprecated-extension-storage.js');
 
 /**
  * @fileoverview
@@ -70,6 +71,15 @@ class Target extends EventEmitter {
          * @type {Object.<string, *>}
          */
         this._edgeActivatedHatValues = {};
+
+        /**
+         * Part of a recreation of the TurboWarp extensionStorage
+         * API. The only real reason this is here is to make sure
+         * that extensions that only implement TurboWarp's store
+         * method don't break in PenguinMod.
+         * @type {Object<string, Object>}
+         */
+        this.extensionStorage = ExtensionStorage();
     }
 
     /**
@@ -211,12 +221,12 @@ class Target extends EventEmitter {
         if (typeof name !== 'string') return;
         if (typeof type !== 'string') type = Variable.SCALAR_TYPE;
         skipStage = skipStage || false;
-    
+
         // Search variables in the current target
         const variables = Object.values(this.variables);
         const foundInCurrent = variables.find(varData => varData.name === name && varData.type === type);
         if (foundInCurrent) return foundInCurrent;
-    
+
         // Search variables in the stage if applicable
         if (!skipStage && this.runtime && !this.isStage) {
             const stage = this.runtime.getTargetForStage();

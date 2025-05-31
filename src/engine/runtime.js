@@ -27,6 +27,7 @@ const TabManager = require('../extension-support/pm-tab-manager');
 const ModalManager = require('../extension-support/pm-modal-manager');
 const MathUtil = require('../util/math-util');
 const Cast = require('../util/cast');
+const ExtensionStorage = require('../util/deprecated-extension-storage.js');
 
 // Virtual I/O devices.
 const Clock = require('../io/clock');
@@ -627,6 +628,15 @@ class Runtime extends EventEmitter {
          * @type {Object}
          */
         this.variables = Object.create(null);
+
+        /**
+         * Part of a recreation of the TurboWarp extensionStorage
+         * API. The only real reason this is here is to make sure
+         * that extensions that only implement TurboWarp's store
+         * method don't break in PenguinMod.
+         * @type {Object<string, Object>}
+         */
+        this.extensionStorage = ExtensionStorage();
     }
 
     /**
