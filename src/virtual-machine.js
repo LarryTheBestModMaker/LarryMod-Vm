@@ -279,7 +279,7 @@ class VirtualMachine extends EventEmitter {
                 'ScriptTreeGenerator -> IRGenerator.exports.ScriptTreeGenerator'
             );
             return {
-                IRGenerator: IRGenerator,
+                IRGenerator,
                 JSGenerator,
                 ScriptTreeGenerator: IRGenerator.exports.ScriptTreeGenerator,
                 Thread: this.exports.Thread,
