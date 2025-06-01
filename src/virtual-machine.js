@@ -242,7 +242,7 @@ class VirtualMachine extends EventEmitter {
         this.addListener('workspaceUpdate', () => {
             this.extensionManager.refreshDynamicCategorys();
         });
-        
+
         /**
          * Export some internal classes for extensions.
          */
@@ -259,8 +259,18 @@ class VirtualMachine extends EventEmitter {
             StageLayering,
             Variable,
             Thread: require('./engine/thread.js'),
-            execute: require('./engine/execute.js')
+            execute: require('./engine/execute.js'),
         };
+
+        this.exports.i_will_not_ask_for_help_when_these_break = () => {
+            return {
+                IRGenerator: IRGenerator,
+                JSGenerator,
+                ScriptTreeGenerator: IRGenerator.exports.ScriptTreeGenerator,
+                Thread: this.exports.Thread,
+                execute: this.exports.execute
+            }
+        }
     }
 
     /**
@@ -471,7 +481,7 @@ class VirtualMachine extends EventEmitter {
                     const decoder = new TextDecoder('UTF-8');
                     input = decoder.decode(input);
                 }
-                if (typeof input === 'string') 
+                if (typeof input === 'string')
                     input = JSON.parse(input);
                 // generic objects return [object Object] on stringify
                 if (input.toString() === '[object Object]') {
@@ -771,7 +781,7 @@ class VirtualMachine extends EventEmitter {
         return this._loadExtensions(extensions.extensionIDs, extensions.extensionURLs).then(() => {
             for (const extension of extensions.extensionIDs) {
                 if (`ext_${extension}` in this.runtime) {
-                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') && 
+                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') &&
                         extensions.extensionData[extension]) {
                         this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
                     }
