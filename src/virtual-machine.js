@@ -262,7 +262,22 @@ class VirtualMachine extends EventEmitter {
             execute: require('./engine/execute.js'),
         };
 
+        /**
+         * For comptatibility with TurboWarp's
+         * i_will_not_ask_for_help_when_these_break export.
+         */
         this.exports.i_will_not_ask_for_help_when_these_break = () => {
+            console.info(
+                'Note on i_will_not_ask_for_help_when_these_break: this function is ' +
+                'only included for compatibility with TurboWarp, and you should avoid ' +
+                'using it when possible.\n' +
+                'All indexes are able to be accessed from the regular vm.exports ' +
+                'property. Below is a map of all elements here to their vm.exports ' +
+                'counterpart:\n' +
+                'IRGenerator -> IRGenerator\nJSGenerator -> JSGenerator\nThread -> Thread\n' +
+                'execute -> execute\n' +
+                'ScriptTreeGenerator -> IRGenerator.exports.ScriptTreeGenerator'
+            );
             return {
                 IRGenerator: IRGenerator,
                 JSGenerator,
