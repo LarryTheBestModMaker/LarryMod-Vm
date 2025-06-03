@@ -260,6 +260,7 @@ class VirtualMachine extends EventEmitter {
             Variable,
             Thread: require('./engine/thread.js'),
             execute: require('./engine/execute.js'),
+            centralDispatch
         };
 
         /**
