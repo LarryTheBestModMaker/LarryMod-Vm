@@ -768,11 +768,9 @@ class Blocks {
             var extension_sprite_specific = ((info) => {
                 if (info == undefined)
                     return false;
-                const block_info = info.blocks.find(block =>
-                    block.json
-                    ? block.json.type == block.opcode
-                    : false
-                );
+                const block_info = info.blocks.find(_block => {
+                    return _block.info.opcode === StringUtil.splitFirst(block.opcode, "_")[1];
+                });
                 return block_info?.info?.isSpriteSpecific ?? false;
             })(vm.runtime._blockInfo.find(a => a.id === StringUtil.splitFirst(block.opcode, "_")[0]));
 
