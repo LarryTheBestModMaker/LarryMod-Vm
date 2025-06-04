@@ -9,6 +9,7 @@ const BlocksRuntimeCache = require('./blocks-runtime-cache');
 const log = require('../util/log');
 const Variable = require('./variable');
 const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
+const StringUtil = require('../util/string-util');
 
 /**
  * @fileoverview
@@ -88,7 +89,7 @@ class Blocks {
              * @type {object.<string, object>}
              */
             compiledScripts: {},
-            
+
             /**
              * tw: A cache of procedure code opcodes to a parsed intermediate representation
              * @type {object.<string, object>}
@@ -756,11 +757,28 @@ class Blocks {
                 isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.VARIABLE.id]);
             } else if (block.opcode === 'data_listcontents') {
                 isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.LIST.id]);
+            } else {
+                isSpriteLocalVariable = Object.values(block.fields).some(field =>
+                    ("id" in field) && !(this.runtime.getTargetForStage().variables[field.id])
+                );
             }
+
+            // Provides an API for extensions to set reporters of themselves (that can be monitored)
+            // as sprite-specific
+            var extension_sprite_specific = ((info) => {
+                if (info == undefined)
+                    return false;
+                const block_info = info.blocks.find(_block => {
+                    return _block.info.opcode === StringUtil.splitFirst(block.opcode, "_")[1];
+                });
+                return block_info?.info?.isSpriteSpecific ?? false;
+            })(vm.runtime._blockInfo.find(a => a.id === StringUtil.splitFirst(block.opcode, "_")[0]));
+
 
             const isSpriteSpecific = isSpriteLocalVariable ||
                 (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
-                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific);
+                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific) ||
+                extension_sprite_specific;
             if (isSpriteSpecific) {
                 // If creating a new sprite specific monitor, the only possible target is
                 // the current editing one b/c you cannot dynamically create monitors.
@@ -901,7 +919,7 @@ class Blocks {
      * Block management: delete blocks and their associated scripts. Does nothing if a block
      * with the given ID does not exist.
      * @param {!string} blockId Id of block to delete
-     * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block 
+     * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block
      */
     deleteBlock (blockId, preserveStack) {
         // @todo In runtime, stop threads running on this script.

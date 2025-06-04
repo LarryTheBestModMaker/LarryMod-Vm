@@ -1774,7 +1774,8 @@ class Runtime extends EventEmitter {
             ? `<mutation blockInfo="${xmlEscape.escapeAttribute(JSON.stringify(blockInfo))}"/>`
             : '';
         const inputs = context.inputList.join('');
-        const blockXML = `<block type="${xmlEscape.escapeAttribute(extendedOpcode)}">${mutation}${inputs}</block>`;
+        const blockId = blockInfo.isSpriteSpecific ? `id="${xmlEscape.escapeAttribute(this.vm.editingTarget.id + '_' + extendedOpcode)}"` : '';
+        const blockXML = `<block type="${xmlEscape.escapeAttribute(extendedOpcode)}" ${blockId}>${mutation}${inputs}</block>`;
 
         return {
             info: context.blockInfo,
