@@ -1951,7 +1951,7 @@ class Runtime extends EventEmitter {
                 const menuInfo = context.categoryInfo.menuInfo[argInfo.menu];
                 if (menuInfo.acceptReporters || menuInfo.isTypeable) {
                     valueName = placeholder;
-                    shadowType = this._makeExtensionMenuId(argInfo.menu, context.categoryInfo.id);
+                    shadowType = argInfo.rawMenu ? argInfo.menu : this._makeExtensionMenuId(argInfo.menu, context.categoryInfo.id);
                     fieldName = argInfo.menu;
                 } else if (typeof menuInfo.variableType !== 'undefined') {
                     const args = Object.keys(context.blockInfo.arguments);
