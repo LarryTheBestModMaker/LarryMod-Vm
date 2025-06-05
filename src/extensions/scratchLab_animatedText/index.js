@@ -739,7 +739,7 @@ class Scratch3TextBlocks {
         // On "first tick", set the text and force animation flags on and render
 
         textState.fullText = this._formatText(args.TEXT);
-        textState.text = textState.fullText[0]; // Start with first char visible
+        textState.text = textState.fullText[0] ?? ""; // Start with first char visible
 
         textState.visible = true;
         textState.animating = true;
