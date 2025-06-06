@@ -2000,8 +2000,8 @@ class Runtime extends EventEmitter {
                 fieldName = (argTypeInfo.shadow && argTypeInfo.shadow.fieldName) || null;
             }
             // TODO: Allow fillIn to work with non-shadow.
-            if (argInfo.fillIn/* && argInfo.fillInShadow*/) {
-                shadowType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
+            if (argInfo.fillIn || argInfo.fillInGlobal/* && argInfo.fillInShadow*/) {
+                shadowType = argInfo.fillInGlobal || `${context.categoryInfo.id}_${argInfo.fillIn}`;
             }/* else if (argInfo.fillIn) {
                 blockType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
             }*/
