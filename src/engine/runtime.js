@@ -2714,7 +2714,7 @@ class Runtime extends EventEmitter {
                 const newVar = this.newVariableInstance(variable.type, ...variable.value);
                 // variable type doesnt exist, remove variable entirely
                 if (newVar.mustRecreate) {
-                    delete target.variable[varId];
+                    delete target.variables[varId];
                     continue;
                 }
                 target.variables[varId] = newVar;
