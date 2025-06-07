@@ -655,23 +655,27 @@ const serializeVariables = function (obj, runtime, variables) {
     obj.customVars = [];
     for (const varId in variables) {
         const v = variables[varId];
-        if (v.type === Variable.BROADCAST_MESSAGE_TYPE) {
-            obj.broadcasts[varId] = v.value; // name and value is the same for broadcast msgs
-            continue;
+
+        switch (v.type) {
+            case Variable.BROADCAST_MESSAGE_TYPE:
+                obj.broadcasts[varId] = v.value; // name and value is the same for broadcast msgs
+                break;
+            case Variable.LIST_TYPE:
+                obj.lists[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
+                break;
+            case Variable.SCALAR_TYPE:
+                obj.variables[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
+                if (v.isCloud) obj.variables[varId].push(true);
+                break;
+            default:
+                const info = v.serialize();
+                const variable_object = {
+                    type: v.type,
+                    id: varId,
+                    info,
+                };
+                obj.customVars.push(variable_object);
         }
-        if (v.type === Variable.LIST_TYPE) {
-            obj.lists[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
-            continue;
-        }
-        if (v.type === Variable.SCALAR_TYPE) {
-            obj.variables[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
-            if (v.isCloud) obj.variables[varId].push(true);
-            continue;
-        }
-        // else custom variable type
-        const varInfo = v.serialize();
-        varInfo.unshift(v.type);
-        obj.customVars.push(varInfo);
     }
 };
 
@@ -1392,10 +1396,24 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         }
     }
     if (object.hasOwnProperty('customVars')) {
-        for (const info of object.customVars) {
-            // im lay z so customVars is just a list of arg lists to be passed into the variable creator
-            const newVar = runtime.newVariableInstance(...info);
-            target.variables[newVar.id] = newVar;
+        for (const variable of object.customVars) {
+            if (Array.isArray(variable)) {
+                // Legacy behaviour.
+                const newVar = runtime.newVariableInstance(...variable);
+                target.variables[variable[1]] = newVar;
+                continue;
+            }
+
+            /*
+             {
+                type: v.type,
+                id: varId,
+                name: v.name,
+                info,
+             }
+            */
+            const newVar = runtime.newVariableInstance(variable.type, ...variable.info);
+            target.variables[variable.id] = newVar;
         }
     }
     if (object.hasOwnProperty('comments')) {
