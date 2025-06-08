@@ -792,7 +792,9 @@ const serializeMonitors = function (monitors, runtime) {
                 height: monitorData.height,
                 x: monitorData.x - xOffset,
                 y: monitorData.y - yOffset,
-                visible: monitorData.visible
+                visible: monitorData.visible,
+                variableType: monitorData.variableType,
+                variableId: monitorData.variableId
             };
             if (monitorData.mode !== 'list') {
                 serializedMonitor.sliderMin = monitorData.sliderMin;
@@ -1534,6 +1536,10 @@ const deserializeMonitor = function (monitorData, runtime, targets, extensions) 
             name: paramKey,
             value: monitorData.params[paramKey]
         };
+        if (typeof monitorData.params[paramKey] === 'object') {
+            field.id = monitorData.params[paramKey].id;
+            field.value = monitorData.params[paramKey].name;
+        }
         fields[paramKey] = field;
     }
 
@@ -1589,6 +1595,10 @@ const deserializeMonitor = function (monitorData, runtime, targets, extensions) 
             const field = monitorBlock.fields.LIST;
             field.id = monitorData.id;
             field.variableType = Variable.LIST_TYPE;
+        } else if (monitorData.variableId) {
+            const field = Object.values(monitorBlock.fields)[0];
+            field.id = monitorData.variableId;
+            field.variableType = monitorData.variableType;
         }
 
         runtime.monitorBlocks.createBlock(monitorBlock);
