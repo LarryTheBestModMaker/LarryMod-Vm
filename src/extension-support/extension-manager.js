@@ -925,7 +925,8 @@ class ExtensionManager {
                 }
                 // TODO: filter args using the keys of realBlockInfo.arguments? maybe only if sandboxed?
                 const returnValue = callBlockFunc(args, util, realBlockInfo);
-                if (!visualReport && (returnValue?.value ?? false)) return returnValue.value;
+                const isCustomAPI = (returnValue?.value ?? false) && (returnValue?.constructor?.name !== "Object");
+                if (!visualReport && isCustomAPI) return returnValue.value;
                 return returnValue;
             };
             break;
