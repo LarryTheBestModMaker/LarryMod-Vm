@@ -514,7 +514,7 @@ class Blocks {
                     currTarget.blocks.updateBlocksAfterVarRename(e.varId, e.newName);
                 }
             }
-            this.runtime.emit('variableChange', e.varType, e.varId, e.varName);
+            this.runtime.emit('variableChange', e.varType, e.varId, e.newName, e.oldName);
             this.emitProjectChanged();
             break;
         case 'var_delete': {
