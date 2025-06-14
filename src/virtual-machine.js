@@ -498,13 +498,12 @@ class VirtualMachine extends EventEmitter {
                 if (input.toString() === '[object Object]') {
                     input.projectVersion = this.isSB2(input) ? 2 : 3;
                     return resolve([input, null]);
-                }
-
-                // if it isnt a zip, maby its the project.json in ArrayBuffer form
-                if (tag.slice(0, 2) !== 'PK') {
+                } else if (tag.slice(0, 2) !== 'PK') {
+                    // if it isnt a zip, maby its the project.json in ArrayBuffer form
                     const decoder = new TextDecoder('UTF-8');
                     input = decoder.decode(input);
                 }
+
                 const zip = await JSZip.loadAsync(input);
                 const proj = zip.file('project.json');
                 if (!proj) return reject('No project.json file inside the given project');
