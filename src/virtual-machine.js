@@ -498,8 +498,7 @@ class VirtualMachine extends EventEmitter {
                     const decoder = new TextDecoder('UTF-8');
                     input = decoder.decode(input);
                 }
-                if (typeof input === 'string')
-                    input = JSON.parse(input);
+                if (typeof input === 'string') input = JSON.parse(input);
                 // generic objects return [object Object] on stringify
                 if (input.toString() === '[object Object]') {
                     input.projectVersion = this.isSB2(input) ? 2 : 3;
@@ -569,6 +568,22 @@ class VirtualMachine extends EventEmitter {
         const date = new Date(1591657163000);
         for (const file of Object.values(zip.files)) {
             file.date = date;
+        }
+
+        // Tell JSZip to only compress file formats where there will be a significant gain.
+        const COMPRESSABLE_FORMATS = [
+            '.json',
+            '.svg',
+            '.wav',
+            '.ttf',
+            '.otf'
+        ];
+        for (const file of Object.values(zip.files)) {
+            if (COMPRESSABLE_FORMATS.some(ext => file.name.endsWith(ext))) {
+                file.options.compression = 'DEFLATE';
+            } else {
+                file.options.compression = 'STORE';
+            }
         }
         return zip;
     }
