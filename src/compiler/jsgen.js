@@ -947,7 +947,7 @@ class JSGenerator {
         case 'sensing.username':
             return new TypedInput('runtime.ioDevices.userData.getUsername()', TYPE_STRING);
         case 'sensing.loggedin':
-            return new TypedInput('runtime.ioDevices.userData.getLoggedIn()', TYPE_STRING);
+            return new TypedInput('runtime.ioDevices.userData.getLoggedIn()', TYPE_BOOLEAN);
         case 'sensing.year':
             return new TypedInput(`(new Date().getFullYear())`, TYPE_NUMBER);
 
