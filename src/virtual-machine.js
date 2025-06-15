@@ -498,10 +498,18 @@ class VirtualMachine extends EventEmitter {
                 if (input.toString() === '[object Object]') {
                     input.projectVersion = this.isSB2(input) ? 2 : 3;
                     return resolve([input, null]);
-                } else if (tag.slice(0, 2) !== 'PK') {
+                }
+                if (tag.slice(0, 2) !== 'PK') {
                     // if it isnt a zip, maby its the project.json in ArrayBuffer form
                     const decoder = new TextDecoder('UTF-8');
                     input = decoder.decode(input);
+
+                    if (typeof input === 'string') input = JSON.parse(input);
+                    // generic objects return [object Object] on stringify
+                    if (input.toString() === '[object Object]') {
+                        input.projectVersion = this.isSB2(input) ? 2 : 3;
+                        return resolve([input, null]);
+                    }
                 }
 
                 const zip = await JSZip.loadAsync(input);
