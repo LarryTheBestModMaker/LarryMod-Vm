@@ -31,11 +31,10 @@ function getSwitches({runtime}) {
                     return noopSwitch;
                 }
 
-                let get_block = ext.blocks.filter(e => e.info.opcode === current.opcode);
-                if (get_block.length === 0) { // block doesn't exist.
+                let get_block = ext.blocks.find(e => e.info.opcode === current.opcode);
+                if (!get_block) { // block doesn't exist.
                     return noopSwitch;
                 }
-                get_block = get_block[0];
 
                 let createInputs = {};
                 let currargs = current.createArguments ?? {};
@@ -46,7 +45,11 @@ function getSwitches({runtime}) {
                     .querySelectorAll(`[type="${get_block.json.type}"] > value`)
                     .forEach(el => {
                         let name = el.getAttribute("name");
-                        if (Object.keys(block.info.arguments).includes(name)) return;
+                        if (
+                            !!block.info.arguments[name]
+                            && !(current.remapArguments ?? {})[name]
+                        ) return;
+                        if (Object.values(current.remapArguments ?? {}).includes(name)) return;
 
                         let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
 
@@ -68,7 +71,9 @@ function getSwitches({runtime}) {
                     .forEach(el => {
                         let name = el.getAttribute("name");
                         if (!(name in get_block.info.arguments)) return;
-                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+                        let shadowType = el.querySelector("shadow")
+                        if (!shadowType) return;
+                        shadowType = shadowType.getAttribute("type");
                         remapShadowType[name] = shadowType;
                     });
 
@@ -77,7 +82,12 @@ function getSwitches({runtime}) {
                     .forEach(el => {
                         let name = el.getAttribute("name");
                         if (!(name in remapShadowType)) return;
-                        let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+
+                        let shadowType = el.querySelector("shadow");
+                        if (!shadowType) {
+                            return;
+                        }
+                        shadowType = shadowType.getAttribute("type");
 
                         if (remapShadowType[name] == shadowType) {
                             delete remapShadowType[name];
