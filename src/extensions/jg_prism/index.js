@@ -1,7 +1,6 @@
 const formatMessage = require('format-message');
 const BlockType = require('../../extension-support/block-type');
 const ArgumentType = require('../../extension-support/argument-type');
-const ProjectPermissionManager = require('../../util/project-permissions');
 const SandboxRunner = require('../../util/sandboxed-javascript-runner');
 const beatgammit = {
     deflate: require('./beatgammit-deflate'),
@@ -573,11 +572,6 @@ class JgPrismBlocks {
     // eslint-disable-next-line no-unused-vars
     evaluate(args, util, realBlockInfo) {
         return new Promise((resolve, reject) => {
-            // if (!(this.isJSPermissionGranted)) {
-            //     this.isJSPermissionGranted = ProjectPermissionManager.RequestPermission("javascript");
-            //     if (!this.isJSPermissionGranted) return;
-            // }
-            // // otherwise
             SandboxRunner.execute(String(args.JAVASCRIPT)).then(result => {
                 if (!result.success) {
                     alert(result.value);
@@ -591,27 +585,12 @@ class JgPrismBlocks {
     // eslint-disable-next-line no-unused-vars
     evaluate2(args, util, realBlockInfo) {
         return new Promise((resolve, reject) => {
-            // if (!(this.isJSPermissionGranted)) {
-            //     this.isJSPermissionGranted = ProjectPermissionManager.RequestPermission("javascript");
-            //     if (!this.isJSPermissionGranted) return "";
-            // }
-            // // otherwise
             SandboxRunner.execute(String(args.JAVASCRIPT)).then(result => {
                 if (!result.success) {
                     console.error(result.value);
                 }
                 resolve(result.value)
             })
-            // let result = "";
-            // try {
-            //     // eslint-disable-next-line no-eval
-            //     result = eval(String(args.JAVASCRIPT));
-            // } catch (e) {
-            //     result = e;
-            //     console.error(e);
-            // }
-            // return result;
-            // return "";
         })
     }
     // eslint-disable-next-line no-unused-vars
@@ -624,22 +603,6 @@ class JgPrismBlocks {
                 resolve(result.value === true)
             })
         })
-        // if (!(this.isJSPermissionGranted)) {
-        //     this.isJSPermissionGranted = ProjectPermissionManager.RequestPermission("javascript");
-        //     if (!this.isJSPermissionGranted) return false;
-        // }
-        // // otherwise
-        // let result = true;
-        // try {
-        //     // eslint-disable-next-line no-eval
-        //     result = eval(String(args.JAVASCRIPT));
-        // } catch (e) {
-        //     result = false;
-        //     console.error(e);
-        // }
-        // // // otherwise
-        // return result === true;
-        // return false;
     }
     screenshotStage() {
         // should we look for an external canvas
@@ -651,14 +614,8 @@ class JgPrismBlocks {
                 return this.runtime.prism_screenshot_externalCanvas.toDataURL();
             }
         }
-        // DO NOT REMOVE, USER HAS NOT GIVEN PERMISSION TO SAVE CAMERA IMAGES.
-        if (this.runtime.ext_videoSensing || this.runtime.ioDevices.video.provider.enabled) {
-            // user's camera is on, ask for permission to take a picture of them
-            if (!(this.isCameraScreenshotEnabled)) {
-                this.isCameraScreenshotEnabled = ProjectPermissionManager.RequestPermission("cameraPictures");
-                if (!this.isCameraScreenshotEnabled) return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII="; // 1 pixel of white
-            }
-        }
+        
+        // renderer will handle not capturing video data
         return new Promise(resolve => {
             vm.renderer.requestSnapshot(uri => {
                 resolve(uri);

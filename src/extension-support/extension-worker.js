@@ -87,6 +87,7 @@ Object.assign(global.Scratch, ScratchCommon, {
     canGeolocate: () => Promise.resolve(false),
     canEmbed: () => Promise.resolve(false),
     canUnsandbox: () => Promise.resolve(false),
+    canScreenshotCamera: () => Promise.resolve(false),
     translate
 });
 

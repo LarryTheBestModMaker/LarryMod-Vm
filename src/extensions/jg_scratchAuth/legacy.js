@@ -1,9 +1,7 @@
-const ProjectPermissionManager = require('../../util/project-permissions');
-
 const authenticate = (thisObject, args) => {
     if (!thisObject.keepAllowingAuthBlock) { // user closed popup before it was finished
         if (!thisObject.disableConfirmationShown) { // we didnt ask them to confirm yet or they only declined it once, so we let them know every time
-            const areYouSure = ProjectPermissionManager.RequestPermission("scratchSignIn");
+            const areYouSure = true;
             if (!areYouSure) { // they clicked no, dont show confirmation again
                 thisObject.disableConfirmationShown = true;
                 return "The user has declined the ability to authenticate.";

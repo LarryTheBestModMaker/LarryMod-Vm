@@ -537,10 +537,11 @@ class Runtime extends EventEmitter {
         this.isPackaged = false;
 
         /**
-         * PM: In the packager, the Project Permission Manager can be disabled.
+         * PM: Legacy option. Use vm.securityManager for permission managing.
+         * In the packager, the legacy Project Permission Manager can be enabled.
          * This option is used by the PenguinMod Packager.
          */
-        this.isProjectPermissionManagerDisabled = false;
+        this.isProjectPermissionManagerDisabled = true;
 
         /**
          * Contains information about the external communication methods that the scripts inside the project

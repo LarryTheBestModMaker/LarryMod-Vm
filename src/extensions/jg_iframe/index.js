@@ -1,7 +1,6 @@
 const formatMessage = require('format-message');
 const BlockType = require('../../extension-support/block-type');
 const ArgumentType = require('../../extension-support/argument-type');
-const ProjectPermissionManager = require('../../util/project-permissions');
 const Color = require('../../util/color');
 const Cast = require('../../util/cast');
 
@@ -20,24 +19,6 @@ const EffectOptions = {
     ]
 };
 
-const urlToReportUrl = (url) => {
-    let urlObject;
-    try {
-        urlObject = new URL(url);
-    } catch {
-        // we cant really throw an error in this state since it halts any blocks
-        // or return '' since thatll just confuse the api likely
-        // so just use example.com
-        return 'example.com';
-    }
-    // use host name
-    return urlObject.hostname;
-};
-
-// to avoid taking 1290 years for each url set
-// we save the ones that we already checked
-const safeOriginUrls = {};
-
 /**
  * uhhhhhhhhhh
  * @param {Array} array the array
@@ -51,26 +32,6 @@ const ArrayToValue = (array, value) => {
     });
     return object;
 };
-
-const isUrlRatedSafe = (url) => {
-    return new Promise((resolve) => {
-        const saveUrl = urlToReportUrl(url);
-        if (safeOriginUrls.hasOwnProperty(saveUrl)) {
-            return resolve(safeOriginUrls[saveUrl]);
-        }
-
-        fetch(`https://pm-bapi.vercel.app/api/safeurl?url=${saveUrl}`).then(res => {
-            if (!res.ok) {
-                resolve(true);
-                return;
-            }
-            res.json().then(status => {
-                safeOriginUrls[saveUrl] = status.safe;
-                resolve(status.safe);
-            }).catch(() => resolve(true));
-        }).catch(() => resolve(true));
-    })
-}
 
 /**
  * Class for IFRAME blocks
@@ -480,10 +441,7 @@ class JgIframeBlocks {
     }
     // permissions
     async IsWebsiteAllowed(url) {
-        if (ProjectPermissionManager.IsDataUrl(url)) return true;
-        if (!ProjectPermissionManager.IsUrlSafe(url)) return false;
-        const safe = await isUrlRatedSafe(url);
-        return safe;
+        return await this.runtime.vm.securityManager.canEmbed(url);
     }
 
     // utilities
@@ -641,12 +599,7 @@ class JgIframeBlocks {
             this.displayWebsiteUrl = "about:blank";
             return;
         }
-        this.IsWebsiteAllowed(checkingUrl).then(safe => {
-            if (!safe) { // website isnt in the permitted sites list?
-                this.createdIframe.src = "about:blank";
-                this.displayWebsiteUrl = args.URL;
-                return;
-            }
+        this.IsWebsiteAllowed(checkingUrl).then(() => {
             this.createdIframe.src = (usingProxy ? `https://detaproxy-1-s1965152.deta.app/?url=${Cast.toString(args.URL).replace("proxy://", "https://")}` : args.URL);
             // tell the user we are on proxy:// still since it looks nicer than the disgusting deta url
             this.displayWebsiteUrl = (usingProxy ? `${Cast.toString(this.createdIframe.src).replace("https://detaproxy-1-s1965152.deta.app/?url=https://", "proxy://")}` : this.createdIframe.src);

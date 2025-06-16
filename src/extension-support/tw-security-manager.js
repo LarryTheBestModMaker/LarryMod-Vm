@@ -161,6 +161,14 @@ class SecurityManager {
         return Promise.resolve(false);
     }
 
+    /**
+     * pm: Used to prompt the user if they would allow screenshotting the camera.
+     * @returns {Promise<boolean>|boolean}
+     */
+    canScreenshotCamera() {
+        return Promise.resolve(false);
+    }
+
     shouldUseLocal(refrenceName) {
         return Promise.resolve(!confirm(`it seems that the extension ${refrenceName} has been updated, use the up-to-date code?`))
     }

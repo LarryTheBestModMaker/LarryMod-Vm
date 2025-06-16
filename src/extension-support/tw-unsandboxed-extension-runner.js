@@ -118,6 +118,8 @@ const setupUnsandboxedExtensionAPI = vm => new Promise(resolve => {
 
     Scratch.canUnsandbox = async () => vm.securityManager.canUnsandbox();
 
+    Scratch.canScreenshotCamera = async () => vm.securityManager.canScreenshotCamera();
+
     Scratch.translate = createTranslate(vm);
 
     global.Scratch = Scratch;

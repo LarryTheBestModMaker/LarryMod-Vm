@@ -1,6 +1,5 @@
 const ArgumentType = require("../../extension-support/argument-type");
 const BlockType = require("../../extension-support/block-type");
-const ProjectPermissionManager = require('../../util/project-permissions');
 const DOMPurify = require("dompurify");
 const Cast = require("../../util/cast");
 const Color = require("../../util/color");
@@ -279,15 +278,8 @@ class sharkpoolPrinting {
                 return this.runtime.prism_screenshot_externalCanvas.toDataURL();
             }
         }
-        // DO NOT REMOVE, USER HAS NOT GIVEN PERMISSION TO SAVE CAMERA IMAGES.
-        if (this.runtime.ext_videoSensing || this.runtime.ioDevices.video.provider.enabled) {
-            // user's camera is on, ask for permission to take a picture of them
-            if (!(this.isCameraScreenshotEnabled)) {
-                this.isCameraScreenshotEnabled = ProjectPermissionManager.RequestPermission("cameraPictures");
-                // 1 pixel of white
-                if (!this.isCameraScreenshotEnabled) return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII=";
-            }
-        }
+
+        // renderer will handle not capturing video data
         return new Promise(resolve => {
             this.runtime.renderer.requestSnapshot(uri => {
                 resolve(uri);

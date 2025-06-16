@@ -1,3 +1,6 @@
+/**
+ * @deprecated Use `vm.securityManager` instead.
+ */
 class ProjectPermissionManager {
     static permissions = {
         javascript: true,
