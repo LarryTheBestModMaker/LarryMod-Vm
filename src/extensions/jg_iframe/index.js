@@ -586,23 +586,16 @@ class JgIframeBlocks {
     }
     setIframeUrl(args) {
         if (!this.GetIFrameState()) return; // iframe doesnt exist, stop
-        let usingProxy = false;
+        
         let checkingUrl = args.URL;
-        if (Cast.toString(args.URL).startsWith("proxy://")) {
-            // use the penguin mod proxy but still say we are on proxy:// since its what the user input
-            // replace proxy:// with https:// though since we are still using the https protocol
-            usingProxy = true;
-            checkingUrl = Cast.toString(args.URL).replace("proxy://", "https://");
-        }
         if (Cast.toString(args.URL) === 'about:blank') {
             this.createdIframe.src = "about:blank";
             this.displayWebsiteUrl = "about:blank";
             return;
         }
         this.IsWebsiteAllowed(checkingUrl).then(() => {
-            this.createdIframe.src = (usingProxy ? `https://detaproxy-1-s1965152.deta.app/?url=${Cast.toString(args.URL).replace("proxy://", "https://")}` : args.URL);
-            // tell the user we are on proxy:// still since it looks nicer than the disgusting deta url
-            this.displayWebsiteUrl = (usingProxy ? `${Cast.toString(this.createdIframe.src).replace("https://detaproxy-1-s1965152.deta.app/?url=https://", "proxy://")}` : this.createdIframe.src);
+            this.createdIframe.src = args.URL;
+            this.displayWebsiteUrl = this.createdIframe.src;
         });
     }
     setIframePosLeft(args) {
