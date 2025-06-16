@@ -120,6 +120,31 @@ const setupUnsandboxedExtensionAPI = vm => new Promise(resolve => {
 
     Scratch.canScreenshotCamera = async () => vm.securityManager.canScreenshotCamera();
 
+    Scratch.canDownload = async (url, name) => {
+        const parsed = parseURL(url);
+        if (!parsed) {
+            return false;
+        }
+        // Always reject protocols that would allow code execution.
+        // eslint-disable-next-line no-script-url
+        if (parsed.protocol === 'javascript:') {
+            return false;
+        }
+        return vm.securityManager.canDownload(url, name);
+    };
+    
+    Scratch.download = async (url, name) => {
+        if (!await Scratch.canDownload(url, name)) {
+            throw new Error(`Permission to download ${name} rejected.`);
+        }
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
     Scratch.translate = createTranslate(vm);
 
     global.Scratch = Scratch;

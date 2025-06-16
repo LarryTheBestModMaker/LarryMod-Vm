@@ -169,6 +169,16 @@ class SecurityManager {
         return Promise.resolve(true);
     }
 
+    /**
+     * Determine whether an extension is allowed to download a URL with a given name.
+     * @param {string} resourceURL The URL to download
+     * @param {string} name The name of the fileAdd commentMore actions
+     * @returns {Promise<boolean>|boolean}
+     */
+    canDownload (resourceURL, name) {
+        return Promise.resolve(true);
+    }
+
     shouldUseLocal(refrenceName) {
         return Promise.resolve(!confirm(`it seems that the extension ${refrenceName} has been updated, use the up-to-date code?`))
     }
