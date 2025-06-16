@@ -969,7 +969,7 @@ class pmOperatorsExpansion {
                 atan2: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
                     const x = compiler.descendInput(node.x).asNumber();
                     const y = compiler.descendInput(node.y).asNumber();
-                    return new TypedInput(`(Math.atan2((${y} * 180) / Math.PI, (${x} * 180) / Math.PI)`, TYPE_NUMBER_NAN);
+                    return new TypedInput(`(Math.atan2((${y} * 180) / Math.PI, (${x} * 180) / Math.PI))`, TYPE_NUMBER_NAN);
                 }
             }
         };
