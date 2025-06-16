@@ -544,6 +544,13 @@ class Runtime extends EventEmitter {
         this.isProjectPermissionManagerDisabled = true;
 
         /**
+         * PM: Determines whether or not the project is running from a packager output.
+         * Note that this is not the same as Runtime.isPackaged,
+         * the packager will literally set this value to `true` when packaging regardless of settings.
+         */
+        this.isPackagedProject = false;
+
+        /**
          * Contains information about the external communication methods that the scripts inside the project
          * can use to send data from inside the project to an external server.
          * Do not update this directly. Use Runtime.setExternalCommunicationMethod() instead.
