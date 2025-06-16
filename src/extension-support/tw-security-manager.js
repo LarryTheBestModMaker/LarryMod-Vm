@@ -166,7 +166,7 @@ class SecurityManager {
      * @returns {Promise<boolean>|boolean}
      */
     canScreenshotCamera() {
-        return Promise.resolve(false);
+        return Promise.resolve(true);
     }
 
     shouldUseLocal(refrenceName) {
