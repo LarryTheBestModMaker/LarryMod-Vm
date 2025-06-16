@@ -94,6 +94,7 @@ ${blockSeparator}
 %b14> ` +/* is number prime */`
 %b19> ` +/* is number between numbers */`
 %b11> ` +/* trunc number */`
+%b36> ` +/* atan2 */`
 ${blockSeparator}
 %b16> ` +/* reverse text */`
 %b17> ` +/* shuffle text */`
@@ -337,21 +338,6 @@ class pmOperatorsExpansion {
                         'euler',
                         { isNoop: true }
                     ]
-                },
-                {
-                    opcode: 'atan2',
-                    text: 'atan2 of x [X] y [Y]',
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        X: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: "45"
-                        },
-                        Y: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: "90"
-                        },
-                    }
                 },
                 {
                     opcode: 'truncateNumber',
@@ -833,6 +819,21 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "perfect!"
                         }
+                    }
+                },
+                {
+                    opcode: 'atan2',
+                    text: 'atan2 of x [X] y [Y]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "45"
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "90"
+                        },
                     }
                 },
             ],
