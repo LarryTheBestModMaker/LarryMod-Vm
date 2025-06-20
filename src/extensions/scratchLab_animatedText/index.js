@@ -891,8 +891,12 @@ class Scratch3TextBlocks {
 
         if (!textState.visible) return; // Resetting to costume is done in clear block, early return here is for clones
 
+        const alreadyInit = textState.skinId !== null;
         textState.skinId = this.runtime.renderer.updateTextCostumeSkin(textState);
-        this.runtime.renderer.updateDrawableSkinId(target.drawableID, textState.skinId);
+        if (alreadyInit) this.runtime.renderer.updateDrawableSkinId(target.drawableID, textState.skinId);
+        else this.runtime.once("AFTER_EXECUTE", () => {
+            this.runtime.renderer.updateDrawableSkinId(target.drawableID, textState.skinId);
+        });
     }
 
     /**
