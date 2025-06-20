@@ -585,6 +585,25 @@ class JgDevBlocks {
                         noopSwitch,
                     ]
                 },
+                {
+                    opcode: "switches_broken",
+                    text: "intentionally broken switch",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            menu: "switch_menu2"
+                        }
+                    },
+                    switches: [
+                        {},
+                        [ "a" ],
+                        new Map(),
+                        17,
+                        -18,
+                        "switches_donotdefinemeangryfaceemoji",
+                    ]
+                },
             ],
             menus: {
                 variableInternal: {
