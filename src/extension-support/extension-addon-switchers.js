@@ -71,6 +71,7 @@ function get_extension_switches(id, blocks) {
                 .filter(arg =>
                     !!get_block.info.arguments[arg]
                     && !!(current.remapArguments ?? {})[arg]
+                    && !Object.values(current.remapArguments ?? {}).includes(arg)
                 );
 
             const remapShadowType = {};
