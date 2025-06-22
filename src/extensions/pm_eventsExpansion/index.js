@@ -164,6 +164,7 @@ class pmEventsExpansion {
                     text: 'when I receive [BROADCAST] with data',
                     blockType: BlockType.EVENT,
                     isEdgeActivated: false,
+                    hideFromPallete: true,
                     arguments: {
                         BROADCAST: {
                             type: ArgumentType.STRING,
