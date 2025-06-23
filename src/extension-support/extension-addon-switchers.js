@@ -125,7 +125,7 @@ function get_extension_switches(id, blocks) {
 
 function getSwitches({runtime}) {
     for (let ext of runtime._blockInfo) {
-        if (ext.id in _switches) continue;
+        if (ext.id in switches) continue;
         switches[ext.id] = get_extension_switches(ext.id, ext.blocks);
     }
     return switches;
