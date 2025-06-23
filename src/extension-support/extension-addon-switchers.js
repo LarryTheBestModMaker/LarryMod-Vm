@@ -1,4 +1,4 @@
-const log = require('../util/log');
+const log = require("../util/log");
 const switches = {};
 const parser = new DOMParser();
 
@@ -124,12 +124,11 @@ function get_extension_switches(id, blocks) {
 }
 
 function getSwitches({runtime}) {
-    var _switches = switches;
     for (let ext of runtime._blockInfo) {
         if (ext.id in _switches) continue;
-        _switches[ext.id] = get_extension_switches(ext.id, ext.blocks);
+        switches[ext.id] = get_extension_switches(ext.id, ext.blocks);
     }
-    return _switches;
+    return switches;
 }
 
 module.exports = getSwitches;
