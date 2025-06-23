@@ -895,7 +895,7 @@ class Scratch3TextBlocks {
         textState.skinId = this.runtime.renderer.updateTextCostumeSkin(textState);
         this.runtime.renderer.updateDrawableSkinId(target.drawableID, textState.skinId);
         if (needsInit) queueMicrotask(() => {
-          this.runtime.renderer._allSkins[textState.skinId].setTextAndStyle(textState);
+          this.runtime.renderer._allSkins[textState.skinId]?.setTextAndStyle(textState);
         });
     }
 
@@ -952,6 +952,23 @@ class Scratch3TextBlocks {
             textState.skinId = null;
         }
     }
+
+    /* These Need Functionality, ported for Turbowarp Support */
+    setAlignment(_) {}
+    setWidthValue(_) {}
+    resetWidth(_) {}
+    getLines(_) {}
+    startAnimate(_) {}
+    animateUntilDone(_) {}
+    isAnimating(_) {}
+    setAnimateDuration(_) {}
+    resetAnimateDuration(_) {}
+    getAnimateDuration(_) {}
+    setTypeDelay(_) {}
+    resetTypeDelay(_) {}
+    getTypeDelay(_) {}
+    textActive(_) {}
+    getTextAttribute(_) {}
 }
 
 module.exports = Scratch3TextBlocks;
