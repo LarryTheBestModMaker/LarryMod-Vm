@@ -475,6 +475,10 @@ class Blocks {
             // into a state where a local var was requested for the stage,
             // create a stage (global) var after checking for name conflicts
             // on all the sprites.
+
+            // TEST LOG
+            console.log(e, editingTarget, editingTarget.isStage);
+                
             if (e.isLocal && editingTarget && !editingTarget.isStage && !e.isCloud) {
                 if (!editingTarget.lookupVariableById(e.varId)) {
                     editingTarget.createVariable(e.varId, e.varName, e.varType);
@@ -779,6 +783,16 @@ class Blocks {
                 (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
                 this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific) ||
                 extension_sprite_specific;
+
+            /* Test Log */
+            console.log(
+              block,isSpriteLocalVariable, extension_sprite_specific,
+              (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
+                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific)
+              "=>", this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific
+              );
+            )
+
             if (isSpriteSpecific) {
                 // If creating a new sprite specific monitor, the only possible target is
                 // the current editing one b/c you cannot dynamically create monitors.
