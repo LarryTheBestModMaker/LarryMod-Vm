@@ -719,22 +719,22 @@ class Blocks {
             // TODO theres probably a better way to check for ScratchBlocks here
             // but it fixes the problem so whatever
             if (typeof ScratchBlocks === 'object') {
-              // check if monitoring
-              const monitorState = this.runtime.getMonitorState();
-              if (
-                monitorState.get(`${args.id}_${args.value}`) !== undefined ||
-                monitorState.get(`${args.id}_${args.value.toLowerCase()}`) !== undefined
-              ) return;
+                // check if monitoring
+                const monitorState = this.runtime.getMonitorState();
+                const shouldCheck = (
+                    monitorState.get(`${args.id}_${args.value}`) !== undefined ||
+                    monitorState.get(`${args.id}_${args.value.toLowerCase()}`) !== undefined
+                );
 
-              const workspace = ScratchBlocks.mainWorkspace;
-              const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
-              const checkbox = flyout.checkboxes_[args.id];
-              checkbox.clicked = false;
-              if (checkbox.clicked) {
-                ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
-              } else {
-                ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
-              }
+                const workspace = ScratchBlocks.mainWorkspace;
+                const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
+                const checkbox = flyout.checkboxes_[args.id];
+                checkbox.clicked = shouldCheck;
+                if (shouldCheck) {
+                    ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
+                } else {
+                    ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
+                }
             }
             break;
         case 'mutation':
