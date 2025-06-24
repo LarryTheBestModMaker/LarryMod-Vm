@@ -680,16 +680,6 @@ class Blocks {
         if (typeof block === 'undefined') return;
         switch (args.element) {
         case 'field':
-            // TODO when the field of a monitored block changes,
-            // update the checkbox in the flyout based on whether
-            // a monitor for that current combination of selected parameters exists
-            // e.g.
-            // 1. check (current [v year])
-            // 2. switch dropdown in flyout block to (current [v minute])
-            // 3. the checkbox should become unchecked if we're not already
-            //    monitoring current minute
-
-
             // Update block value
             if (!block.fields[args.name]) return;
             const field = block.fields[args.name];
@@ -723,6 +713,28 @@ class Blocks {
                         params: this._getBlockParams(flyoutBlock)
                     }));
                 }
+            }
+
+            // update the checkbox state if monitoring
+            // TODO theres probably a better way to check for ScratchBlocks here
+            // but it fixes the problem so whatever
+            if (typeof ScratchBlocks === 'object') {
+              // check if monitoring
+              const monitorState = this.runtime.getMonitorState();
+              if (
+                monitorState.get(`${args.id}_${args.value}`) !== undefined ||
+                monitorState.get(`${args.id}_${args.value.toLowerCase()}`) !== undefined
+              ) return;
+
+              const workspace = ScratchBlocks.mainWorkspace;
+              const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
+              const checkbox = flyout.checkboxes_[args.id];
+              checkbox.clicked = true;
+              if (checkbox.clicked) {
+                ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
+              } else {
+                ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
+              }
             }
             break;
         case 'mutation':
@@ -771,8 +783,7 @@ class Blocks {
             // Provides an API for extensions to set reporters of themselves (that can be monitored)
             // as sprite-specific
             var extension_sprite_specific = ((info) => {
-                if (info == undefined)
-                    return false;
+                if (info == undefined) return false;
                 const block_info = info.blocks.find(_block => {
                     return _block.info.opcode === StringUtil.splitFirst(block.opcode, "_")[1];
                 });
