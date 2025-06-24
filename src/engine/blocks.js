@@ -482,6 +482,7 @@ class Blocks {
             if (e.isLocal && editingTarget && !editingTarget.isStage && !e.isCloud) {
                 if (!editingTarget.lookupVariableById(e.varId)) {
                     editingTarget.createVariable(e.varId, e.varName, e.varType);
+                    this.runtime.emit('variableCreate', e.varType, e.varId, e.varName, e.isCloud);
                     this.emitProjectChanged();
                 }
             } else {
@@ -795,14 +796,6 @@ class Blocks {
                 (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
                 this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific) ||
                 extension_sprite_specific;
-
-            /* Test Log */
-            console.log(
-              block,isSpriteLocalVariable, extension_sprite_specific,
-              (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
-                this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific),
-              "=>", this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific
-            );
 
             if (isSpriteSpecific) {
                 // If creating a new sprite specific monitor, the only possible target is
