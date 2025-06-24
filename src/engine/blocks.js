@@ -790,8 +790,7 @@ class Blocks {
               (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
                 this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific)
               "=>", this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific
-              );
-            )
+            );
 
             if (isSpriteSpecific) {
                 // If creating a new sprite specific monitor, the only possible target is
