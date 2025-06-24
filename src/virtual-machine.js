@@ -19,6 +19,7 @@ const RenderedTarget = require('./sprites/rendered-target');
 const StageLayering = require('./engine/stage-layering');
 const Sprite = require('./sprites/sprite');
 const Blocks = require('./engine/blocks');
+const Comment = require('./engine/comment.js');
 const formatMessage = require('format-message');
 const ExtensionStorage = require('./util/deprecated-extension-storage.js');
 
@@ -257,6 +258,7 @@ class VirtualMachine extends EventEmitter {
             loadCostume,
             loadSound,
             Blocks,
+            Comment,
             StageLayering,
             Variable,
             Thread: require('./engine/thread.js'),
