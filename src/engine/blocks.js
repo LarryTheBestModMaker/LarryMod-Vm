@@ -781,15 +781,15 @@ class Blocks {
 
             const isSpriteSpecific = isSpriteLocalVariable ||
                 (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
-                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific) ||
+                this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific) ||
                 extension_sprite_specific;
 
             /* Test Log */
             console.log(
               block,isSpriteLocalVariable, extension_sprite_specific,
               (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
-                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific),
-              "=>", this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific
+                this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific),
+              "=>", this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific
             );
 
             if (isSpriteSpecific) {
