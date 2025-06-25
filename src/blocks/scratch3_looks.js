@@ -487,7 +487,7 @@ class Scratch3LooksBlocks {
             },
             looks_stretchGetX: {
                 isSpriteSpecific: true,
-                getId: targetId => `${targetId}_stretchGetY`
+                getId: targetId => `${targetId}_stretchGetX`
             },
             looks_stretchGetY: {
                 isSpriteSpecific: true,
