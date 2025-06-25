@@ -727,11 +727,13 @@ class Blocks {
                 const workspace = ScratchBlocks.mainWorkspace;
                 const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
                 const checkbox = flyout.checkboxes_[args.id];
-                checkbox.clicked = shouldCheck;
-                if (shouldCheck) {
-                    ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
-                } else {
-                    ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
+                if (checkbox) {
+                    checkbox.clicked = shouldCheck;
+                    if (shouldCheck) {
+                        ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
+                    } else {
+                        ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
+                    }
                 }
             }
             break;
