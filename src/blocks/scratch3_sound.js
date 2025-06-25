@@ -172,7 +172,7 @@ class Scratch3SoundBlocks {
             },
             sound_getEffectValue: {
                 isSpriteSpecific: true,
-                getId: (targetId, fields) => getMonitorIdForBlockWithArgs(`${targetId}_getEffectValue`, fields)
+                getId: (targetId, fields) => getMonitorIdForBlockWithArgs(`${targetId}_soundgetEffectValue`, fields)
             },
         };
     }
