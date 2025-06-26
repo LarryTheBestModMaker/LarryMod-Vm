@@ -1532,7 +1532,7 @@ class JSGenerator {
             break;
         case 'looks.targetFront':
             if (!this.target.isStage) {
-                const name = this.descendInput(node.layers.value).asString();
+                const name = this.descendInput(node.layers).asString();
                 const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
@@ -1545,7 +1545,7 @@ class JSGenerator {
             break;
         case 'looks.targetBack':
             if (!this.target.isStage) {
-                const name = this.descendInput(node.layers.value).asString();
+                const name = this.descendInput(node.layers).asString();
                 const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
