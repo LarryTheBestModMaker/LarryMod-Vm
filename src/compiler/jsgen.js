@@ -1532,19 +1532,28 @@ class JSGenerator {
             break;
         case 'looks.targetFront':
             if (!this.target.isStage) {
-                const reqTarget = this.target.runtime.getSpriteTargetByName(node.layers.value);
-                if (reqTarget) {
-                    this.source += `target.goBehindOther(${JSON.stringify(reqTarget)});\n`;
-                    this.source += `target.goForwardLayers(1);\n`;
-                }
+                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${node.layers.value})`);
+                const targetLayer = this.localVariables.next();
+                const myLayer = this.localVariables.next();
+
+                this.source += `const ${myLayer} = target.getLayerOrder();\n`;
+                this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
+                this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
+                this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer} + 1);\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.targetBack':
             if (!this.target.isStage) {
-                const reqTarget = this.target.runtime.getSpriteTargetByName(node.layers.value);
-                if (reqTarget && reqTarget.getLayerOrder() < this.target.getLayerOrder()) {
-                    this.source += `target.goBehindOther(${JSON.stringify(reqTarget)});\n`;
-                }
+                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${node.layers.value})`);
+                const targetLayer = this.localVariables.next();
+                const myLayer = this.localVariables.next();
+
+                this.source += `const ${myLayer} = target.getLayerOrder();\n`;
+                this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
+                this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer} - 1);\n`;
+                this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.hide':
