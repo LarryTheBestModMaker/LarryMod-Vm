@@ -1715,7 +1715,6 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
             const stage = targets.find(t => t.isStage);
             if (stage) {
                 // vm is not ready yet, so remake 'runtime.findProjectOptionsComment'
-                console.log(stage)
                 let projectOptsComment;
                 for (const comment of Object.values(stage?.comments)) {
                     if (comment.text.includes(" // _twconfig_")) {
