@@ -1540,7 +1540,6 @@ class JSGenerator {
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
                 this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
                 this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer} + 1);\n`;
-                this.source += `}\n`;
             }
             break;
         case 'looks.targetBack':
@@ -1553,7 +1552,6 @@ class JSGenerator {
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
                 this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer} - 1);\n`;
                 this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
-                this.source += `}\n`;
             }
             break;
         case 'looks.hide':
