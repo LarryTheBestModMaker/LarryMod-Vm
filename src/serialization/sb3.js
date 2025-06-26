@@ -1711,7 +1711,10 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
             }))
         .then(targets => replaceUnsafeCharsInVariableIds(targets))
         .then(targets => {
-            monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
+            // at this point, stage size has not been set by 'runtime.parseProjectOptions'
+            runtime.once("STAGE_SIZE_CHANGED", () => {
+                monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
+            });
             return targets;
         })
         .then(targets => ({
