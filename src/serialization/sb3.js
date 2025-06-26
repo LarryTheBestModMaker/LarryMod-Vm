@@ -770,6 +770,9 @@ const getSimplifiedLayerOrdering = function (targets) {
 };
 
 const serializeMonitors = function (monitors, runtime) {
+    // Monitors position is always stored as position from top-left corner in 480x360 stage.
+    const xOffset = (runtime.stageWidth - 480) / 2;
+    const yOffset = (runtime.stageHeight - 360) / 2;
     return monitors.valueSeq()
         // Don't include hidden monitors from extensions
         // https://github.com/LLK/scratch-vm/issues/2331
@@ -787,8 +790,8 @@ const serializeMonitors = function (monitors, runtime) {
                 value: Array.isArray(monitorData.value) ? [] : 0,
                 width: monitorData.width,
                 height: monitorData.height,
-                x: monitorData.x,
-                y: monitorData.y,
+                x: monitorData.x - xOffset,
+                y: monitorData.y - yOffset,
                 visible: monitorData.visible,
                 variableType: monitorData.variableType,
                 variableId: monitorData.variableId
@@ -1487,6 +1490,11 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
 };
 
 const deserializeMonitor = function (monitorData, runtime, targets, extensions) {
+    // Monitors position is always stored as position from top-left corner in 480x360 stage.
+    const xOffset = (runtime.stageWidth - 480) / 2;
+    const yOffset = (runtime.stageHeight - 360) / 2;
+    monitorData.x += xOffset;
+    monitorData.y += yOffset;
     monitorData.x = MathUtil.clamp(monitorData.x, 0, runtime.stageWidth);
     monitorData.y = MathUtil.clamp(monitorData.y, 0, runtime.stageHeight);
 
