@@ -1537,10 +1537,12 @@ class JSGenerator {
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
 
+                this.source += `if (${objRefTarg}) {\n`;
                 this.source += `const ${myLayer} = target.getLayerOrder();\n`;
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
                 this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
                 this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer} + 1);\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.targetBack':
@@ -1550,10 +1552,12 @@ class JSGenerator {
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
 
+                this.source += `if (${objRefTarg}) {\n`;
                 this.source += `const ${myLayer} = target.getLayerOrder();\n`;
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
                 this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer} - 1);\n`;
                 this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.hide':
