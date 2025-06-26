@@ -1712,9 +1712,21 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
         .then(targets => replaceUnsafeCharsInVariableIds(targets))
         .then(targets => {
             // at this point, stage size has not been set by 'runtime.parseProjectOptions'
-            runtime.once("STAGE_SIZE_CHANGED", () => {
-                monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
-            });
+            const stage = targets.find(t => t.isStage);
+            if (stage) {
+                // vm is not ready yet, so remake 'runtime.findProjectOptionsComment'
+                let projectOptsComment;
+                for (const comment of Object.values(stage.comments))
+                    if (comment.text.includes(" // _twconfig_")) {
+                        projectOptsComment = comment;
+                        break;
+                    }
+                }
+
+                if (projectOptsComment) runtime.parseProjectOptions(projectOptsComment);
+            }
+
+            monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
             return targets;
         })
         .then(targets => ({
