@@ -3291,8 +3291,8 @@ class Runtime extends EventEmitter {
         return null;
     }
 
-    parseProjectOptions () {
-        const comment = this.findProjectOptionsComment();
+    parseProjectOptions (optComment) {
+        const comment = optComment ?? this.findProjectOptionsComment();
         if (!comment) return;
         const lineWithMagic = comment.text.split('\n').find(i => i.endsWith(COMMENT_CONFIG_MAGIC));
         if (!lineWithMagic) {
