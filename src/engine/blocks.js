@@ -1388,6 +1388,8 @@ class Blocks {
         // Update `topLevel` property on the top block.
         if (this._blocks[topBlockId]) this._blocks[topBlockId].topLevel = false;
     }
+    XMLToBlock = adapter;
+    XMLToMutation = mutationAdapter;
 }
 
 /**
