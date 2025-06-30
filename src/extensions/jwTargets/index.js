@@ -40,7 +40,13 @@ class jwTargetType {
     toString() {
         return this.targetId
     }
-    toMonitorContent = () => span(this.toString())
+    toMonitorContent() {
+        try {
+            return span(this.target.sprite.name)
+        } catch {
+            return span(this.targetId)
+        }
+    }
 
     toReporterContent() {
         try {
