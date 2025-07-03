@@ -229,6 +229,20 @@ const defaultBuiltinExtensions = {
     // fr3d:
     fr3d: () => require('../extensions/fr_3d')
 };
+const CORE_EXTENSIONS = [
+    'argument',
+    'colour',
+    'control',
+    'data',
+    'event',
+    'looks',
+    'math',
+    'motion',
+    'operator',
+    'procedures',
+    'sensing',
+    'sound'
+];
 
 const coreExtensionList = Object.getOwnPropertyNames(defaultBuiltinExtensions);
 
@@ -573,7 +587,9 @@ class ExtensionManager {
 
     prepareSwap(id) {
         const serviceName = this._loadedExtensions.get(id);
-        dispatch.call(serviceName, 'dispose');
+        const { provider, isRemote } = dispatch._getServiceProvider(serviceName);
+        if (isRemote || typeof provider.dispose === 'function') 
+            dispatch.call(serviceName, 'dispose');
         delete dispatch.services[serviceName];
         delete this.runtime[`ext_${id}`];
 
@@ -583,7 +599,9 @@ class ExtensionManager {
     }
     removeExtension(id) {
         const serviceName = this._loadedExtensions.get(id);
-        dispatch.call(serviceName, 'dispose');
+        const { provider, isRemote } = dispatch._getServiceProvider(serviceName);
+        if (isRemote || typeof provider.dispose === 'function') 
+            dispatch.call(serviceName, 'dispose');
         delete dispatch.services[serviceName];
         delete this.runtime[`ext_${id}`];
 
@@ -592,6 +610,37 @@ class ExtensionManager {
         delete this.workerURLs[workerId];
         dispatch.call('runtime', '_removeExtensionPrimitive', id);
         this.refreshBlocks();
+    }
+    getExtensionIdFromOpcode(opcode) {
+        // Allowed ID characters are those matching the regular expression [\w-]: A-Z, a-z, 0-9, and hyphen ("-").
+        if (!(typeof opcode === 'string')) {
+            console.error('invalid opcode ' + opcode);
+            return '';
+        }
+        const index = opcode.indexOf('_');
+        const forbiddenSymbols = /[^\w-]/g;
+        const prefix = opcode.substring(0, index).replace(forbiddenSymbols, '-');
+        if (CORE_EXTENSIONS.indexOf(prefix) === -1) {
+            if (prefix !== '') return prefix;
+        }
+    }
+    findUsedExtensions() {
+        const results = [];
+        for (const target of this.runtime.targets) {
+            for (const blockId in target.blocks._blocks) {
+                const block = target.blocks.getBlock(blockId);
+                const ext = this.getExtensionIdFromOpcode(block.opcode);
+                results.push(ext);
+            }
+        }
+        return results;
+    }
+    removeUnusedExtensions() {
+        const all = [...this._loadedExtensions.keys()];
+        const used = this.findUsedExtensions();
+        const unused = all.filter(ext => !used.includes(ext));
+        for (const toRemove of unused)
+            this.removeExtension(toRemove);
     }
 
     allocateWorker() {
