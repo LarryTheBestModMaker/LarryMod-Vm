@@ -38,12 +38,10 @@ const uint8ToBase64 = function(uint8) {
 }
 
 /**
+ * @param {array} fonts array of fonts to compile
  * @returns {string} css for directions to custom fonts
  */
-const generateCustomFontsCSS = () => {
-    if (!vm?.runtime?.fontManager?.fonts) return '';
-    const fonts = vm.runtime.fontManager.fonts.filter(f => !f.system);
-
+const generateCustomFontsCSS = (fonts) => {
     let fontCSS = '';
     for (const font of fonts) {
         const base64 = uint8ToBase64(font.asset.data);
@@ -105,9 +103,11 @@ const exportCostume = (costume, optIncludeExtras) => {
     const extraData = `${HTML_COMMENT_START}rotationCenter:${centerX}:${centerY}${HTML_COMMENT_END}`;
     decodedData += extraData;
 
-    if (optIncludeExtras) {
-        // TODO compress this by only adding fonts that are used in the costume
-        const cssText = generateCustomFontsCSS();
+    if (optIncludeExtras && vm?.runtime?.fontManager?.fonts) {
+        const fonts = vm.runtime.fontManager.fonts.filter(f => !f.system)
+            .filter(f => decodedData.includes(`font-family="&quot;${f.family}&quot;, ${f.fallback}"`))
+
+        const cssText = generateCustomFontsCSS(fonts);
         if (cssText) {
             const styleElement = `<style type="text/css">${cssText}</style>`;
             decodedData = decodedData.replace(new RegExp(`<svg[^>]*?>`), match => `${match}${styleElement}`);
