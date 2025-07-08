@@ -27,6 +27,16 @@ const regex = new RegExp(
     `${HTML_COMMENT_START}rotationCenter:(-?[\\d\\.]+):(-?[\\d\\.]+)${HTML_COMMENT_END}$`
 );
 
+const uint8ToBase64 = function(uint8) {
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+        const chunk = uint8.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(binary);
+}
+
 /**
  * @returns {string} css for directions to custom fonts
  */
@@ -36,17 +46,17 @@ const generateCustomFontsCSS = () => {
 
     let fontCSS = '';
     for (const font of fonts) {
-        const base64 = btoa(String.fromCharCode.apply(null, font.asset.data));
+        const base64 = uint8ToBase64(font.asset.data);
 
         // normalize format for browser compatibility
         let format = font.asset.dataFormat.toLowerCase();
         if (format === 'otf') format = 'opentype';
         if (format === 'ttf') format = 'truetype';
 
-        fontCSS += "@font-face {\n";
-        fontCSS += `font-family: "${font.family}";\n`;
-        fontCSS += `src: url('data:font/${format};base64,${base64}') format('${format}');\n`;
-        fontCSS += "}\n";
+        fontCSS += "@font-face {";
+        fontCSS += `font-family: "${font.family}";`;
+        fontCSS += `src: url('data:font/${format};base64,${base64}') format('${format}');`;
+        fontCSS += "}";
     }
 
     return fontCSS;
@@ -94,6 +104,7 @@ const exportCostume = (costume, optIncludeExtras) => {
     const centerY = costume.rotationCenterY;
     const extraData = `${HTML_COMMENT_START}rotationCenter:${centerX}:${centerY}${HTML_COMMENT_END}`;
     decodedData += extraData;
+    console.log("EXPORT", optIncludeExtras);
 
     if (optIncludeExtras) {
         // TODO compress this by only adding fonts that are used in the costume
