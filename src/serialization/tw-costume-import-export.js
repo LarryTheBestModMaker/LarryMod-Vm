@@ -104,14 +104,13 @@ const exportCostume = (costume, optIncludeExtras) => {
     const centerY = costume.rotationCenterY;
     const extraData = `${HTML_COMMENT_START}rotationCenter:${centerX}:${centerY}${HTML_COMMENT_END}`;
     decodedData += extraData;
-    console.log("EXPORT", optIncludeExtras);
 
     if (optIncludeExtras) {
         // TODO compress this by only adding fonts that are used in the costume
         const cssText = generateCustomFontsCSS();
         if (cssText) {
             const styleElement = `<style type="text/css">${cssText}</style>`;
-            decodedData.replace(new RegExp(`<svg[^>]*?>`), match => `${match}${styleElement}`);
+            decodedData = decodedData.replace(new RegExp(`<svg[^>]*?>`), match => `${match}${styleElement}`);
         }
     }
 
