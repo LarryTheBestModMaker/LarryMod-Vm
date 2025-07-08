@@ -36,15 +36,15 @@ const generateCustomFontsCSS = () => {
 
     let fontCSS = '';
     for (const font of fonts) {
-        const base64 = btoa(String.fromCharCode.apply(null, font.data));
+        const base64 = btoa(String.fromCharCode.apply(null, font.asset.data));
 
         // normalize format for browser compatibility
-        let format = font.format.toLowerCase();
+        let format = font.asset.dataFormat.toLowerCase();
         if (format === 'otf') format = 'opentype';
         if (format === 'ttf') format = 'truetype';
 
         fontCSS += "@font-face {\n";
-        fontCSS += `font-family: "${font.name}";\n`;
+        fontCSS += `font-family: "${font.family}";\n`;
         fontCSS += `src: url('data:font/${format};base64,${base64}') format('${format}');\n`;
         fontCSS += "}\n";
     }
