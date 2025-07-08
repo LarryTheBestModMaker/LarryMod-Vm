@@ -99,8 +99,8 @@ const exportCostume = (costume, optIncludeExtras) => {
         // TODO compress this by only adding fonts that are used in the costume
         const cssText = generateCustomFontsCSS();
         if (cssText) {
-            const styleElement = `<style type="text/css">${cssText}></style>`;
-            decodedData.replace(new RegExp(`/<svg[^>]*?>/`), match => `${match}${styleElement}`);
+            const styleElement = `<style type="text/css">${cssText}</style>`;
+            decodedData.replace(new RegExp(`<svg[^>]*?>`), match => `${match}${styleElement}`);
         }
     }
 
