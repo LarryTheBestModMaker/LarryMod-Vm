@@ -1533,10 +1533,11 @@ class JSGenerator {
         case 'looks.targetFront':
             if (!this.target.isStage) {
                 const name = this.descendInput(node.layers).asString();
-                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
+                const objRefTarg = this.localVariables.next();
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
 
+                this.source += `const ${objRefTarg} = runtime.getSpriteTargetByName(${name});\n`;
                 this.source += `if (${objRefTarg}) {\n`;
                 this.source += `const ${myLayer} = target.getLayerOrder();\n`;
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
@@ -1548,10 +1549,11 @@ class JSGenerator {
         case 'looks.targetBack':
             if (!this.target.isStage) {
                 const name = this.descendInput(node.layers).asString();
-                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
+                const objRefTarg = this.localVariables.next();
                 const targetLayer = this.localVariables.next();
                 const myLayer = this.localVariables.next();
 
+                this.source += `const ${objRefTarg} = runtime.getSpriteTargetByName(${name});\n`;
                 this.source += `if (${objRefTarg}) {\n`;
                 this.source += `const ${myLayer} = target.getLayerOrder();\n`;
                 this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
