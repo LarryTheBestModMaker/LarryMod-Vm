@@ -4,6 +4,8 @@ const { validateArray } = require('../../util/json-block-utilities');
 const AHHHHHHHHHHHHHH = require('../../util/array buffer');
 const BufferStuff = new AHHHHHHHHHHHHHH();
 
+const noopSwitch = { isNoop: true };
+
 /**
  * Class for File blocks
  * @constructor
@@ -44,7 +46,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'txt savefile'
                         }
-                    }
+                    },
+                    switches: [
+                        noopSwitch,
+                        'askUserForFileOfTypeAsArrayBuffer',
+                        'askUserForFileOfTypeAsDataUri',
+                    ],
+                    switchText: 'ask for file'
                 },
                 {
                     opcode: 'askUserForFileOfTypeAsArrayBuffer',
@@ -56,7 +64,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'txt savefile'
                         }
-                    }
+                    },
+                    switches: [
+                        'askUserForFileOfType',
+                        noopSwitch,
+                        'askUserForFileOfTypeAsDataUri',
+                    ],
+                    switchText: 'ask for array buffer'
                 },
                 {
                     opcode: 'askUserForFileOfTypeAsDataUri',
@@ -68,7 +82,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'png'
                         }
-                    }
+                    },
+                    switches: [
+                        'askUserForFileOfType',
+                        'askUserForFileOfTypeAsArrayBuffer',
+                        noopSwitch,
+                    ],
+                    switchText: 'ask for data uri'
                 },
                 {
                     opcode: 'downloadFile',
@@ -83,7 +103,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'text.txt'
                         }
-                    }
+                    },
+                    switches: [
+                        noopSwitch,
+                        'downloadFileDataUri',
+                        'downloadFileBuffer',
+                    ],
+                    switchText: 'download file'
                 },
                 {
                     opcode: 'downloadFileDataUri',
@@ -98,7 +124,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'content.png'
                         }
-                    }
+                    },
+                    switches: [
+                        'downloadFile',
+                        noopSwitch,
+                        'downloadFileBuffer',
+                    ],
+                    switchText: 'download data uri'
                 },
                 {
                     opcode: 'downloadFileBuffer',
@@ -113,7 +145,13 @@ class JgFilesBlocks {
                             type: ArgumentType.STRING,
                             defaultValue: 'data.bin'
                         }
-                    }
+                    },
+                    switches: [
+                        'downloadFile',
+                        'downloadFileDataUri',
+                        noopSwitch
+                    ],
+                    switchText: 'download array buffer'
                 }
             ]
         };

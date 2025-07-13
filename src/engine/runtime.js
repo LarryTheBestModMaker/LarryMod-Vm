@@ -26,6 +26,8 @@ const Color = require('../util/color');
 const TabManager = require('../extension-support/pm-tab-manager');
 const ModalManager = require('../extension-support/pm-modal-manager');
 const MathUtil = require('../util/math-util');
+const Cast = require('../util/cast');
+const ExtensionStorage = require('../util/deprecated-extension-storage.js');
 
 // Virtual I/O devices.
 const Clock = require('../io/clock');
@@ -535,10 +537,18 @@ class Runtime extends EventEmitter {
         this.isPackaged = false;
 
         /**
-         * PM: In the packager, the Project Permission Manager can be disabled.
+         * PM: Legacy option. Use vm.securityManager for permission managing.
+         * In the packager, the legacy Project Permission Manager can be enabled.
          * This option is used by the PenguinMod Packager.
          */
-        this.isProjectPermissionManagerDisabled = false;
+        this.isProjectPermissionManagerDisabled = true;
+
+        /**
+         * PM: Determines whether or not the project is running from a packager output.
+         * Note that this is not the same as Runtime.isPackaged,
+         * the packager will literally set this value to `true` when packaging regardless of settings.
+         */
+        this.isPackagedProject = false;
 
         /**
          * Contains information about the external communication methods that the scripts inside the project
@@ -626,6 +636,15 @@ class Runtime extends EventEmitter {
          * @type {Object}
          */
         this.variables = Object.create(null);
+
+        /**
+         * Part of a recreation of the TurboWarp extensionStorage
+         * API. The only real reason this is here is to make sure
+         * that extensions that only implement TurboWarp's store
+         * method don't break in PenguinMod.
+         * @type {Object<string, Object>}
+         */
+        this.extensionStorage = ExtensionStorage();
     }
 
     /**
@@ -1240,7 +1259,7 @@ class Runtime extends EventEmitter {
     registerExtensionAudioContext(extensionId, audioContext, gainNode) {
         if (typeof extensionId !== "string") throw new TypeError('Extension ID must be string');
         if (!extensionId) throw new Error('No extension ID specified'); // empty string
-        
+
         const obj = {};
         if (audioContext) {
             obj.audioContext = audioContext;
@@ -1311,7 +1330,7 @@ class Runtime extends EventEmitter {
             categoryInfo.color2 = defaultExtensionColors[1];
             categoryInfo.color3 = defaultExtensionColors[2];
         }
-        
+
         if (extensionInfo.isDynamic) {
             categoryInfo.isDynamic = extensionInfo.isDynamic;
             categoryInfo.orderBlocks = extensionInfo.orderBlocks;
@@ -1488,29 +1507,29 @@ class Runtime extends EventEmitter {
                 type: menuId,
                 inputsInline: true,
                 output: 'String',
-                colour: menuInfo.isTypeable 
-                    ? '#FFFFFF' 
+                colour: menuInfo.isTypeable
+                    ? '#FFFFFF'
                     : categoryInfo.color1,
-                colourSecondary: menuInfo.isTypeable 
-                    ? '#FFFFFF' 
+                colourSecondary: menuInfo.isTypeable
+                    ? '#FFFFFF'
                     : categoryInfo.color2,
-                colourTertiary: menuInfo.isTypeable 
-                    ? '#FFFFFF' 
+                colourTertiary: menuInfo.isTypeable
+                    ? '#FFFFFF'
                     : categoryInfo.color3,
                 outputShape: menuInfo.acceptReporters || menuInfo.isTypeable ?
                     ScratchBlocksConstants.OUTPUT_SHAPE_ROUND : ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE,
                 args0: [
-                    (typeof menuInfo.variableType !== 'undefined' ? 
+                    (typeof menuInfo.variableType !== 'undefined' ?
                         {
                             type: 'field_variable',
                             name: menuName,
-                            variableTypes: [menuInfo.variableType === 'scalar' 
-                                ? Variable.SCALAR_TYPE 
+                            variableTypes: [menuInfo.variableType === 'scalar'
+                                ? Variable.SCALAR_TYPE
                                 : menuInfo.variableType]
-                        } : (menuInfo.isTypeable ? 
+                        } : (menuInfo.isTypeable ?
                             {
-                                type: menuInfo.isNumeric 
-                                    ? 'field_numberdropdown' 
+                                type: menuInfo.isNumeric
+                                    ? 'field_numberdropdown'
                                     : 'field_textdropdown',
                                 name: menuName,
                                 options: menuItems
@@ -1587,7 +1606,7 @@ class Runtime extends EventEmitter {
             return this._convertSeparatorForScratchBlocks(blockInfo);
         }
 
-        if (blockInfo.blockType === BlockType.LABEL) 
+        if (blockInfo.blockType === BlockType.LABEL)
             return this._convertLabelForScratchBlocks(blockInfo);
 
         if (blockInfo.blockType === BlockType.BUTTON) {
@@ -1736,7 +1755,7 @@ class Runtime extends EventEmitter {
                 blockJSON.checkboxInFlyout = true;
             }
         }
-        if (blockInfo.blockType === BlockType.LOOP || ('branchIndicator' in blockInfo || 'branchIconURI' in blockInfo)) {
+        if ((blockInfo.blockType === BlockType.LOOP || ('branchIndicator' in blockInfo || 'branchIconURI' in blockInfo)) && blockInfo.branchIndicator !== "") {
             // Add icon to the bottom right of a loop block
             blockJSON[`lastDummyAlign${outLineNum}`] = 'RIGHT';
             blockJSON[`message${outLineNum}`] = '%1';
@@ -1769,11 +1788,12 @@ class Runtime extends EventEmitter {
             blockJSON.output = blockInfo.forceOutputType;
         }
 
-        const mutation = blockInfo.isDynamic 
-            ? `<mutation blockInfo="${xmlEscape.escapeAttribute(JSON.stringify(blockInfo))}"/>` 
+        const mutation = blockInfo.isDynamic
+            ? `<mutation blockInfo="${xmlEscape.escapeAttribute(JSON.stringify(blockInfo))}"/>`
             : '';
         const inputs = context.inputList.join('');
-        const blockXML = `<block type="${xmlEscape.escapeAttribute(extendedOpcode)}">${mutation}${inputs}</block>`;
+        const blockId = blockInfo.isSpriteSpecific ? `id="${xmlEscape.escapeAttribute(this.vm.editingTarget.id + '_' + extendedOpcode)}"` : '';
+        const blockXML = `<block type="${xmlEscape.escapeAttribute(extendedOpcode)}" ${blockId}>${mutation}${inputs}</block>`;
 
         return {
             info: context.blockInfo,
@@ -1822,10 +1842,10 @@ class Runtime extends EventEmitter {
     _convertButtonForScratchBlocks (buttonInfo) {
         const extensionMessageContext = this.makeMessageContextForTarget();
         const buttonText = xmlEscape.escapeAttribute(maybeFormatMessage(buttonInfo.text, extensionMessageContext));
-        const callback = xmlEscape.escapeAttribute(buttonInfo.opcode 
-            ? buttonInfo.opcode 
+        const callback = xmlEscape.escapeAttribute(buttonInfo.opcode
+            ? buttonInfo.opcode
             : buttonInfo.func);
-        
+
         return {
             info: buttonInfo,
             xml: `<button text="${buttonText}" callbackKey="${callback}"></button>`
@@ -1863,7 +1883,7 @@ class Runtime extends EventEmitter {
     }
 
     /**
-     * Helper for _convertPlaceholdes which handles variable dropdowns 
+     * Helper for _convertPlaceholdes which handles variable dropdowns
      * which are a specialized case of block "arguments".
      * @param {object} argInfo Metadata about the variable dropdown
      * @return {object} JSON blob for a scratch-blocks variable field.
@@ -1962,15 +1982,15 @@ class Runtime extends EventEmitter {
                     argJSON.type = isVariableGetter
                         ? 'field_variable_getter'
                         : 'field_variable';
-                    argJSON.variableTypes = [menuInfo.variableType === 'scalar' 
-                        ? Variable.SCALAR_TYPE 
+                    argJSON.variableTypes = [menuInfo.variableType === 'scalar'
+                        ? Variable.SCALAR_TYPE
                         : menuInfo.variableType];
                     argJSON.variableType = argJSON.variableTypes[0];
                     valueName = null;
                     shadowType = null;
                     fieldName = placeholder;
-                    variableType = menuInfo.variableType === 'scalar' 
-                        ? Variable.SCALAR_TYPE 
+                    variableType = menuInfo.variableType === 'scalar'
+                        ? Variable.SCALAR_TYPE
                         : menuInfo.variableType
                     const defaultVar = argInfo.defaultValue ?? [];
                     variableID = defaultVar[0];
@@ -1988,8 +2008,8 @@ class Runtime extends EventEmitter {
                 fieldName = (argTypeInfo.shadow && argTypeInfo.shadow.fieldName) || null;
             }
             // TODO: Allow fillIn to work with non-shadow.
-            if (argInfo.fillIn/* && argInfo.fillInShadow*/) {
-                shadowType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
+            if (argInfo.fillIn || argInfo.fillInGlobal/* && argInfo.fillInShadow*/) {
+                shadowType = argInfo.fillInGlobal || `${context.categoryInfo.id}_${argInfo.fillIn}`;
             }/* else if (argInfo.fillIn) {
                 blockType = `${context.categoryInfo.id}_${argInfo.fillIn}`;
             }*/
@@ -2004,7 +2024,7 @@ class Runtime extends EventEmitter {
             if (shadowType) {
                 context.inputList.push(`<shadow type="${xmlEscape.escapeAttribute(shadowType)}">`);
             }
-            
+
             // TODO: This doesnt seem to work properly with fillIn. Default to shadow for now.
             if (blockType) {
                 context.inputList.push(`<block type="${xmlEscape.escapeAttribute(blockType)}">`);
@@ -2027,7 +2047,7 @@ class Runtime extends EventEmitter {
                 // eslint-disable-next-line max-len
                 context.inputList.push(`<field name="${fieldName}" id="${variableID}" variableType="${variableType}">${variableName}</field>`);
             }
-            
+
             if (blockType) {
                 context.inputList.push('</block>');
             }
@@ -2075,7 +2095,7 @@ class Runtime extends EventEmitter {
                 return blockFilterIncludesTarget && !block.info.hideFromPalette;
             });
 
-            orderBlocks = orderBlocks 
+            orderBlocks = orderBlocks
                 ? orderBlocks
                 : blocks => blocks;
 
@@ -2274,7 +2294,7 @@ class Runtime extends EventEmitter {
             throw new TypeError('deserialize must be of type function');
         }
         this.serializers[id] = {
-            serialize, 
+            serialize,
             deserialize
         };
     }
@@ -2572,7 +2592,7 @@ class Runtime extends EventEmitter {
 
         for (const opts in optMatchFields) {
             if (!optMatchFields.hasOwnProperty(opts)) continue;
-            optMatchFields[opts] = optMatchFields[opts].toUpperCase();
+            optMatchFields[opts] = Cast.toString(optMatchFields[opts]).toUpperCase();
         }
 
         // tw: By assuming that all new threads will not interfere with eachother, we can optimize the loops
@@ -2702,7 +2722,7 @@ class Runtime extends EventEmitter {
                 const newVar = this.newVariableInstance(variable.type, ...variable.value);
                 // variable type doesnt exist, remove variable entirely
                 if (newVar.mustRecreate) {
-                    delete target.variable[varId];
+                    delete target.variables[varId];
                     continue;
                 }
                 target.variables[varId] = newVar;
@@ -3002,11 +3022,11 @@ class Runtime extends EventEmitter {
 
         let forceUpd = false;
         // if a custom type set _monitorUpToDate to false on an existing instance, we need to report that update to the gui
-        if (this._monitorState.some(item => 
-            typeof item.get('value') === 'object' && 
-            '_monitorUpToDate' in item.get('value') && 
+        if (this._monitorState.some(item =>
+            typeof item.get('value') === 'object' &&
+            '_monitorUpToDate' in item.get('value') &&
             !item.get('value')._monitorUpToDate
-        )) { 
+        )) {
             const old = this._monitorState;
             // make a new instance so redux detects this as different later on
             this._monitorState = this._monitorState.toOrderedMap();
@@ -3027,7 +3047,7 @@ class Runtime extends EventEmitter {
         if (this.interpolationEnabled) {
             this._lastStepTime = Date.now();
         }
-        
+
         // pm: RUNTIME_STEP_END runs after AFTER_EXECUTE
         this.emit(Runtime.RUNTIME_STEP_END);
     }
@@ -3271,8 +3291,8 @@ class Runtime extends EventEmitter {
         return null;
     }
 
-    parseProjectOptions () {
-        const comment = this.findProjectOptionsComment();
+    parseProjectOptions (optComment) {
+        const comment = optComment ?? this.findProjectOptionsComment();
         if (!comment) return;
         const lineWithMagic = comment.text.split('\n').find(i => i.endsWith(COMMENT_CONFIG_MAGIC));
         if (!lineWithMagic) {
@@ -3662,7 +3682,7 @@ class Runtime extends EventEmitter {
 
     /**
      * Report that the project has loaded in the Virtual Machine.
-     * and also handle the parsing of custom values to allow for 
+     * and also handle the parsing of custom values to allow for
      * minimal code when making cross-target refences
      */
     emitProjectLoaded () {
@@ -3761,12 +3781,12 @@ class Runtime extends EventEmitter {
                 scale: 1
             };
         }
-        this.cameraStates[screen] = state = 
+        this.cameraStates[screen] = state =
             Object.assign(this.cameraStates[screen], state);
         if (!silent ?? state.silent) this.emitCameraChanged(screen);
     }
     emitCameraChanged(screen) {
-        for (let i = 0; i < this.targets.length; i++) 
+        for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i].cameraBound === screen)
                 this.targets[i].cameraUpdateEvent();
         this.emit(Runtime.CAMERA_CHANGED, screen);
@@ -3825,10 +3845,14 @@ class Runtime extends EventEmitter {
         const block = categoryInfo.blocks.find(b => b.info.opcode === opcode);
         if (!block) return;
 
+        const categoryInstance = this[`ext_${category}`];
+        let labelFn = block.info.labelFn ? categoryInstance[block.info.labelFn] : undefined;
+
         // TODO: we may want to format the label in a locale-specific way.
         return {
-            category: 'extension', // This assumes that all extensions have the same monitor color.
-            label: `${categoryInfo.name}: ${block.info.text}`
+            category: block.info.color1 ?? categoryInfo.color1 ?? "extension",
+            label: block.info.label ?? `${categoryInfo.name}: ${block.info.text}`,
+            labelFn,
         };
     }
 

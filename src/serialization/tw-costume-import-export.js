@@ -27,6 +27,39 @@ const regex = new RegExp(
     `${HTML_COMMENT_START}rotationCenter:(-?[\\d\\.]+):(-?[\\d\\.]+)${HTML_COMMENT_END}$`
 );
 
+const uint8ToBase64 = function(uint8) {
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+        const chunk = uint8.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(binary);
+}
+
+/**
+ * @param {array} fonts array of fonts to compile
+ * @returns {string} css for directions to custom fonts
+ */
+const generateCustomFontsCSS = (fonts) => {
+    let fontCSS = '';
+    for (const font of fonts) {
+        const base64 = uint8ToBase64(font.asset.data);
+
+        // normalize format for browser compatibility
+        let format = font.asset.dataFormat.toLowerCase();
+        if (format === 'otf') format = 'opentype';
+        if (format === 'ttf') format = 'truetype';
+
+        fontCSS += "@font-face {";
+        fontCSS += `font-family: "${font.family}";`;
+        fontCSS += `src: url('data:font/${format};base64,${base64}') format('${format}');`;
+        fontCSS += "}";
+    }
+
+    return fontCSS;
+};
+
 /**
  * @param {string} svgString SVG source
  * @returns {[number, number]|null} The detected rotation center of the SVG, if any.
@@ -49,9 +82,10 @@ const parseVectorMetadata = svgString => {
 
 /**
  * @param {Costume} costume scratch-vm costume object
+ * @param {Boolean} optIncludeExtras determines if we add things like custom fonts to the export
  * @returns {Uint8Array} Binary data to export
  */
-const exportCostume = costume => {
+const exportCostume = (costume, optIncludeExtras) => {
     /** @type {Uint8Array} */
     const originalData = costume.asset.data;
 
@@ -68,6 +102,17 @@ const exportCostume = costume => {
     const centerY = costume.rotationCenterY;
     const extraData = `${HTML_COMMENT_START}rotationCenter:${centerX}:${centerY}${HTML_COMMENT_END}`;
     decodedData += extraData;
+
+    if (optIncludeExtras && vm?.runtime?.fontManager?.fonts) {
+        const fonts = vm.runtime.fontManager.fonts.filter(f => !f.system)
+            .filter(f => decodedData.includes(`font-family="&quot;${f.family}&quot;, ${f.fallback}"`))
+
+        const cssText = generateCustomFontsCSS(fonts);
+        if (cssText) {
+            const styleElement = `<style type="text/css">${cssText}</style>`;
+            decodedData = decodedData.replace(new RegExp(`<svg[^>]*?>`), match => `${match}${styleElement}`);
+        }
+    }
 
     return new _TextEncoder().encode(decodedData);
 };

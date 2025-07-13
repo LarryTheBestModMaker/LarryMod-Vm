@@ -9,6 +9,7 @@ const BlocksRuntimeCache = require('./blocks-runtime-cache');
 const log = require('../util/log');
 const Variable = require('./variable');
 const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
+const StringUtil = require('../util/string-util');
 
 /**
  * @fileoverview
@@ -88,7 +89,7 @@ class Blocks {
              * @type {object.<string, object>}
              */
             compiledScripts: {},
-            
+
             /**
              * tw: A cache of procedure code opcodes to a parsed intermediate representation
              * @type {object.<string, object>}
@@ -474,9 +475,11 @@ class Blocks {
             // into a state where a local var was requested for the stage,
             // create a stage (global) var after checking for name conflicts
             // on all the sprites.
+                
             if (e.isLocal && editingTarget && !editingTarget.isStage && !e.isCloud) {
                 if (!editingTarget.lookupVariableById(e.varId)) {
                     editingTarget.createVariable(e.varId, e.varName, e.varType);
+                    this.runtime.emit('variableCreate', e.varType, e.varId, e.varName, e.isCloud);
                     this.emitProjectChanged();
                 }
             } else {
@@ -513,7 +516,7 @@ class Blocks {
                     currTarget.blocks.updateBlocksAfterVarRename(e.varId, e.newName);
                 }
             }
-            this.runtime.emit('variableChange', e.varType, e.varId, e.varName);
+            this.runtime.emit('variableChange', e.varType, e.varId, e.newName, e.oldName);
             this.emitProjectChanged();
             break;
         case 'var_delete': {
@@ -675,16 +678,6 @@ class Blocks {
         if (typeof block === 'undefined') return;
         switch (args.element) {
         case 'field':
-            // TODO when the field of a monitored block changes,
-            // update the checkbox in the flyout based on whether
-            // a monitor for that current combination of selected parameters exists
-            // e.g.
-            // 1. check (current [v year])
-            // 2. switch dropdown in flyout block to (current [v minute])
-            // 3. the checkbox should become unchecked if we're not already
-            //    monitoring current minute
-
-
             // Update block value
             if (!block.fields[args.name]) return;
             const field = block.fields[args.name];
@@ -717,6 +710,30 @@ class Blocks {
                         id: flyoutBlock.id,
                         params: this._getBlockParams(flyoutBlock)
                     }));
+                }
+            }
+
+            // update the checkbox state if monitoring
+            // TODO theres probably a better way to check for ScratchBlocks here
+            // but it fixes the problem so whatever
+            if (typeof ScratchBlocks === 'object') {
+                // check if monitoring
+                const monitorState = this.runtime.getMonitorState();
+                const shouldCheck = (
+                    monitorState.get(`${args.id}_${args.value}`) !== undefined ||
+                    monitorState.get(`${args.id}_${args.value.toLowerCase()}`) !== undefined
+                );
+
+                const workspace = ScratchBlocks.mainWorkspace;
+                const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
+                const checkbox = flyout.checkboxes_[args.id];
+                if (checkbox) {
+                    checkbox.clicked = shouldCheck;
+                    if (shouldCheck) {
+                        ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
+                    } else {
+                        ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
+                    }
                 }
             }
             break;
@@ -756,11 +773,29 @@ class Blocks {
                 isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.VARIABLE.id]);
             } else if (block.opcode === 'data_listcontents') {
                 isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.LIST.id]);
+            } else {
+                isSpriteLocalVariable = Object.values(block.fields).some(field => {
+                    if (field.variableType === undefined) return false;
+                    else return ("id" in field) && !(this.runtime.getTargetForStage().variables[field.id]);
+                });
             }
+
+            // Provides an API for extensions to set reporters of themselves (that can be monitored)
+            // as sprite-specific
+            var extension_sprite_specific = ((info) => {
+                if (info == undefined) return false;
+                const block_info = info.blocks.find(_block => {
+                    return _block.info.opcode === StringUtil.splitFirst(block.opcode, "_")[1];
+                });
+                return block_info?.info?.isSpriteSpecific ?? false;
+            })(vm.runtime._blockInfo.find(a => a.id === StringUtil.splitFirst(block.opcode, "_")[0]));
+
 
             const isSpriteSpecific = isSpriteLocalVariable ||
                 (this.runtime.monitorBlockInfo.hasOwnProperty(block.opcode) &&
-                this.runtime.monitorBlockInfo[block.opcode].isSpriteSpecific);
+                this.runtime.monitorBlockInfo[block.opcode]?.isSpriteSpecific) ||
+                extension_sprite_specific;
+
             if (isSpriteSpecific) {
                 // If creating a new sprite specific monitor, the only possible target is
                 // the current editing one b/c you cannot dynamically create monitors.
@@ -783,7 +818,9 @@ class Blocks {
                         params: this._getBlockParams(block),
                         // @todo(vm#565) for numerical values with decimals, some countries use comma
                         value: '',
-                        mode: block.opcode === 'data_listcontents' ? 'list' : 'default'
+                        mode: block.opcode === 'data_listcontents' ? 'list' : 'default',
+                        variableType: Object.values(block.fields)[0]?.variableType,
+                        variableId: Object.values(block.fields)[0]?.id
                     }));
                 }
             }
@@ -901,7 +938,7 @@ class Blocks {
      * Block management: delete blocks and their associated scripts. Does nothing if a block
      * with the given ID does not exist.
      * @param {!string} blockId Id of block to delete
-     * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block 
+     * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block
      */
     deleteBlock (blockId, preserveStack) {
         // @todo In runtime, stop threads running on this script.
@@ -1351,6 +1388,8 @@ class Blocks {
         // Update `topLevel` property on the top block.
         if (this._blocks[topBlockId]) this._blocks[topBlockId].topLevel = false;
     }
+    XMLToBlock = adapter;
+    XMLToMutation = mutationAdapter;
 }
 
 /**

@@ -19,7 +19,9 @@ const RenderedTarget = require('./sprites/rendered-target');
 const StageLayering = require('./engine/stage-layering');
 const Sprite = require('./sprites/sprite');
 const Blocks = require('./engine/blocks');
+const Comment = require('./engine/comment.js');
 const formatMessage = require('format-message');
+const ExtensionStorage = require('./util/deprecated-extension-storage.js');
 
 const Variable = require('./engine/variable');
 const newBlockIds = require('./util/new-block-ids');
@@ -242,7 +244,7 @@ class VirtualMachine extends EventEmitter {
         this.addListener('workspaceUpdate', () => {
             this.extensionManager.refreshDynamicCategorys();
         });
-        
+
         /**
          * Export some internal classes for extensions.
          */
@@ -256,11 +258,38 @@ class VirtualMachine extends EventEmitter {
             loadCostume,
             loadSound,
             Blocks,
+            Comment,
             StageLayering,
             Variable,
             Thread: require('./engine/thread.js'),
-            execute: require('./engine/execute.js')
+            execute: require('./engine/execute.js'),
+            centralDispatch
         };
+
+        /**
+         * For comptatibility with TurboWarp's
+         * i_will_not_ask_for_help_when_these_break export.
+         */
+        this.exports.i_will_not_ask_for_help_when_these_break = () => {
+            console.info(
+                'Note on i_will_not_ask_for_help_when_these_break: this function is ' +
+                'only included for compatibility with TurboWarp, and you should avoid ' +
+                'using it when possible.\n' +
+                'All indexes are able to be accessed from the regular vm.exports ' +
+                'property. Below is a map of all elements here to their vm.exports ' +
+                'counterpart:\n' +
+                'IRGenerator -> IRGenerator\nJSGenerator -> JSGenerator\nThread -> Thread\n' +
+                'execute -> execute\n' +
+                'ScriptTreeGenerator -> IRGenerator.exports.ScriptTreeGenerator'
+            );
+            return {
+                IRGenerator,
+                JSGenerator,
+                ScriptTreeGenerator: IRGenerator.exports.ScriptTreeGenerator,
+                Thread: this.exports.Thread,
+                execute: this.exports.execute
+            }
+        }
     }
 
     /**
@@ -466,18 +495,25 @@ class VirtualMachine extends EventEmitter {
                     return resolve([json, sb1.zip]);
                 }
 
-                // if it isnt a zip, maby its the project.json in ArrayBuffer form
-                if (tag.slice(0, 2) !== 'PK') {
-                    const decoder = new TextDecoder('UTF-8');
-                    input = decoder.decode(input);
-                }
-                if (typeof input === 'string') 
-                    input = JSON.parse(input);
+                if (typeof input === 'string') input = JSON.parse(input);
                 // generic objects return [object Object] on stringify
                 if (input.toString() === '[object Object]') {
                     input.projectVersion = this.isSB2(input) ? 2 : 3;
                     return resolve([input, null]);
                 }
+                if (tag.slice(0, 2) !== 'PK') {
+                    // if it isnt a zip, maby its the project.json in ArrayBuffer form
+                    const decoder = new TextDecoder('UTF-8');
+                    input = decoder.decode(input);
+
+                    if (typeof input === 'string') input = JSON.parse(input);
+                    // generic objects return [object Object] on stringify
+                    if (input.toString() === '[object Object]') {
+                        input.projectVersion = this.isSB2(input) ? 2 : 3;
+                        return resolve([input, null]);
+                    }
+                }
+
                 const zip = await JSZip.loadAsync(input);
                 const proj = zip.file('project.json');
                 if (!proj) return reject('No project.json file inside the given project');
@@ -542,6 +578,22 @@ class VirtualMachine extends EventEmitter {
         const date = new Date(1591657163000);
         for (const file of Object.values(zip.files)) {
             file.date = date;
+        }
+
+        // Tell JSZip to only compress file formats where there will be a significant gain.
+        const COMPRESSABLE_FORMATS = [
+            '.json',
+            '.svg',
+            '.wav',
+            '.ttf',
+            '.otf'
+        ];
+        for (const file of Object.values(zip.files)) {
+            if (COMPRESSABLE_FORMATS.some(ext => file.name.endsWith(ext))) {
+                file.options.compression = 'DEFLATE';
+            } else {
+                file.options.compression = 'STORE';
+            }
         }
         return zip;
     }
@@ -769,19 +821,51 @@ class VirtualMachine extends EventEmitter {
         targets = targets.filter(target => !!target);
 
         return this._loadExtensions(extensions.extensionIDs, extensions.extensionURLs).then(() => {
+            const deprecated_extensionStorage = {};
             for (const extension of extensions.extensionIDs) {
-                if (`ext_${extension}` in this.runtime) {
-                    if ((typeof this.runtime[`ext_${extension}`].deserialize === 'function') && 
-                        extensions.extensionData[extension]) {
-                        this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
-                    }
+                if (!extensions.extensionData[extension]) continue;
+                if (
+                    `ext_${extension}` in this.runtime &&
+                    typeof this.runtime[`ext_${extension}`].deserialize === 'function'
+                ) {
+                    this.runtime[`ext_${extension}`].deserialize(extensions.extensionData[extension]);
+                    continue;
                 }
+                deprecated_extensionStorage[extension] = extensions.extensionData[extension];
             }
+            if (deprecated_extensionStorage)
+                this.runtime.extensionStorage = ExtensionStorage(deprecated_extensionStorage);
+
             targets.forEach(target => {
                 this.runtime.addTarget(target);
                 (/** @type RenderedTarget */ target).updateAllDrawableProperties();
                 // Ensure unique sprite name
                 if (target.isSprite()) this.renameSprite(target.id, target.getName());
+
+                if (!("extensionData" in target)) return;
+
+                const deprecated_extensionStorage_pertarget = {};
+
+                for (const extension of extensions.extensionIDs) {
+                    if (!(extension in target.extensionData)) continue;
+
+                    if (
+                        `ext_${extension}` in this.runtime &&
+                        typeof this.runtime[`ext_${extension}`].deserializeForTarget === 'function'
+                    ) {
+                        this.runtime[`ext_${extension}`].deserializeForTarget(
+                            target.extensionData[extension],
+                            target,
+                        );
+                        continue;
+                    }
+                    deprecated_extensionStorage_pertarget[extension] = target.extensionData[extension];
+                }
+
+                if (deprecated_extensionStorage)
+                    target.extensionStorage = ExtensionStorage(deprecated_extensionStorage_pertarget);
+
+                delete target["extensionData"]
             });
             // Sort the executable targets by layerOrder.
             // Remove layerOrder property after use.
@@ -1100,7 +1184,7 @@ class VirtualMachine extends EventEmitter {
      * @return {AudioBuffer} the sound's audio buffer.
      */
     getSoundBuffer (soundIndex) {
-        const id = this.editingTarget.sprite.sounds[soundIndex].soundId;
+        const id = this.editingTarget.sprite.sounds[soundIndex]?.soundId;
         if (id && this.runtime && this.runtime.audioEngine) {
             return this.editingTarget.sprite.soundBank.getSoundPlayer(id).buffer;
         }
@@ -1192,19 +1276,21 @@ class VirtualMachine extends EventEmitter {
     /**
      * TW: Get the raw binary data to use when exporting a costume to the user's local file system.
      * @param {Costume} costumeObject scratch-vm costume object
+     * @param {Boolean} determines wether to add assets like fonts or not
      * @returns {Uint8Array}
      */
-    getExportedCostume (costumeObject) {
-        return exportCostume(costumeObject);
+    getExportedCostume (costumeObject, optIncludeExtras) {
+        return exportCostume(costumeObject, optIncludeExtras);
     }
 
     /**
      * TW: Get a base64 string to use when exporting a costume to the user's local file system.
      * @param {Costume} costumeObject scratch-vm costume object
+     * @param {Boolean} determines wether to add assets like fonts or not
      * @returns {string} base64 string. Not a data: URI.
      */
-    getExportedCostumeBase64 (costumeObject) {
-        const binaryData = this.getExportedCostume(costumeObject);
+    getExportedCostumeBase64 (costumeObject, optIncludeExtras) {
+        const binaryData = this.getExportedCostume(costumeObject, optIncludeExtras);
         return Base64Util.uint8ArrayToBase64(binaryData);
     }
 

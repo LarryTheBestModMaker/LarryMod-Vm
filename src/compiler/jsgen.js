@@ -35,6 +35,10 @@ const TYPE_NUMBER_NAN = 5;
 const PEN_EXT = 'runtime.ext_pen';
 const PEN_STATE = `${PEN_EXT}._getPenState(target)`;
 
+// Math-related constants
+const TO_RADIAN = Math.PI / 180;
+const TO_DEGREE = 180 / Math.PI;
+
 /**
  * Variable pool used for factory function names.
  */
@@ -94,7 +98,7 @@ class TypedInput {
         if (this.type === TYPE_STRING) return `${this.source} === 'false' || ${this.source} === '0' ? false : true`;
         if (this.type === TYPE_NUMBER) return `${this.source} !== 0`;
         if (this.type === TYPE_NUMBER_NAN) return `(${this.source} || 0) !== 0`;
-        
+
         return this.source;
     }
 
@@ -436,8 +440,11 @@ class JSGenerator {
         PEN_STATE,
         factoryNameVariablePool,
         functionNameVariablePool,
-        generatorNameVariablePool
+        generatorNameVariablePool,
+        sanitize,
     }
+
+    static unstable_exports = JSGenerator.exports;
 
     static _extensionJSInfo = {};
     static setExtensionJs(id, data) {
@@ -554,7 +561,7 @@ class JSGenerator {
                     .replace(yn, this.descendInput(point.y).asNumber());
             }
             return new TypedInput(points, TYPE_UNKNOWN);
-            
+
         case 'control.inlineStackOutput': {
             // reset this.source but save it
             const originalSource = this.source;
@@ -644,14 +651,14 @@ class JSGenerator {
             return new TypedInput('runtime.ioDevices.mouse.getScratchX()', TYPE_NUMBER);
         case 'mouse.y':
             return new TypedInput('runtime.ioDevices.mouse.getScratchY()', TYPE_NUMBER);
-            
+
         case 'op.true':
             return new TypedInput('(true)', TYPE_BOOLEAN);
         case 'op.false':
             return new TypedInput('(false)', TYPE_BOOLEAN);
         case 'op.randbool':
             return new TypedInput('(Boolean(Math.round(Math.random())))', TYPE_BOOLEAN);
-            
+
         case 'pmEventsExpansion.broadcastFunction':
             // we need to do function otherwise this block would be stupidly long
             let source = '(yield* (function*() {';
@@ -721,7 +728,7 @@ class JSGenerator {
             return new TypedInput(`Math.abs(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
         case 'op.acos':
             // Needs to be marked as NaN because Math.acos(1.0001) === NaN
-            return new TypedInput(`((Math.acos(${this.descendInput(node.value).asNumber()}) * 180) / Math.PI)`, TYPE_NUMBER_NAN);
+            return new TypedInput(`(Math.acos(${this.descendInput(node.value).asNumber()}) * ${TO_DEGREE})`, TYPE_NUMBER_NAN);
         case 'op.add':
             // Needs to be marked as NaN because Infinity + -Infinity === NaN
             return new TypedInput(`(${this.descendInput(node.left).asNumber()} + ${this.descendInput(node.right).asNumber()})`, TYPE_NUMBER_NAN);
@@ -729,9 +736,9 @@ class JSGenerator {
             return new TypedInput(`(${this.descendInput(node.left).asBoolean()} && ${this.descendInput(node.right).asBoolean()})`, TYPE_BOOLEAN);
         case 'op.asin':
             // Needs to be marked as NaN because Math.asin(1.0001) === NaN
-            return new TypedInput(`((Math.asin(${this.descendInput(node.value).asNumber()}) * 180) / Math.PI)`, TYPE_NUMBER_NAN);
+            return new TypedInput(`(Math.asin(${this.descendInput(node.value).asNumber()}) * ${TO_DEGREE})`, TYPE_NUMBER_NAN);
         case 'op.atan':
-            return new TypedInput(`((Math.atan(${this.descendInput(node.value).asNumber()}) * 180) / Math.PI)`, TYPE_NUMBER);
+            return new TypedInput(`(Math.atan(${this.descendInput(node.value).asNumber()}) * ${TO_DEGREE})`, TYPE_NUMBER);
         case 'op.ceiling':
             return new TypedInput(`Math.ceil(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
         case 'op.contains':
@@ -740,9 +747,9 @@ class JSGenerator {
             // pm: optimizations allow us to use a premade list for sin values on integers
             if (this.isOptimized) {
                 const value = `${this.descendInput(node.value).asNumber()}`;
-                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.cos[((${value} % 360) + 360) % 360] : (Math.round(Math.cos((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
+                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.cos[((${value} % 360) + 360) % 360] : (Math.round(Math.cos(${value} * ${TO_RADIAN}) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
             }
-            return new TypedInput(`(Math.round(Math.cos((Math.PI * ${this.descendInput(node.value).asNumber()}) / 180) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
+            return new TypedInput(`(Math.round(Math.cos(${this.descendInput(node.value).asNumber()} * ${TO_RADIAN}) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
         case 'op.divide':
             // Needs to be marked as NaN because 0 / 0 === NaN
             return new TypedInput(`(${this.descendInput(node.left).asNumber()} / ${this.descendInput(node.right).asNumber()})`, TYPE_NUMBER_NAN);
@@ -858,9 +865,9 @@ class JSGenerator {
             // pm: optimizations allow us to use a premade list for sin values on integers
             if (this.isOptimized) {
                 const value = `${this.descendInput(node.value).asNumber()}`;
-                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.sin[((${value} % 360) + 360) % 360] : (Math.round(Math.sin((Math.PI * ${value}) / 180) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
+                return new TypedInput(`(Number.isInteger(${value}) ? runtime.optimizationUtil.sin[((${value} % 360) + 360) % 360] : (Math.round(Math.sin(${value} * ${TO_RADIAN}) * 1e10) / 1e10))`, TYPE_NUMBER_NAN);
             }
-            return new TypedInput(`(Math.round(Math.sin((Math.PI * ${this.descendInput(node.value).asNumber()}) / 180) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
+            return new TypedInput(`(Math.round(Math.sin(${this.descendInput(node.value).asNumber()} * ${TO_RADIAN}) * 1e10) / 1e10)`, TYPE_NUMBER_NAN);
         case 'op.sqrt':
             // Needs to be marked as NaN because Math.sqrt(-1) === NaN
             return new TypedInput(`Math.sqrt(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER_NAN);
@@ -944,7 +951,7 @@ class JSGenerator {
         case 'sensing.username':
             return new TypedInput('runtime.ioDevices.userData.getUsername()', TYPE_STRING);
         case 'sensing.loggedin':
-            return new TypedInput('runtime.ioDevices.userData.getLoggedIn()', TYPE_STRING);
+            return new TypedInput('runtime.ioDevices.userData.getLoggedIn()', TYPE_BOOLEAN);
         case 'sensing.year':
             return new TypedInput(`(new Date().getFullYear())`, TYPE_NUMBER);
 
@@ -956,7 +963,7 @@ class JSGenerator {
 
         case 'var.get':
             return this.descendVariable(node.variable);
-                
+
         case 'procedures.call': {
             const procedureCode = node.code;
             const procedureVariant = node.variant;
@@ -998,14 +1005,14 @@ class JSGenerator {
 
         case 'tempVars.get': {
             const name = this.descendInput(node.var);
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
-            const code = this.isOptimized 
-                ? `${hostObj}[${name.asString()}]` 
-                : `get(${hostObj}, ${name.asString()})`; 
+            const code = this.isOptimized
+                ? `${hostObj}[${name.asString()}]`
+                : `get(${hostObj}, ${name.asString()})`;
             if (environment.supportsNullishCoalescing) {
                 return new TypedInput(`(${code} ?? "")`, TYPE_UNKNOWN);
             }
@@ -1013,21 +1020,21 @@ class JSGenerator {
         }
         case 'tempVars.exists': {
             const name = this.descendInput(node.var);
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
-            const code = this.isOptimized 
-                ? `${name.asString()} in ${hostObj}` 
-                : `includes(${hostObj}, ${name.asString()})`; 
+            const code = this.isOptimized
+                ? `${name.asString()} in ${hostObj}`
+                : `includes(${hostObj}, ${name.asString()})`;
             return new TypedInput(code, TYPE_BOOLEAN);
         }
         case 'tempVars.all':
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
             if (node.runtime || node.thread) {
                 return new TypedInput(`Object.keys(${hostObj}).join(',')`, TYPE_STRING);
@@ -1321,7 +1328,7 @@ class JSGenerator {
             const stage = 'runtime.getTargetForStage()';
             const sprite = this.descendInput(node.sprite).asString();
             const isStage = sprite === '"_stage_"';
-            
+
             // save the original target
             const originalTarget = this.localVariables.next();
             this.source += `const ${originalTarget} = target;\n`;
@@ -1417,9 +1424,9 @@ class JSGenerator {
             const list = this.referenceVariable(node.list);
             const set = this.descendVariable(node.variable);
             const to = node.num ? 'index + 1' : 'value';
-            this.source += 
-            `for (let index = 0; index < ${list}.value.length; index++) {` + 
-                `const value = ${list}.value[index];` + 
+            this.source +=
+            `for (let index = 0; index < ${list}.value.length; index++) {` +
+                `const value = ${list}.value[index];` +
                 `${set.source} = ${to};`;
             this.descendStack(node.do, new Frame(true, 'list.forEach'));
             this.source += `};\n`;
@@ -1481,7 +1488,7 @@ class JSGenerator {
         case 'list.show':
             this.source += `runtime.monitorBlocks.changeBlock({ id: "${sanitize(node.list.id)}", element: "checkbox", value: true }, runtime);\n`;
             break;
-        
+
         case 'list.filter':
             this.source += `${this.referenceVariable(node.list)}.value = ${this.referenceVariable(node.list)}.value.filter(function* (item, index) {`;
             this.source += `    runtime.ext_scratch3_data._listFilterItem = item;`;
@@ -1525,19 +1532,32 @@ class JSGenerator {
             break;
         case 'looks.targetFront':
             if (!this.target.isStage) {
-                const reqTarget = this.target.runtime.getSpriteTargetByName(node.layers.value);
-                if (reqTarget) {
-                    this.source += `target.goBehindOther(${JSON.stringify(reqTarget)});\n`;
-                    this.source += `target.goForwardLayers(1);\n`;
-                }
+                const name = this.descendInput(node.layers).asString();
+                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
+                const targetLayer = this.localVariables.next();
+                const myLayer = this.localVariables.next();
+
+                this.source += `if (${objRefTarg}) {\n`;
+                this.source += `const ${myLayer} = target.getLayerOrder();\n`;
+                this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
+                this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
+                this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer} + 1);\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.targetBack':
             if (!this.target.isStage) {
-                const reqTarget = this.target.runtime.getSpriteTargetByName(node.layers.value);
-                if (reqTarget && reqTarget.getLayerOrder() < this.target.getLayerOrder()) {
-                    this.source += `target.goBehindOther(${JSON.stringify(reqTarget)});\n`;
-                }
+                const name = this.descendInput(node.layers).asString();
+                const objRefTarg = this.evaluateOnce(`runtime.getSpriteTargetByName(${name})`);
+                const targetLayer = this.localVariables.next();
+                const myLayer = this.localVariables.next();
+
+                this.source += `if (${objRefTarg}) {\n`;
+                this.source += `const ${myLayer} = target.getLayerOrder();\n`;
+                this.source += `const ${targetLayer} = ${objRefTarg}.getLayerOrder();\n`;
+                this.source += `if (${targetLayer} > ${myLayer}) target.goForwardLayers(${targetLayer} - ${myLayer} - 1);\n`;
+                this.source += `else target.goForwardLayers(${targetLayer} - ${myLayer});\n`;
+                this.source += `}\n`;
             }
             break;
         case 'looks.hide':
@@ -1656,7 +1676,7 @@ class JSGenerator {
             this.source += `${PEN_EXT}._penUp(target);\n`;
             break;
 
-        case 'procedures.return': 
+        case 'procedures.return':
             this.source += `return ${this.descendInput(node.return).asUnknown()};`;
             break;
         case 'procedures.call': {
@@ -1726,7 +1746,7 @@ class JSGenerator {
             // blocks like legacy no-ops can return a literal `undefined`
             this.source += `if (${value} !== undefined) runtime.visualReport("${sanitize(this.script.topBlockId)}", ${value});\n`;
             break;
-        }        
+        }
         case 'sensing.set.of': {
             const object = this.descendInput(node.object).asString();
             const value = this.descendInput(node.value);
@@ -1751,14 +1771,14 @@ class JSGenerator {
                 this.source += `${objectReference}.setDirection(${value.asNumber()});`;
                 break;
             case 'costume':
-                const costume = value.type === TYPE_NUMBER 
-                    ? value.asNumber() 
+                const costume = value.type === TYPE_NUMBER
+                    ? value.asNumber()
                     : value.asString();
                 this.source += `runtime.ext_scratch3_looks._setCostume(${objectReference}, ${costume});`;
                 break;
             case 'backdrop':
-                const backdrop = value.type === TYPE_NUMBER 
-                    ? value.asNumber() 
+                const backdrop = value.type === TYPE_NUMBER
+                    ? value.asNumber()
                     : value.asString();
                 this.source += `runtime.ext_scratch3_looks._setBackdrop(${objectReference}, ${backdrop});`;
                 break;
@@ -1777,33 +1797,33 @@ class JSGenerator {
         case 'tempVars.set': {
             const name = this.descendInput(node.var);
             const val = this.descendInput(node.val);
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
-            this.source += this.isOptimized  
-                ? `${hostObj}[${name.asString()}] = ${val.asUnknown()};` 
-                : `set(${hostObj}, ${name.asString()}, ${val.asUnknown()});`; 
+            this.source += this.isOptimized
+                ? `${hostObj}[${name.asString()}] = ${val.asUnknown()};`
+                : `set(${hostObj}, ${name.asString()}, ${val.asUnknown()});`;
             break;
         }
         case 'tempVars.delete': {
             const name = this.descendInput(node.var);
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
-            this.source += this.isOptimized  
-                ? `delete ${hostObj}[${name.asString()}];` 
-                : `remove(${hostObj}, ${name.asString()});`;  
+            this.source += this.isOptimized
+                ? `delete ${hostObj}[${name.asString()}];`
+                : `remove(${hostObj}, ${name.asString()});`;
             break;
         }
         case 'tempVars.deleteAll': {
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
             this.source += `${hostObj} = Object.create(null);`;
             break;
@@ -1811,18 +1831,18 @@ class JSGenerator {
         case 'tempVars.forEach': {
             const name = this.descendInput(node.var);
             const loops = this.descendInput(node.loops);
-            const hostObj = node.runtime 
-                ? 'runtime.variables' 
-                : node.thread 
-                    ? 'thread.variables' 
+            const hostObj = node.runtime
+                ? 'runtime.variables'
+                : node.thread
+                    ? 'thread.variables'
                     : 'tempVars';
-            const rootVar = this.localVariables.next(); 
-            const keyVar = this.localVariables.next(); 
-            const index = this.isOptimized  
-                ? `${hostObj}[${name.asString()}]` 
-                : `${rootVar}[${keyVar}]`; 
-            if (!this.isOptimized)  
-                this.source += `const [${rootVar},${keyVar}] = _resolveKeyPath(${hostObj}, ${name.asString()}); `; 
+            const rootVar = this.localVariables.next();
+            const keyVar = this.localVariables.next();
+            const index = this.isOptimized
+                ? `${hostObj}[${name.asString()}]`
+                : `${rootVar}[${keyVar}]`;
+            if (!this.isOptimized)
+                this.source += `const [${rootVar},${keyVar}] = _resolveKeyPath(${hostObj}, ${name.asString()}); `;
             this.source += `${index} = 0; `;
             this.source += `while (${index} < ${loops.asNumber()}) { `;
             this.source += `${index}++;\n`;

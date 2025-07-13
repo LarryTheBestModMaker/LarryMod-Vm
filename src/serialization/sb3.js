@@ -136,7 +136,7 @@ const ExtensionPatches = {
         let blocks = object.blocks;
         const blockIDs = Object.keys(blocks);
         const patcher = extensions.patcher;
-        
+
         for (let block, idx = 0; idx < blockIDs.length; idx++) {
             block = blocks[blockIDs[idx]];
             if (typeof block !== 'object' || Array.isArray(block)) continue;
@@ -145,7 +145,7 @@ const ExtensionPatches = {
                 block.opcode = uniteReplacments[block.opcode];
                 if (block.opcode === 'sensing_regextest' || block.opcode === 'operator_regexmatch') {
                     block.inputs.regrule = [
-                        INPUT_SAME_BLOCK_SHADOW, 
+                        INPUT_SAME_BLOCK_SHADOW,
                         [TEXT_PRIMITIVE, "g"]
                     ];
                 }
@@ -158,7 +158,7 @@ const ExtensionPatches = {
                 }
                 blocks = Object.assign(blocks, Clone.simple(replacersPatch.blocks));
                 object.variables = Object.assign(object.variables, Clone.simple(replacersPatch.variables));
-                const repBlock = block.opcode === 'jwUnite_setReplacer' 
+                const repBlock = block.opcode === 'jwUnite_setReplacer'
                     ? "setReplacerToDisplay"
                     : "replaceWithReplacersDisplay";
                 const replacment = Clone.simple(replacersPatch.blocks[repBlock]);
@@ -554,16 +554,16 @@ const serializeCostume = function (costume) {
 
     obj.bitmapResolution = costumeToSerialize.bitmapResolution;
     obj.dataFormat = costumeToSerialize.dataFormat.toLowerCase();
-    
+
     obj.assetId = costumeToSerialize.assetId;
-    
+
     // serialize this property with the name 'md5ext' because that's
     // what it's actually referring to. TODO runtime objects need to be
     // updated to actually refer to this as 'md5ext' instead of 'md5'
     // but that change should be made carefully since it is very
     // pervasive
     obj.md5ext = costumeToSerialize.md5;
-    
+
     obj.rotationCenterX = costumeToSerialize.rotationCenterX;
     obj.rotationCenterY = costumeToSerialize.rotationCenterY;
 
@@ -578,7 +578,7 @@ const serializeCostume = function (costume) {
 const serializeSound = function (sound) {
     const obj = Object.create(null);
     obj.name = sound.name;
-    
+
     const soundToSerialize = sound.broken || sound;
 
     obj.assetId = soundToSerialize.assetId;
@@ -655,23 +655,27 @@ const serializeVariables = function (obj, runtime, variables) {
     obj.customVars = [];
     for (const varId in variables) {
         const v = variables[varId];
-        if (v.type === Variable.BROADCAST_MESSAGE_TYPE) {
-            obj.broadcasts[varId] = v.value; // name and value is the same for broadcast msgs
-            continue;
+
+        switch (v.type) {
+            case Variable.BROADCAST_MESSAGE_TYPE:
+                obj.broadcasts[varId] = v.value; // name and value is the same for broadcast msgs
+                break;
+            case Variable.LIST_TYPE:
+                obj.lists[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
+                break;
+            case Variable.SCALAR_TYPE:
+                obj.variables[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
+                if (v.isCloud) obj.variables[varId].push(true);
+                break;
+            default:
+                const info = v.serialize();
+                const variable_object = {
+                    type: v.type,
+                    id: varId,
+                    info,
+                };
+                obj.customVars.push(variable_object);
         }
-        if (v.type === Variable.LIST_TYPE) {
-            obj.lists[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
-            continue;
-        }
-        if (v.type === Variable.SCALAR_TYPE) {
-            obj.variables[varId] = [v.name, makeSafeForJSON(runtime, v.value)];
-            if (v.isCloud) obj.variables[varId].push(true);
-            continue;
-        }
-        // else custom variable type
-        const varInfo = v.serialize();
-        varInfo.unshift(v.type);
-        obj.customVars.push(varInfo);
     }
 };
 
@@ -737,6 +741,26 @@ const serializeTarget = function (runtime, target) {
         obj.rotationStyle = target.rotationStyle;
     }
 
+    const extensions = getExtensionIDs(runtime);
+    const extensionData = {};
+    for (let extension of extensions) {
+        if (
+            `ext_${extension}` in runtime &&
+            (typeof runtime[`ext_${extension}`].serializeForTarget === 'function')
+        ) {
+            extensionData[extension] = runtime[`ext_${extension}`].serializeForTarget(target);
+            continue;
+        }
+        if (extension in (target.extensionStorage ?? {})) {
+            extensionData[extension] = target.extensionStorage[extension];
+            continue;
+        }
+
+    }
+    if (extensionData) {
+        obj.extensionData = extensionData;
+    }
+
     return obj;
 };
 
@@ -768,7 +792,9 @@ const serializeMonitors = function (monitors, runtime) {
                 height: monitorData.height,
                 x: monitorData.x - xOffset,
                 y: monitorData.y - yOffset,
-                visible: monitorData.visible
+                visible: monitorData.visible,
+                variableType: monitorData.variableType,
+                variableId: monitorData.variableId
             };
             if (monitorData.mode !== 'list') {
                 serializedMonitor.sliderMin = monitorData.sliderMin;
@@ -791,9 +817,11 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
     // Create extension set to hold extension ids found while serializing targets
     const extensions = getExtensionIDs(runtime);
 
-    const originalTargetsToSerialize = targetId ?
-        [runtime.getTargetById(targetId)] :
-        runtime.targets.filter(target => target.isOriginal);
+    const originalTargetsToSerialize = (
+        targetId
+            ? [runtime.getTargetById(targetId)]
+            : runtime.targets.filter(target => target.isOriginal)
+        );
 
     const layerOrdering = getSimplifiedLayerOrdering(originalTargetsToSerialize);
 
@@ -821,10 +849,13 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
         // add extension datas
         target.extensionData = {};
         for (const extension of extensions) {
-            if (`ext_${extension}` in runtime) {
-                if (typeof runtime[`ext_${extension}`].serialize === 'function') {
-                    target.extensionData[extension] = runtime[`ext_${extension}`].serialize();
-                }
+            if (`ext_${extension}` in runtime && typeof runtime[`ext_${extension}`].serialize === 'function') {
+                target.extensionData[extension] = runtime[`ext_${extension}`].serialize();
+                continue;
+            }
+            if (extension in runtime.extensionStorage) {
+                target.extensionData[extension] = runtime.extensionStorage[extension]
+                continue;
             }
         }
 
@@ -841,10 +872,13 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
     // add extension datas
     obj.extensionData = {};
     for (const extension of extensions) {
-        if (`ext_${extension}` in runtime) {
-            if (typeof runtime[`ext_${extension}`].serialize === 'function') {
-                obj.extensionData[extension] = runtime[`ext_${extension}`].serialize();
-            }
+        if (`ext_${extension}` in runtime && typeof runtime[`ext_${extension}`].serialize === 'function') {
+            obj.extensionData[extension] = runtime[`ext_${extension}`].serialize();
+            continue;
+        }
+        if (extension in runtime.extensionStorage) {
+            obj.extensionData[extension] = runtime.extensionStorage[extension]
+            continue;
         }
     }
 
@@ -872,7 +906,7 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
     meta.agent = '';
     // TW: Never include full user agent to slightly improve user privacy
     // if (typeof navigator !== 'undefined') meta.agent = navigator.userAgent;
-    
+
     // Attach platform information so TurboWarp and other mods can detect where the file comes from
     const platform = Object.create(null);
     platform.name = "PenguinMod";
@@ -1364,10 +1398,24 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         }
     }
     if (object.hasOwnProperty('customVars')) {
-        for (const info of object.customVars) {
-            // im lay z so customVars is just a list of arg lists to be passed into the variable creator
-            const newVar = runtime.newVariableInstance(...info);
-            target.variables[newVar.id] = newVar;
+        for (const variable of object.customVars) {
+            if (Array.isArray(variable)) {
+                // Legacy behaviour.
+                const newVar = runtime.newVariableInstance(...variable);
+                target.variables[variable[1]] = newVar;
+                continue;
+            }
+
+            /*
+             {
+                type: v.type,
+                id: varId,
+                name: v.name,
+                info,
+             }
+            */
+            const newVar = runtime.newVariableInstance(variable.type, ...variable.info);
+            target.variables[variable.id] = newVar;
         }
     }
     if (object.hasOwnProperty('comments')) {
@@ -1425,6 +1473,11 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
     if (object.hasOwnProperty('id') && !existingTargetIds.includes(object.id)) {
         target.id = object.id;
     }
+
+    if (object.hasOwnProperty('extensionData')) {
+        target.extensionData = object.extensionData;
+    }
+
     Promise.all(costumePromises).then(costumes => {
         sprite.costumes = costumes;
     });
@@ -1483,6 +1536,10 @@ const deserializeMonitor = function (monitorData, runtime, targets, extensions) 
             name: paramKey,
             value: monitorData.params[paramKey]
         };
+        if (typeof monitorData.params[paramKey] === 'object') {
+            field.id = monitorData.params[paramKey].id;
+            field.value = monitorData.params[paramKey].name;
+        }
         fields[paramKey] = field;
     }
 
@@ -1538,6 +1595,10 @@ const deserializeMonitor = function (monitorData, runtime, targets, extensions) 
             const field = monitorBlock.fields.LIST;
             field.id = monitorData.id;
             field.variableType = Variable.LIST_TYPE;
+        } else if (monitorData.variableId) {
+            const field = Object.values(monitorBlock.fields)[0];
+            field.id = monitorData.variableId;
+            field.variableType = monitorData.variableType;
         }
 
         runtime.monitorBlocks.createBlock(monitorBlock);
@@ -1650,6 +1711,21 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
             }))
         .then(targets => replaceUnsafeCharsInVariableIds(targets))
         .then(targets => {
+            // at this point, stage size has not been set by 'runtime.parseProjectOptions'
+            const stage = targets.find(t => t.isStage);
+            if (stage) {
+                // vm is not ready yet, so remake 'runtime.findProjectOptionsComment'
+                let projectOptsComment;
+                for (const comment of Object.values(stage?.comments)) {
+                    if (comment.text.includes(" // _twconfig_")) {
+                        projectOptsComment = comment;
+                        break;
+                    }
+                }
+
+                if (projectOptsComment) runtime.parseProjectOptions(projectOptsComment);
+            }
+
             monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
             return targets;
         })

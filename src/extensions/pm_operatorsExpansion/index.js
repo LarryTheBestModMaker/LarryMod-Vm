@@ -94,6 +94,7 @@ ${blockSeparator}
 %b14> ` +/* is number prime */`
 %b19> ` +/* is number between numbers */`
 %b11> ` +/* trunc number */`
+%b36> ` +/* atan2 */`
 ${blockSeparator}
 %b16> ` +/* reverse text */`
 %b17> ` +/* shuffle text */`
@@ -183,6 +184,26 @@ function generateJoin(amount) {
     };
 }
 
+function generateSeveralJoins(amount) {
+    const joins = [];
+    for (let i = 3; i < amount; i++) {
+        joins.push(generateJoin(i+1));
+    }
+    return joins.map((e, index) => {
+        const switches = [];
+        for (let i = 3; i < amount; i++) {
+            if (i == index+3) {
+                switches.push({ isNoop: true });
+                continue;
+            }
+            switches.push(`join${i+1}`);
+        }
+        e["switchText"] = `join x${index+4}`;
+        e["switches"]   = switches;
+        return e;
+    });
+}
+
 function generateJoinTranslations(amount, word, type) {
     switch (type) {
     case 1:
@@ -246,12 +267,7 @@ class pmOperatorsExpansion {
             isDynamic: true,
             orderBlocks: this.orderCategoryBlocks,
             blocks: [
-                generateJoin(4),
-                generateJoin(5),
-                generateJoin(6),
-                generateJoin(7),
-                generateJoin(8),
-                generateJoin(9),
+                ...generateSeveralJoins(9),
                 {
                     opcode: 'partOfRatio',
                     text: '[PART] part of ratio [RATIO]',
@@ -266,7 +282,12 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "1:2"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'simplifyRatio'
+                    ],
+                    switchText: 'part of ratio'
                 },
                 {
                     opcode: 'simplifyRatio',
@@ -278,25 +299,45 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "1:2"
                         }
-                    }
+                    },
+                    switches: [
+                        'partOfRatio',
+                        { isNoop: true }
+                    ],
+                    switchText: 'simplify ratio'
                 },
                 {
                     opcode: 'pi',
                     text: 'π',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true
+                    disableMonitor: true,
+                    switches: [
+                        { isNoop: true },
+                        'euler',
+                        'infinity'
+                    ]
                 },
                 {
                     opcode: 'euler',
                     text: 'e',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true
+                    disableMonitor: true,
+                    switches: [
+                        'pi',
+                        { isNoop: true },
+                        'infinity'
+                    ]
                 },
                 {
                     opcode: 'infinity',
                     text: '∞',
                     blockType: BlockType.REPORTER,
-                    disableMonitor: true
+                    disableMonitor: true,
+                    switches: [
+                        'pi',
+                        'euler',
+                        { isNoop: true }
+                    ]
                 },
                 {
                     opcode: 'truncateNumber',
@@ -324,7 +365,14 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "10"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'isInteger',
+                        'isPrime',
+                        'isEven'
+                    ],
+                    switchText: 'is multiple of?'
                 },
                 {
                     opcode: 'isInteger',
@@ -336,7 +384,14 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "0.5"
                         }
-                    }
+                    },
+                    switches: [
+                        'isNumberMultipleOf',
+                        { isNoop: true },
+                        'isPrime',
+                        'isEven'
+                    ],
+                    switchText: 'is integer?'
                 },
                 {
                     opcode: 'isPrime',
@@ -348,7 +403,14 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "13"
                         }
-                    }
+                    },
+                    switches: [
+                        'isNumberMultipleOf',
+                        'isInteger',
+                        { isNoop: true },
+                        'isEven'
+                    ],
+                    switchText: 'is prime?'
                 },
                 {
                     opcode: 'isEven',
@@ -360,7 +422,14 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "4"
                         }
-                    }
+                    },
+                    switches: [
+                        'isNumberMultipleOf',
+                        'isInteger',
+                        'isPrime',
+                        { isNoop: true }
+                    ],
+                    switchText: 'is even?'
                 },
                 {
                     opcode: 'reverseChars',
@@ -372,7 +441,12 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "Hello!"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'shuffleChars'
+                    ],
+                    switchText: 'reverse text'
                 },
                 {
                     opcode: 'shuffleChars',
@@ -384,7 +458,12 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "Hello!"
                         }
-                    }
+                    },
+                    switches: [
+                        'reverseChars',
+                        { isNoop: true },
+                    ],
+                    switchText: 'shuffle text'
                 },
                 {
                     opcode: 'exactlyEqual',
@@ -400,7 +479,8 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "b"
                         }
-                    }
+                    },
+
                 },
                 {
                     opcode: 'betweenNumbers',
@@ -447,12 +527,22 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "world"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'resetReplacers'
+                    ],
+                    switchText: 'set replacer'
                 },
                 {
                     opcode: 'resetReplacers',
                     text: 'reset replacers',
-                    blockType: BlockType.COMMAND
+                    blockType: BlockType.COMMAND,
+                    switches: [
+                        'setReplacer',
+                        { isNoop: true }
+                    ],
+                    switchText: 'reset replacers'
                 },
                 {
                     opcode: 'applyReplacers',
@@ -480,7 +570,12 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "Hello world!"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'textBefore'
+                    ],
+                    switchText: 'text after'
                 },
                 {
                     opcode: 'textBefore',
@@ -496,7 +591,12 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "Hello world!"
                         }
-                    }
+                    },
+                    switches: [
+                        'textAfter',
+                        { isNoop: true }
+                    ],
+                    switchText: 'text before'
                 },
                 {
                     opcode: 'shiftLeft',
@@ -512,7 +612,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "5"
                         }
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        'shiftRight',
+                        'binnaryAnd',
+                        'binnaryOr',
+                        'binnaryXor',
+                        'binnaryNot',
+                    ],
+                    switchText: 'lshift'
                 },
                 {
                     opcode: 'shiftRight',
@@ -528,7 +637,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "5"
                         }
-                    }
+                    },
+                    switches: [
+                        'shiftLeft',
+                        { isNoop: true },
+                        'binnaryAnd',
+                        'binnaryOr',
+                        'binnaryXor',
+                        'binnaryNot',
+                    ],
+                    switchText: 'rshift'
                 },
                 {
                     opcode: 'binnaryAnd',
@@ -544,7 +662,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "5"
                         }
-                    }
+                    },
+                    switches: [
+                        'shiftLeft',
+                        'shiftRight',
+                        { isNoop: true },
+                        'binnaryOr',
+                        'binnaryXor',
+                        'binnaryNot',
+                    ],
+                    switchText: 'and'
                 },
                 {
                     opcode: 'binnaryOr',
@@ -560,7 +687,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "8"
                         }
-                    }
+                    },
+                    switches: [
+                        'shiftLeft',
+                        'shiftRight',
+                        'binnaryAnd',
+                        { isNoop: true },
+                        'binnaryXor',
+                        'binnaryNot',
+                    ],
+                    switchText: 'or'
                 },
                 {
                     opcode: 'binnaryXor',
@@ -576,7 +712,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "2"
                         }
-                    }
+                    },
+                    switches: [
+                        'shiftLeft',
+                        'shiftRight',
+                        'binnaryAnd',
+                        'binnaryOr',
+                        { isNoop: true },
+                        'binnaryNot',
+                    ],
+                    switchText: 'xor'
                 },
                 {
                     opcode: 'binnaryNot',
@@ -588,7 +733,16 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "2"
                         }
-                    }
+                    },
+                    switches: [
+                        'shiftLeft',
+                        'shiftRight',
+                        'binnaryAnd',
+                        'binnaryOr',
+                        'binnaryXor',
+                        { isNoop: true }
+                    ],
+                    switchText: 'not'
                 },
                 {
                     opcode: 'speedToPitch',
@@ -600,7 +754,17 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "2"
                         },
-                    }
+                    },
+                    switches: [
+                        { isNoop: true },
+                        {
+                            opcode: 'pitchToSpeed',
+                            remapArguments: {
+                                SPEED: 'PITCH'
+                            }
+                        }
+                    ],
+                    switchText: 'speed to pitch'
                 },
                 {
                     opcode: 'pitchToSpeed',
@@ -612,7 +776,17 @@ class pmOperatorsExpansion {
                             type: ArgumentType.NUMBER,
                             defaultValue: "120"
                         },
-                    }
+                    },
+                    switches: [
+                        {
+                            opcode: 'speedToPitch',
+                            remapArguments: {
+                                PITCH: 'SPEED'
+                            }
+                        },
+                        { isNoop: true },
+                    ],
+                    switchText: 'pitch to speed'
                 },
                 {
                     opcode: 'orIfFalsey',
@@ -645,6 +819,21 @@ class pmOperatorsExpansion {
                             type: ArgumentType.STRING,
                             defaultValue: "perfect!"
                         }
+                    }
+                },
+                {
+                    opcode: 'atan2',
+                    text: 'atan2 of x [X] y [Y]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "45"
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "90"
+                        },
                     }
                 },
             ],
@@ -715,54 +904,59 @@ class pmOperatorsExpansion {
                 pitchToSpeed: (generator, block) => ({
                     kind: 'input',
                     pitch: generator.descendInputOfBlock(block, 'PITCH'),
+                }),
+                atan2: (generator, block) => ({
+                    kind: 'input',
+                    x: generator.descendInputOfBlock(block, 'X'),
+                    y: generator.descendInputOfBlock(block, 'Y'),
                 })
             },
             js: {
                 shiftLeft: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
                     const num2 = compiler.descendInput(node.num2).asNumber();
-                    
+
                     return new TypedInput(`(${num1} << ${num2})`, TYPE_NUMBER);
                 },
                 shiftRight: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
                     const num2 = compiler.descendInput(node.num2).asNumber();
-                    
+
                     return new TypedInput(`(${num1} >> ${num2})`, TYPE_NUMBER);
                 },
                 binnaryAnd: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
                     const num2 = compiler.descendInput(node.num2).asNumber();
-                    
+
                     return new TypedInput(`(${num1} & ${num2})`, TYPE_NUMBER);
                 },
                 binnaryOr: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
                     const num2 = compiler.descendInput(node.num2).asNumber();
-                    
+
                     return new TypedInput(`(${num1} | ${num2})`, TYPE_NUMBER);
                 },
                 binnaryXor: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
                     const num2 = compiler.descendInput(node.num2).asNumber();
-                    
+
                     return new TypedInput(`(${num1} ^ ${num2})`, TYPE_NUMBER);
                 },
                 binnaryNot: (node, compiler, {TypedInput, TYPE_NUMBER}) => {
                     const num1 = compiler.descendInput(node.num1).asNumber();
-                    
+
                     return new TypedInput(`(~${num1})`, TYPE_NUMBER);
                 },
                 orIfFalsey: (node, compiler, {TypedInput, TYPE_UNKNOWN}) => {
                     const num1 = compiler.descendInput(node.one).asUnknown();
                     const num2 = compiler.descendInput(node.two).asUnknown();
-                    
+
                     return new TypedInput(`(${num1} || ${num2})`, TYPE_UNKNOWN);
                 },
                 ifIsTruthy: (node, compiler, {TypedInput, TYPE_UNKNOWN}) => {
                     const num1 = compiler.descendInput(node.one).asUnknown();
                     const num2 = compiler.descendInput(node.two).asUnknown();
-                    
+
                     return new TypedInput(`(${num1} && ${num2})`, TYPE_UNKNOWN);
                 },
                 speedToPitch: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
@@ -772,6 +966,11 @@ class pmOperatorsExpansion {
                 pitchToSpeed: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
                     const pitch = compiler.descendInput(node.pitch).asNumber();
                     return new TypedInput(`(Math.pow(2, (${pitch} * 10) / 1200))`, TYPE_NUMBER_NAN);
+                },
+                atan2: (node, compiler, { TypedInput, TYPE_NUMBER_NAN }) => {
+                    const x = compiler.descendInput(node.x).asNumber();
+                    const y = compiler.descendInput(node.y).asNumber();
+                    return new TypedInput(`(Math.atan2((${y} * 180) / Math.PI, (${x} * 180) / Math.PI))`, TYPE_NUMBER_NAN);
                 }
             }
         };
@@ -1004,6 +1203,7 @@ class pmOperatorsExpansion {
     binnaryNot(args) { return false }
     speedToPitch(args) { return 0 }
     pitchToSpeed(args) { return 1 }
+    atan2(args) { return 0 }
 }
 
 module.exports = pmOperatorsExpansion;

@@ -15,7 +15,7 @@ const xmlEscape = function (unsafe) {
             // See #1030
             unsafe = String(unsafe);
         } else {
-            log.error(`Unexptected type ${typeof unsafe} in xmlEscape at: ${new Error().stack}`);
+            log.warn(`Unexptected type ${typeof unsafe} in xmlEscape at: ${new Error().stack}`);
             return unsafe;
         }
     }

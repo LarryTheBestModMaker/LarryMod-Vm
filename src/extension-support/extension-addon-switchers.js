@@ -1,95 +1,136 @@
+const log = require("../util/log");
 const switches = {};
+const parser = new DOMParser();
 
-// use extension ID
-const extensions = {
-    jgFiles: require("../extensions/jg_files/switches.json"),
-}
+const define_error_noop = (msg) => {
+    log.error(msg);
+    return {
+        msg,
+        isNoop: true,
+        isError: true,
+    };
+};
 
-const noopSwitch = {
-    isNoop: true
-}
-
-function opcodeToLabel(opcode) {
-    return String(opcode).match(/([A-Z]?[^A-Z]*)/g).slice(0, -1).join(" ").toLowerCase();
-}
-
-Object.getOwnPropertyNames(extensions).forEach(extID => {
-    const extension = extensions[extID];
-    Object.getOwnPropertyNames(extension).forEach(b => {
-        const block = extension[b];
-        for (let i = 0; i < block.length; i++) {
-            const item = block[i];
-            if (item === "hide") {
-                continue;
+function get_extension_switches(id, blocks) {
+    let _switches = {};
+    for (let block of blocks) {
+        var blockswitches = block.info.switches;
+        if (!blockswitches) continue;
+        let opcode = block.info.opcode;
+        _switches[opcode] = blockswitches.map(current => {
+            switch (typeof current) {
+                case "object":
+                    break;
+                case "string":
+                    current = { opcode: current };
+                    break;
+                default:
+                    return define_error_noop((typeof current) + " disallowed");
             }
-            if (
-                item === "same"
-                || item === "noop"
-                || item === "normal"
-                || item === ""
-                || item === null
-            ) {
-                block[i] = noopSwitch;
-                continue;
-            }
-            if (typeof item === "string") {
-                block[i] = {
-                    opcode: `${extID}_${item}`,
-                    msg: `${opcodeToLabel(item)}`
-                }
-                continue;
-            }
-            if (!block[i].msg) {
-                block[i].msg = opcodeToLabel(block[i].opcode);
-            }
-            if (block[i].opcode) {
-                if (String(block[i].opcode).startsWith(extID + "_")) continue;
-                block[i].opcode = `${extID}_${block[i].opcode}`;
-            }
-        }
-        extension[b] = block.filter(v => v !== "hide")
-    })
-    switches[extID] = extension;
-})
 
-function getSwitches({runtime}) {
-    var _switches = switches;
-    for (let ext of runtime._blockInfo) {
-        _switches[ext.id] = {};
-        for (let block of ext.blocks) {
-            var blockswitches = block.info.switches;
-            if (!blockswitches) continue;
-            let opcode = block.info.opcode;
-            _switches[ext.id][opcode] = blockswitches.map(current => {
-                if (typeof current === "string") {
-                    current = {opcode: current}
-                } else if (typeof current !== "object") {
-                    return noopSwitch;
-                }
-
-                if (!("opcode" in current)) {
-                    return noopSwitch;
-                }
-
-                if (current.isNoop) {
-                    return noopSwitch;
-                }
-
-                let get_block = ext.blocks.filter(e => e.info.opcode === current.opcode);
-                if (get_block.length === 0) { // block doesn't exist.
-                    return noopSwitch;
-                }
-                get_block = get_block[0];
-
+            if (current.isNoop) {
                 return {
-                    opcode: `${ext.id}_${current.opcode}`,
-                    remapInputName: current.remapArguments ?? {},
-                    msg: get_block.info.switchText ?? get_block.info.text
+                    isNoop: true,
+                    msg: current.overwriteText ?? block.info.switchText ?? block.info.text
                 };
-            });
-        }
+            }
+
+            if (!current.opcode) {
+                return define_error_noop("No defined opcode");
+            }
+
+            let get_block = blocks.find(e => e.info.opcode === current.opcode);
+            if (!get_block) {
+                return define_error_noop(`Block ${current.opcode} doesn't exist`);
+            }
+
+            let createInputs = {};
+            let currargs = current.createArguments ?? {};
+
+            parser.parseFromString(get_block.xml, "text/xml")
+                .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                .forEach(el => {
+                    let name = el.getAttribute("name");
+                    if (
+                        !!block.info.arguments[name]
+                        && !(current.remapArguments ?? {})[name]
+                    ) return;
+                    if (Object.values(current.remapArguments ?? {}).includes(name)) return;
+
+                    let shadowType = el.getElementsByTagName("shadow")[0].getAttribute("type");
+
+                    let value = (currargs[name] ?? get_block.info.arguments[name].defaultValue ?? "").toString();
+
+                    createInputs[name] = {
+                        shadowType,
+                        value
+                    };
+                });
+
+            const splitInputs = Object.keys(block.info.arguments)
+                .filter(arg =>
+                    !!get_block.info.arguments[arg]
+                    && !!(current.remapArguments ?? {})[arg]
+                    && !Object.values(current.remapArguments ?? {}).includes(arg)
+                );
+
+            const remapShadowType = {};
+
+            parser.parseFromString(block.xml, "text/xml")
+                .querySelectorAll(`[type="${block.json.type}"] > value`)
+                .forEach(el => {
+                    let name = el.getAttribute("name");
+                    if ((current.remapArguments ?? {})[name]) name = current.remapArguments[name];
+                    if (!get_block.info.arguments[name]) return;
+
+                    let shadowType = el.querySelector("shadow")
+                    if (!shadowType) return;
+                    shadowType = shadowType.getAttribute("type");
+
+                    remapShadowType[name] = shadowType;
+                });
+
+            parser.parseFromString(get_block.xml, "text/xml")
+                .querySelectorAll(`[type="${get_block.json.type}"] > value`)
+                .forEach(el => {
+                    let name = el.getAttribute("name");
+                    if (!remapShadowType[name]) return;
+
+                    let shadowType = el.querySelector("shadow");
+                    if (!shadowType) return;
+                    shadowType = shadowType.getAttribute("type");
+
+                    if (remapShadowType[name] == shadowType) {
+                        delete remapShadowType[name];
+                        return;
+                    }
+                    remapShadowType[name] = shadowType;
+                });
+
+            return {
+                opcode: `${id}_${current.opcode}`,
+                msg: current.overwriteText ?? get_block.info.switchText ?? get_block.info.text,
+
+                mapFieldValues: current.remapMenus ?? {},
+                remapInputName: current.remapArguments ?? {},
+
+                createInputs,
+                splitInputs,
+                remapShadowType,
+            };
+        });
     }
     return _switches;
 }
 
+function getSwitches({runtime}) {
+    for (let ext of runtime._blockInfo) {
+        if (ext.id in switches) continue;
+        switches[ext.id] = get_extension_switches(ext.id, ext.blocks);
+    }
+    return switches;
+}
+
 module.exports = getSwitches;
+module.exports.get_extension_switches = get_extension_switches;
+module.exports.noopSwitch = { isNoop: true };

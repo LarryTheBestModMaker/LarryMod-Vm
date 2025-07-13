@@ -5,6 +5,7 @@ const ArgumentAlignment = require('../../extension-support/argument-alignment');
 const Cast = require('../../util/cast');
 const MathUtil = require('../../util/math-util');
 const test_indicator = require('./test_indicator.png');
+const { noopSwitch } = require('../../extension-support/extension-addon-switchers')
 
 const pathToMedia = 'static/blocks-media';
 
@@ -344,7 +345,265 @@ class JgDevBlocks {
                     opcode: 'soundDefaultType',
                     blockType: BlockType.REPORTER,
                     text: 'get first sound'
-                }
+                },
+                {
+                    opcode: 'epicLabelTest',
+                    text: 'look at my cool label',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    label: "Wow this is a nice label",
+                },
+                {
+                    opcode: 'epicLabelTest2',
+                    text: 'i have a COOLER label, with my [TYPE]',
+                    blockType: BlockType.REPORTER,
+                    disableMonitor: false,
+                    labelFn: "epicLabelTest2Label",
+                    arguments: {
+                        TYPE: {
+                            type: ArgumentType.STRING,
+                            menu: 'epicLabelTestMenu',
+                        }
+                    }
+                },
+                {
+                    blockType: BlockType.LABEL,
+                    text: "switching test cases"
+                },
+                {
+                    opcode: "switches_noparams",
+                    text: "Switches test case 1",
+                    func: "noop",
+                    blockType: BlockType.COMMAND,
+                    switches: [
+                        noopSwitch,
+                        "switches_noparams2"
+                    ]
+                },
+                {
+                    opcode: "switches_noparams2",
+                    text: "Switches test case 2",
+                    func: "noop",
+                    blockType: BlockType.COMMAND,
+                    switches: [
+                        "switches_noparams",
+                        noopSwitch,
+                    ]
+                },
+                {
+                    opcode: "switches_params",
+                    text: "Has params [p1] [p2]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "hello"
+                        },
+                        p2: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "world"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        "switches_params2"
+                    ]
+                },
+                {
+                    opcode: "switches_params2",
+                    text: "Has params2 [p1] [p2]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "hi"
+                        },
+                        p2: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "earth"
+                        }
+                    },
+                    switches: [
+                        "switches_params",
+                        noopSwitch,
+                    ]
+                },
+                {
+                    opcode: "switches_createparams",
+                    text: "Create params",
+                    func: "noop",
+                    blockType: BlockType.COMMAND,
+                    switches: [
+                        "switches_deleteparams",
+                        noopSwitch,
+                    ]
+                },
+                {
+                    opcode: "switches_deleteparams",
+                    text: "Delete params [p1] [p2]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "hello"
+                        },
+                        p2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "3"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        "switches_createparams"
+                    ]
+                },
+                {
+                    opcode: "switches_renameparams",
+                    text: "Rename params [p1] [p2]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "hello"
+                        },
+                        p2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "3"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        {
+                            opcode: "switches_renameparams2",
+                            remapArguments: {
+                                p1: "p3",
+                                p2: "p1"
+                            }
+                        }
+                    ]
+                },
+                {
+                    opcode: "switches_renameparams2",
+                    text: "Rename params2 [p3] [p1]",
+                    func: "noop",
+                    arguments: {
+                        p3: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "hi"
+                        },
+                        p1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "5"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        {
+                            opcode: "switches_renameparams",
+                            remapArguments: {
+                                p3: "p1",
+                                p1: "p2"
+                            }
+                        }
+                    ]
+                },
+                {
+                    opcode: "switches_shadow1",
+                    text: "Switch shadow type [p1]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "3"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        "switches_shadow2"
+                    ]
+                },
+                {
+                    opcode: "switches_shadow2",
+                    text: "Switch shadow type2 [p1]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "1"
+                        }
+                    },
+                    switches: [
+                        "switches_shadow1",
+                        noopSwitch,
+                    ]
+                },
+                {
+                    opcode: "switches_menu1",
+                    text: "Switch menus [p1]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            menu: "switch_menu1"
+                        }
+                    },
+                    switches: [
+                        noopSwitch,
+                        {
+                            opcode: "switches_menu2",
+                            remapMenus: {
+                                p1: {
+                                    "3": "1",
+                                    "2": "1",
+                                    "1": "0",
+                                    "0": "0",
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    opcode: "switches_menu2",
+                    text: "Switch menus2 [p1]",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            menu: "switch_menu2"
+                        }
+                    },
+                    switches: [
+                        {
+                            opcode: "switches_menu1",
+                            remapMenus: {
+                                p1: {
+                                    "1": "2",
+                                    "0": "1",
+                                }
+                            }
+                        },
+                        noopSwitch,
+                    ]
+                },
+                {
+                    opcode: "switches_broken",
+                    text: "intentionally broken switch",
+                    func: "noop",
+                    arguments: {
+                        p1: {
+                            type: ArgumentType.STRING,
+                            menu: "switch_menu2"
+                        }
+                    },
+                    switches: [
+                        {},
+                        [ "a" ],
+                        new Map(),
+                        17,
+                        -18,
+                        "switches_donotdefinemeangryfaceemoji",
+                    ]
+                },
             ],
             menus: {
                 variableInternal: {
@@ -368,6 +627,26 @@ class JgDevBlocks {
                     ],
                     isTypeable: true,
                     isNumeric: false
+                },
+                epicLabelTestMenu: {
+                    items: [
+                        { text: "BLOCK!!!", value: "block" },
+                        { text: "Label Function ;D", value: "function" },
+                    ]
+                },
+                switch_menu1: {
+                    items: [
+                        "aaaa!",
+                        "oh no",
+                        "why do i need this many",
+                        "an extra one IG."
+                    ].map((text, value) => { return { text, value: value.toString() } })
+                },
+                switch_menu2: {
+                    items: [
+                        "ok",
+                        "I only need a couple here."
+                    ].map((text, value) => { return { text, value: value.toString() } })
                 }
             }
         };
@@ -501,6 +780,18 @@ class JgDevBlocks {
 
     branchIndicatorTest() {
         return; // dude logs wont shut up because i didnt define this func
+    }
+
+    epicLabelTest() {
+        return "get out !!! 🗣";
+    }
+    epicLabelTest2() {
+        return "hmm quite peculiar";
+    }
+    epicLabelTest2Label(params) {
+        return params.TYPE === "block" ?
+            "Your block is BORING!!!!!"
+            : "Yes, this function is very cool";
     }
 
     // util
@@ -706,6 +997,11 @@ class JgDevBlocks {
     }
     givesAnError() {
         throw new Error('woah an error');
+    }
+
+    noop() {
+        // Generic noop
+        return;
     }
 }
 

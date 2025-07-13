@@ -739,7 +739,7 @@ class Scratch3TextBlocks {
         // On "first tick", set the text and force animation flags on and render
 
         textState.fullText = this._formatText(args.TEXT);
-        textState.text = textState.fullText[0]; // Start with first char visible
+        textState.text = textState.fullText[0] ?? ""; // Start with first char visible
 
         textState.visible = true;
         textState.animating = true;
@@ -891,8 +891,12 @@ class Scratch3TextBlocks {
 
         if (!textState.visible) return; // Resetting to costume is done in clear block, early return here is for clones
 
+        const needsInit = textState.skinId === null;
         textState.skinId = this.runtime.renderer.updateTextCostumeSkin(textState);
         this.runtime.renderer.updateDrawableSkinId(target.drawableID, textState.skinId);
+        if (needsInit) queueMicrotask(() => {
+          this.runtime.renderer._allSkins[textState.skinId]?.setTextAndStyle(textState);
+        });
     }
 
     /**
@@ -948,6 +952,23 @@ class Scratch3TextBlocks {
             textState.skinId = null;
         }
     }
+
+    /* These Need Functionality, ported for Turbowarp Support */
+    setAlignment(_) {}
+    setWidthValue(_) {}
+    resetWidth(_) {}
+    getLines(_) {}
+    startAnimate(_) {}
+    animateUntilDone(_) {}
+    isAnimating(_) {}
+    setAnimateDuration(_) {}
+    resetAnimateDuration(_) {}
+    getAnimateDuration(_) {}
+    setTypeDelay(_) {}
+    resetTypeDelay(_) {}
+    getTypeDelay(_) {}
+    textActive(_) {}
+    getTextAttribute(_) {}
 }
 
 module.exports = Scratch3TextBlocks;

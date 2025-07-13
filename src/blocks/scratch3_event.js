@@ -28,10 +28,15 @@ class Scratch3EventBlocks {
         });
 
         this.isStarting = false;
+        this.stopEventNeedsInit = true;
         this.runtime.on('PROJECT_START_BEFORE_RESET', () => {
             // we need to remember that the project is starting
             // otherwise the stop block will run when flag is clicked
             this.isStarting = true;
+
+            // we need to check if this is the first time we run the stop event
+            // otherwise it interferes with the green flag on project load
+            if (this.stopEventNeedsInit) this.stopEventNeedsInit = false;
         });
         this.runtime.on('PROJECT_STOP_ALL', () => {
             // if green flag is clicked, dont bother starting the hat
@@ -39,6 +44,10 @@ class Scratch3EventBlocks {
                 this.isStarting = false;
                 return;
             }
+
+            // if this is part of loading the project, do nothing
+            if (this.stopEventNeedsInit) return;
+
             // we need to wait for runtime to step once
             // otherwise the hat will be stopped as soon as it starts
             this.runtime.once('RUNTIME_STEP_START', () => {
