@@ -484,7 +484,7 @@ class Scratch3MotionBlocks {
     }
 
     rotationStyle (args, util) {
-        util.target.rotationStyle;
+        return util.target.rotationStyle;
     }
 
     changeX (args, util) {
