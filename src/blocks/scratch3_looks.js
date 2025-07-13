@@ -351,7 +351,6 @@ class Scratch3LooksBlocks {
             looks_hide: this.hide,
             looks_getSpriteVisible: this.getSpriteVisible,
             looks_getOtherSpriteVisible: this.getOtherSpriteVisible,
-            looks_hideallsprites: () => {}, // legacy no-op block
             looks_switchcostumeto: this.switchCostume,
             looks_switchbackdropto: this.switchBackdrop,
             looks_switchbackdroptoandwait: this.switchBackdropAndWait,
@@ -387,7 +386,10 @@ class Scratch3LooksBlocks {
             looks_stoptalking: this.stopTalking,
             looks_getinputofcostume: this.getCostumeValue,
             looks_tintColor: this.getTintColor,
-            looks_setTintColor: this.setTintColor
+            looks_setTintColor: this.setTintColor,
+
+            looks_hideallsprites: this.hideAllSprites, // not a legacy no-op block anymore :)
+            looks_showallsprites: this.showAllSprites
         };
     }
 
@@ -989,6 +991,24 @@ class Scratch3LooksBlocks {
         }
         // Else return name
         return util.target.getCostumes()[util.target.currentCostume].name;
+    }
+
+    hideAllSprites () {
+        const targets = this.runtime.targets;
+        for (const target of targets) {
+            if (!target.isStage) {
+                target.setVisible(false)
+            }
+        }
+    }
+
+    showAllSprites () {
+        const targets = this.runtime.targets;
+        for (const target of targets) {
+            if (!target.isStage) {
+                target.setVisible(true)
+            }
+        }
     }
 }
 

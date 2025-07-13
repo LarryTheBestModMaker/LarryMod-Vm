@@ -58,6 +58,8 @@ class Scratch3MotionBlocks {
             motion_yposition: this.getY,
             motion_direction: this.getDirection,
             motion_move_sprite_to_scene_side: this.moveToStageSide,
+
+            motion_rotationstyle: this.rotationStyle,
             // Legacy no-op blocks:
             motion_scroll_right: () => {},
             motion_scroll_up: () => {},
@@ -479,6 +481,10 @@ class Scratch3MotionBlocks {
 
     setRotationStyle (args, util) {
         util.target.setRotationStyle(args.STYLE);
+    }
+
+    rotationStyle (args, util) {
+        util.target.rotationStyle;
     }
 
     changeX (args, util) {

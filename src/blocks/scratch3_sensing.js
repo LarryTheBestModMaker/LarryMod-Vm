@@ -106,7 +106,9 @@ class Scratch3SensingBlocks {
             sensing_getoperatingsystem: this.getOS,
             sensing_getbrowser: this.getBrowser,
             sensing_geturl: this.getUrl,
-            sensing_getxyoftouchingsprite: this.getXYOfTouchingSprite
+            sensing_getxyoftouchingsprite: this.getXYOfTouchingSprite,
+
+            sensing_dayssince: this.daysSince
         };
     }
 
@@ -563,6 +565,16 @@ class Scratch3SensingBlocks {
     daysSince2000 () {
         const msPerDay = 24 * 60 * 60 * 1000;
         const start = new Date(2000, 0, 1); // Months are 0-indexed.
+        const today = new Date();
+        const dstAdjust = today.getTimezoneOffset() - start.getTimezoneOffset();
+        let mSecsSinceStart = today.valueOf() - start.valueOf();
+        mSecsSinceStart += ((today.getTimezoneOffset() - dstAdjust) * 60 * 1000);
+        return mSecsSinceStart / msPerDay;
+    }
+
+    daysSince (args) {
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const start = new Date(args.year, 0, 1); // Months are 0-indexed.
         const today = new Date();
         const dstAdjust = today.getTimezoneOffset() - start.getTimezoneOffset();
         let mSecsSinceStart = today.valueOf() - start.valueOf();

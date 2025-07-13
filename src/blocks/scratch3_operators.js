@@ -73,7 +73,10 @@ class Scratch3OperatorsBlocks {
             operator_countAppearTimes: this.countAppearTimes,
             operator_textIncludesLetterFrom: this.textIncludesLetterFrom,
             operator_javascript_output: this.javascriptOutput,
-            operator_javascript_boolean: this.javascriptBoolean
+            operator_javascript_boolean: this.javascriptBoolean,
+
+            operator_percentage: this.percentage,
+            operator_clamp: this.clampReporter
         };
     }
     
@@ -406,6 +409,14 @@ class Scratch3OperatorsBlocks {
     
     advlog (args) {
         return (Math.log(Cast.toNumber(args.NUM2)) / Math.log(Cast.toNumber(args.NUM1)));
+    }
+
+    percentage (args) {
+        return (args.NUM / 100) * args.PER
+    }
+
+    clampReporter (args) {
+        return Math.min(Math.max(args.NUM, args.MIN), args.MAX)
     }
 }
 
