@@ -9,6 +9,7 @@
 
 const statementBlocks = [
     'looks_hideallsprites',
+    'looks_showallsprites',
     'looks_say',
     'looks_sayforsecs',
     'looks_setstretchto',
@@ -161,7 +162,11 @@ const outputBlocks = [
     'operator_xnor',
     'looks_getinputofcostume',
     'sound_getTimePosition',
-    'sound_getSoundVolume'
+    'sound_getSoundVolume',
+    'motion_rotationstyle',
+    'sensing_dayssince',
+    'operator_percentage',
+    'operator_clamp'
 ];
 
 module.exports = {
