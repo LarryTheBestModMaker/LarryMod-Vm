@@ -222,9 +222,9 @@ class Scratch3SoundBlocks {
                 } else {
                     this._removeWaitingSound(target.id, soundId);
                 }
-                setTimeout((function(soundThis) {
+                setTimeout((function(soundThis, sound, util) {
                     soundThis._playSoundTimer(sound, util)
-                })(soundThis), 0)
+                })(soundThis, sound, util), 0)
                 return sprite.soundBank.playSound(target, soundId, seconds);
             }
         }
@@ -319,8 +319,13 @@ class Scratch3SoundBlocks {
         if (!sprite) return 0;
 
         const { soundId } = sprite.sounds[index];
-
-        return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() ?? 0
+        
+        if (!this.soundTimers["sound_" + soundId + "_timePosition"]) return 0;
+        try {
+            return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000
+        } catch {
+            return 0;
+        }
     }
 
     getLength (args, util) {
@@ -383,9 +388,9 @@ class Scratch3SoundBlocks {
                 } else {
                     this._removeWaitingSound(target.id, soundId);
                 }
-                setTimeout((function(soundThis) {
+                setTimeout((function(soundThis, args, util) {
                     soundThis._playSoundTimer(args.SOUND_MENU, util)
-                })(soundThis), 0)
+                })(soundThis, args, util), 0)
                 return sprite.soundBank.playSound(target, soundId);
             }
         }
@@ -453,11 +458,11 @@ class Scratch3SoundBlocks {
         const sprite = target.sprite;
         if (!sprite) return;
         for (let i = 0; i < sprite.sounds.length; i++) {
-            const { soundId } = sprite.sounds[i];
+            const { soundId, name } = sprite.sounds[i];
             if (sprite.soundBank) {
-                setTimeout((function(soundThis) {
-                    soundThis._playSoundTimer(soundId.name, util)
-                })(soundThis), 0)
+                setTimeout((function(soundThis, name, util) {
+                    soundThis._playSoundTimer(name, util)
+                })(soundThis, name, util), 0)
                 sprite.soundBank.playSound(target, soundId);
             }
         }
