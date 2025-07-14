@@ -560,6 +560,8 @@ class VirtualMachine extends EventEmitter {
         });
     }
 
+    _projectZip = new JSZip();
+
     /**
      * @returns {JSZip} JSZip zip object representing the sb3.
      */
