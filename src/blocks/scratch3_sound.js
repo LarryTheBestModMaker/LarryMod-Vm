@@ -1,6 +1,7 @@
 const MathUtil = require('../util/math-util');
 const Cast = require('../util/cast');
 const Clone = require('../util/clone');
+const Timer = require('../util/timer');
 const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
 
 /**
@@ -18,6 +19,8 @@ class Scratch3SoundBlocks {
         this.runtime = runtime;
 
         this.waitingSounds = {};
+
+        this.soundTimers = {};
 
         // Clear sound effects on green flag and stop button events.
         this.stopAllSounds = this.stopAllSounds.bind(this);
@@ -160,7 +163,8 @@ class Scratch3SoundBlocks {
             sound_set_stop_fadeout_to: this.setStopFadeout,
             sound_play_at_seconds: this.playAtSeconds,
             sound_play_at_seconds_until_done: this.playAtSecondsAndWait,
-            sound_getSoundVolume: this.currentSoundVolume
+            sound_getSoundVolume: this.currentSoundVolume,
+            sound_getTimePosition: this.getTimePosition
         };
     }
 
@@ -217,9 +221,35 @@ class Scratch3SoundBlocks {
                 } else {
                     this._removeWaitingSound(target.id, soundId);
                 }
+                setTimeout(function() {
+                    this._playSoundTimer(sound, util)
+                }, 0)
                 return sprite.soundBank.playSound(target, soundId, seconds);
             }
         }
+    }
+
+    _playSoundTimer(sound, util) {
+        (async function() {
+            const length = this.getLength({
+                SOUND_MENU: sound
+            }, util)
+
+            const index = this._getSoundIndex(sound, util);
+            if (index < 0) return 0;
+
+            const target = util.target;
+            const sprite = target.sprite;
+            if (!sprite) return 0;
+
+            const { soundId } = sprite.sounds[index];
+            this.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({now: () => this.runtime.currentMSecs});
+            this.soundTimers["sound_" + soundId + "_timePosition"].start()
+            while (this.soundTimers["sound_" + soundId + "_timePosition"] && (this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < length) {
+                await new Promise(resolve => setTimeout(resolve, 1))
+            }
+            if (this.soundTimers["sound_" + soundId + "_timePosition"]) delete(this.soundTimers["sound_" + soundId + "_timePosition"]);
+        })()
     }
 
     setStopFadeout (args, util) {
@@ -276,6 +306,19 @@ class Scratch3SoundBlocks {
         if (!players.hasOwnProperty(soundId)) return false;
 
         return players[soundId].isPlaying == true;
+    }
+
+    getTimePosition (args, util) {
+        const index = this._getSoundIndex(args.SOUND_MENU, util);
+        if (index < 0) return 0;
+
+        const target = util.target;
+        const sprite = target.sprite;
+        if (!sprite) return 0;
+
+        const { soundId } = sprite.sounds[index];
+
+        return this.soundTimers["sound_" + soundId + "_timePosition"] ?? 0
     }
 
     getLength (args, util) {
@@ -336,6 +379,9 @@ class Scratch3SoundBlocks {
                 } else {
                     this._removeWaitingSound(target.id, soundId);
                 }
+                setTimeout(function() {
+                    this._playSoundTimer(args.SOUND_MENU, util)
+                }, 0)
                 return sprite.soundBank.playSound(target, soundId);
             }
         }
@@ -404,6 +450,9 @@ class Scratch3SoundBlocks {
         for (let i = 0; i < sprite.sounds.length; i++) {
             const { soundId } = sprite.sounds[i];
             if (sprite.soundBank) {
+                setTimeout(function() {
+                    this._playSoundTimer(soundId.name, util)
+                }, 0)
                 sprite.soundBank.playSound(target, soundId);
             }
         }
@@ -414,6 +463,10 @@ class Scratch3SoundBlocks {
             target.sprite.soundBank.stopAllSounds(target);
             if (this.waitingSounds[target.id]) {
                 this.waitingSounds[target.id].clear();
+            }
+            for (let i = 0; i < sprite.sounds.length; i++) {
+                const { soundId } = sprite.sounds[i];
+                delete(this.soundTimers["sound_" + soundId + "_timePosition"]);
             }
         }
     }
