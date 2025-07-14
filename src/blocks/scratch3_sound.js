@@ -355,6 +355,7 @@ class Scratch3SoundBlocks {
         const soundBank = sprite.soundBank
         if (!soundBank) return;
 
+        delete(this.soundTimers["sound_" + soundId + "_timePosition"]);
         soundBank.stop(target, soundId);
     }
 
@@ -464,8 +465,8 @@ class Scratch3SoundBlocks {
             if (this.waitingSounds[target.id]) {
                 this.waitingSounds[target.id].clear();
             }
-            for (let i = 0; i < sprite.sounds.length; i++) {
-                const { soundId } = sprite.sounds[i];
+            for (let i = 0; i < target.sprite.sounds.length; i++) {
+                const { soundId } = target.sprite.sounds[i];
                 delete(this.soundTimers["sound_" + soundId + "_timePosition"]);
             }
         }
