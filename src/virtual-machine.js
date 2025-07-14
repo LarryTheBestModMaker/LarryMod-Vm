@@ -574,6 +574,11 @@ class VirtualMachine extends EventEmitter {
         zip.file('project.json', projectJson);
         this._addFileDescsToZip(this.serializeAssets(), zip);
 
+        // extra assets implementation
+        if (this._projectZip && this._projectZip.files["extraAssets/"]) {
+            zip.files = {...zip.files, ...Object.fromEntries(Object.entries(this._projectZip.files).filter(v => v[0].startsWith("extraAssets/")))}
+        }
+
         // Use a fixed modification date for the files in the zip instead of letting JSZip use the
         // current time to avoid a very small metadata leak and make zipping deterministic. The magic
         // number is from the first TurboWarp/scratch-vm commit after forking
