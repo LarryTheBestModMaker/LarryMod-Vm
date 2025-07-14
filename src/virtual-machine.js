@@ -520,6 +520,8 @@ class VirtualMachine extends EventEmitter {
                 const json = JSON.parse(await proj.async('string'));
                 delete json.meta;
                 json.projectVersion = this.isSB2(json) ? 2 : 3;
+
+                this._projectZip = zip
                 return resolve([json, zip]);
             } catch (err) {
                 reject(err.toString());
