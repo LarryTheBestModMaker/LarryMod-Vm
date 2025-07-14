@@ -231,12 +231,13 @@ class Scratch3SoundBlocks {
     }
 
     _playSoundTimer(sound, util) {
-        (async function() {
-            const length = this.getLength({
+        const soundThis = this;
+        (async function(soundThis) {
+            const length = soundThis.getLength({
                 SOUND_MENU: sound
             }, util)
 
-            const index = this._getSoundIndex(sound, util);
+            const index = soundThis._getSoundIndex(sound, util);
             if (index < 0) return 0;
 
             const target = util.target;
@@ -244,13 +245,13 @@ class Scratch3SoundBlocks {
             if (!sprite) return 0;
 
             const { soundId } = sprite.sounds[index];
-            this.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({now: () => this.runtime.currentMSecs});
-            this.soundTimers["sound_" + soundId + "_timePosition"].start()
-            while (this.soundTimers["sound_" + soundId + "_timePosition"] && (this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < length) {
+            soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({now: () => soundThis.runtime.currentMSecs});
+            soundThis.soundTimers["sound_" + soundId + "_timePosition"].start()
+            while (soundThis.soundTimers["sound_" + soundId + "_timePosition"] && (soundThis.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < length) {
                 await new Promise(resolve => setTimeout(resolve, 1))
             }
-            if (this.soundTimers["sound_" + soundId + "_timePosition"]) delete(this.soundTimers["sound_" + soundId + "_timePosition"]);
-        })()
+            if (soundThis.soundTimers["sound_" + soundId + "_timePosition"]) delete(soundThis.soundTimers["sound_" + soundId + "_timePosition"]);
+        })(soundThis)
     }
 
     setStopFadeout (args, util) {
