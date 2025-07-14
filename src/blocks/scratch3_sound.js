@@ -320,7 +320,7 @@ class Scratch3SoundBlocks {
 
         const { soundId } = sprite.sounds[index];
 
-        return this.soundTimers["sound_" + soundId + "_timePosition"] ?? 0
+        return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() ?? 0
     }
 
     getLength (args, util) {
