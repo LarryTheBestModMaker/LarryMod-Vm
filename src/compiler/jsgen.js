@@ -1754,7 +1754,11 @@ class JSGenerator {
             const value = this.descendInput(node.value);
             const property = node.property;
             const isStage = node.object.value === '_stage_';
-            const objectReference = isStage ? 'stage' : this.evaluateOnce(`runtime.getSpriteTargetByName(${object})`);
+            const objectReference = isStage 
+                ? 'stage' 
+                : node.object instanceof ConstantInput
+                    ? this.evaluateOnce(`runtime.getSpriteTargetByName(${object})`)
+                    : `runtime.getSpriteTargetByName(${object})`;
 
             this.source += `if (${objectReference})`;
 
