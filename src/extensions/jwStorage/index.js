@@ -41,6 +41,11 @@ class Extension {
                     opcode: 'getAllFiles',
                     text: 'get all files',
                     ...jwArray.Block
+                },
+                {
+                    opcode: 'getAllDirectories',
+                    text: 'get all directories',
+                    ...jwArray.Block
                 }
             ],
             menus: {
@@ -53,12 +58,12 @@ class Extension {
     }
 
     async getFile({NAME, TYPE}) {
-        if (!vm._projectZip.files["extraFiles/"]) return ""
+        if (!vm._projectZip.files["extraAssets/"]) return ""
 
         NAME = Cast.toString(NAME)
         TYPE = Cast.toString(TYPE)
 
-        let file = vm._projectZip.folder("extraFiles").file(NAME)
+        let file = vm._projectZip.folder("extraAssets").file(NAME)
         if (!file) return ""
 
         switch (TYPE) {
@@ -69,9 +74,15 @@ class Extension {
     }
 
     getAllFiles() {
-        if (!vm._projectZip.files["extraFiles/"]) return new jwArray.Type()
+        if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraFiles/") && !v.dir).map(v => v.name.substring(11)))
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && !v.dir).map(v => v.name.substring(11)))
+    }
+
+    getAllDirectories() {
+        if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
+
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && v.dir).map(v => v.name.substring(11)))
     }
 }
 
