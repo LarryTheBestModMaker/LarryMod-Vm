@@ -1750,15 +1750,15 @@ class JSGenerator {
             break;
         }
         case 'sensing.set.of': {
-            const object = this.descendInput(node.object).asString();
+            const object = this.descendInput(node.object);
             const value = this.descendInput(node.value);
             const property = node.property;
             const isStage = node.object.value === '_stage_';
             const objectReference = isStage 
                 ? 'stage' 
-                : node.object instanceof ConstantInput
-                    ? this.evaluateOnce(`runtime.getSpriteTargetByName(${object})`)
-                    : `runtime.getSpriteTargetByName(${object})`;
+                : object instanceof ConstantInput
+                    ? this.evaluateOnce(`runtime.getSpriteTargetByName(${object.asString()})`)
+                    : `runtime.getSpriteTargetByName(${object.asString()})`;
 
             this.source += `if (${objectReference})`;
 
