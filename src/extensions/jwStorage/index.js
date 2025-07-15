@@ -24,14 +24,14 @@ class Extension {
             blocks: [
                 {
                     opcode: 'getFile',
-                    text: 'get file [NAME] as [MENU]',
+                    text: 'get file [NAME] as [TYPE]',
                     blockType: BlockType.REPORTER,
                     arguments: {
                         NAME: {
                             type: ArgumentType.STRING,
                             defaultValue: "file.txt"
                         },
-                        MENU: {
+                        TYPE: {
                             menu: "fileExportType",
                             defaultValue: "text"
                         }
@@ -76,13 +76,13 @@ class Extension {
     getAllFiles() {
         if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && !v.dir).map(v => v.name.substring(11)))
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && !v.dir).map(v => v.name.substring(12)))
     }
 
     getAllDirectories() {
         if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && v.dir).map(v => v.name.substring(11)))
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && v.dir).map(v => v.name.substring(12)))
     }
 }
 
