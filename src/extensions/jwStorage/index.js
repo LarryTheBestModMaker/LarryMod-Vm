@@ -19,8 +19,8 @@ class Extension {
     getInfo() {
         return {
             id: "jwStorage",
-            name: "Storage",
-            color1: "#555555",
+            name: "Assets",
+            color1: "#6f6df0",
             blocks: [
                 {
                     opcode: 'getFile',
@@ -69,6 +69,17 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
+                },
+                {
+                    opcode: 'getSubdirs',
+                    text: 'get folders in directory [NAME]',
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "folder"
+                        }
+                    },
+                    ...jwArray.Block
                 }
             ],
             menus: {
@@ -100,14 +111,9 @@ class Extension {
         if (!vm._projectZip.files["extraAssets/"]) return ""
 
         NAME = Cast.toString(NAME)
+        if (NAME.endsWith("/")) NAME = NAME.substring(0, NAME.length-1)
 
-        if (NAME.endsWith("/")) {
-            let dir = vm._projectZip.files[`extraAssets/${NAME}`]
-            return !!dir
-        } else {
-            let file = vm._projectZip.folder("extraAssets").file(NAME)
-            return !!file
-        }
+        return !!(vm._projectZip.files[`extraAssets/${NAME}/`] || vm._projectZip.folder("extraAssets").file(NAME))
     }
 
     getAllFiles() {
@@ -126,7 +132,7 @@ class Extension {
         if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
         NAME = Cast.toString(NAME)
-        if (!NAME.endsWith("/")) return new jwArray.Type()
+        if (!NAME.endsWith("/")) NAME += "/"
         
         let rootFolder = `extraAssets/${NAME}`
         return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(rootFolder) && !v.dir).map(v => v.name.substring(rootFolder.length)))
