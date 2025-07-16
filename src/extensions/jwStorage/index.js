@@ -67,7 +67,7 @@ class Extension {
                             type: ArgumentType.STRING,
                             defaultValue: "folder"
                         }
-                    }
+                    },
                     ...jwArray.Block
                 }
             ],
