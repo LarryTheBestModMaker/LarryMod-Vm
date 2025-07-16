@@ -131,7 +131,7 @@ const ArgumentTypeMap = (() => {
         }
     };
     map[ArgumentType.CUSTOM] = {
-        fieldType: 'field_custom'
+        fieldType: 'field_customInput'
     };
     map[ArgumentType.COSTUME] = {
         shadow: {
@@ -1937,9 +1937,9 @@ class Runtime extends EventEmitter {
             argJSON = {
                 type: 'field_vertical_separator',
             };
-        } else if (argTypeInfo.fieldType === 'field_custom') {
+        } else if (argTypeInfo.fieldType === 'field_customInput') {
             argJSON = {
-                type: 'field_custom',
+                type: 'field_customInput',
                 name: argInfo.name,
                 value: argInfo.defaultValue
             };
