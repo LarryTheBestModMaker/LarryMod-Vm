@@ -577,8 +577,12 @@ class VirtualMachine extends EventEmitter {
         this._addFileDescsToZip(this.serializeAssets(), zip);
 
         // extra assets implementation
-        if (this._projectZip && this._projectZip.files["extraAssets/"]) {
-            zip.files = {...zip.files, ...Object.fromEntries(Object.entries(this._projectZip.files).filter(v => v[0].startsWith("extraAssets/")))}
+        if (this._projectZip) {
+            try {
+                zip.files = {...zip.files, ...Object.fromEntries(Object.entries(this._projectZip.files).filter(v => v[0].startsWith("extraAssets/")))}
+            } catch (e) {
+                console.warn("unable to get extra assets", e)
+            }
         }
 
         // Use a fixed modification date for the files in the zip instead of letting JSZip use the
