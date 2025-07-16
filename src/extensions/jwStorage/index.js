@@ -129,7 +129,7 @@ class Extension {
         if (!NAME.endsWith("/")) return new jwArray.Type()
         
         let rootFolder = `extraAssets/${NAME}`
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(NAME) && !v.dir).map(v => v.name.substring(NAME.length)))
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(rootFolder) && !v.dir).map(v => v.name.substring(rootFolder.length)))
     }
 }
 
