@@ -1939,6 +1939,7 @@ class Runtime extends EventEmitter {
             };
         } else if (argTypeInfo.fieldType === 'field_custom') {
             argJSON = {
+                type: 'field_custom',
                 name: argInfo.name,
                 value: argInfo.defaultValue
             };
