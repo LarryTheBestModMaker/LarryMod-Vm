@@ -38,6 +38,18 @@ class Extension {
                     }
                 },
                 {
+                    opcode: 'fileExists',
+                    text: 'file/directory [NAME] exists?',
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "file.txt"
+                        }
+                    }
+                },
+                "---",
+                {
                     opcode: 'getAllFiles',
                     text: 'get all files',
                     ...jwArray.Block
@@ -45,6 +57,17 @@ class Extension {
                 {
                     opcode: 'getAllDirectories',
                     text: 'get all directories',
+                    ...jwArray.Block
+                },
+                {
+                    opcode: 'getFilesInFolder',
+                    text: 'get files in directory [NAME]',
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "folder"
+                        }
+                    }
                     ...jwArray.Block
                 }
             ],
@@ -73,6 +96,20 @@ class Extension {
         }
     }
 
+    fileExists({NAME}) {
+        if (!vm._projectZip.files["extraAssets/"]) return ""
+
+        NAME = Cast.toString(NAME)
+
+        if (NAME.endsWith("/")) {
+            let dir = vm._projectZip.files[`extraAssets/${NAME}`]
+            return !!dir
+        } else {
+            let file = vm._projectZip.folder("extraAssets").file(NAME)
+            return !!file
+        }
+    }
+
     getAllFiles() {
         if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
@@ -82,7 +119,17 @@ class Extension {
     getAllDirectories() {
         if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
 
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && v.dir).map(v => v.name.substring(12)))
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith("extraAssets/") && v.dir && v.name !== "extraAssets/").map(v => v.name.substring(12)))
+    }
+
+    getFilesInFolder({NAME}) {
+        if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
+
+        NAME = Cast.toString(NAME)
+        if (!NAME.endsWith("/")) return new jwArray.Type()
+        
+        let rootFolder = `extraAssets/${NAME}`
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(NAME) && !v.dir).map(v => v.name.substring(NAME.length)))
     }
 }
 
