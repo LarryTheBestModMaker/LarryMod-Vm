@@ -130,6 +130,9 @@ const ArgumentTypeMap = (() => {
             type: 'polygon'
         }
     };
+    map[ArgumentType.CUSTOM] = {
+        fieldType: 'field_customInput'
+    };
     map[ArgumentType.COSTUME] = {
         shadow: {
             type: 'looks_costume',
@@ -1933,6 +1936,13 @@ class Runtime extends EventEmitter {
         } else if (argTypeInfo.fieldType === 'field_vertical_separator') {
             argJSON = {
                 type: 'field_vertical_separator',
+            };
+        } else if (argTypeInfo.fieldType === 'field_customInput') {
+            argJSON = {
+                type: 'field_customInput',
+                name: placeholder,
+                id: argInfo.id,
+                value: argInfo.defaultValue
             };
         } else {
             // Construct input value

@@ -520,6 +520,8 @@ class VirtualMachine extends EventEmitter {
                 const json = JSON.parse(await proj.async('string'));
                 delete json.meta;
                 json.projectVersion = this.isSB2(json) ? 2 : 3;
+
+                this._projectZip = zip
                 return resolve([json, zip]);
             } catch (err) {
                 reject(err.toString());
@@ -558,6 +560,8 @@ class VirtualMachine extends EventEmitter {
         });
     }
 
+    _projectZip = new JSZip();
+
     /**
      * @returns {JSZip} JSZip zip object representing the sb3.
      */
@@ -571,6 +575,15 @@ class VirtualMachine extends EventEmitter {
         // Put everything in a zip file
         zip.file('project.json', projectJson);
         this._addFileDescsToZip(this.serializeAssets(), zip);
+
+        // extra assets implementation
+        if (this._projectZip) {
+            try {
+                zip.files = {...zip.files, ...Object.fromEntries(Object.entries(this._projectZip.files).filter(v => v[0].startsWith("extraAssets/")))}
+            } catch (e) {
+                console.warn("unable to get extra assets", e)
+            }
+        }
 
         // Use a fixed modification date for the files in the zip instead of letting JSZip use the
         // current time to avoid a very small metadata leak and make zipping deterministic. The magic
