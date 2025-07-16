@@ -21,6 +21,7 @@ class Extension {
             id: "jwStorage",
             name: "Assets",
             color1: "#6f6df0",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+CiAgPGNpcmNsZSBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBwYWludC1vcmRlcjogc3Ryb2tlOyBzdHJva2U6IHJnYig4OCwgODcsIDE5Mik7IGZpbGw6IHJnYigxMTEsIDEwOSwgMjQwKTsiIGN4PSIxMCIgY3k9IjEwIiByPSI5Ij48L2NpcmNsZT4KICA8cGF0aCBkPSJNIDYuOTA2IDMuODEzIEMgNi4wNTMgMy44MTMgNS4zNiA0LjUwNiA1LjM2IDUuMzYgTCA1LjM2IDE0LjY0IEMgNS4zNiAxNS40OTQgNi4wNTMgMTYuMTg3IDYuOTA2IDE2LjE4NyBMIDEzLjA5NCAxNi4xODcgQyAxMy45NDcgMTYuMTg3IDE0LjY0IDE1LjQ5NCAxNC42NCAxNC42NCBMIDE0LjY0IDkuMjI3IEMgMTQuNjQgOC43MTIgMTQuMzgyIDguMTk1IDEzLjg2NyA3LjY4IEwgMTAuNzczIDQuNTg2IEMgMTAuMjU4IDQuMDcxIDkuNzQyIDMuODEzIDkuMjI3IDMuODEzIEwgNi45MDYgMy44MTMgWiBNIDguNDUzIDYuMTMzIEMgOC40NTMgNS4xMDEgOC45NjggNS4xMDEgMTAgNi4xMzMgTCAxMi4zMiA4LjQ1MyBDIDEzLjM1MiA5LjQ4NSAxMy4zNTIgMTAgMTIuMzIgMTAgTCAxMCAxMCBDIDkuMTQ2IDEwIDguNDUzIDkuMzA3IDguNDUzIDguNDUzIEwgOC40NTMgNi4xMzMgWiIgZmlsbD0iI2ZmZiIgc3R5bGU9InN0cm9rZS13aWR0aDogMTsiPjwvcGF0aD4KPC9zdmc+",
             blocks: [
                 {
                     opcode: 'getFile',
@@ -134,8 +135,20 @@ class Extension {
         NAME = Cast.toString(NAME)
         if (!NAME.endsWith("/")) NAME += "/"
         
-        let rootFolder = `extraAssets/${NAME}`
-        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(rootFolder) && !v.dir).map(v => v.name.substring(rootFolder.length)))
+        let rootFolder = NAME == "/" ? `extraAssets/` : `extraAssets/${NAME}`
+        let depth = rootFolder.split("/").length
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(rootFolder) && v.name.split("/").length == depth && !v.dir).map(v => v.name.substring(12)))
+    }
+
+    getSubdirs({NAME}) {
+        if (!vm._projectZip.files["extraAssets/"]) return new jwArray.Type()
+
+        NAME = Cast.toString(NAME)
+        if (!NAME.endsWith("/")) NAME += "/"
+        
+        let rootFolder = NAME == "/" ? `extraAssets/` : `extraAssets/${NAME}`
+        let depth = rootFolder.split("/").length
+        return new jwArray.Type(Object.values(vm._projectZip.files).filter(v => v.name.startsWith(rootFolder) && v.name.split("/").length == depth+1 && v.dir).map(v => v.name.substring(12)))
     }
 }
 
