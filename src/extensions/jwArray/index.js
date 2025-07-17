@@ -201,7 +201,7 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
-                }
+                },
                 {
                     opcode: 'split',
                     text: 'split [STRING] by [DIVIDER]',
@@ -352,7 +352,7 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
-                }
+                },
                 "---",
                 {
                     opcode: 'forEachI',
