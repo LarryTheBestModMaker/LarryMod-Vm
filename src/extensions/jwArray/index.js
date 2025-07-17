@@ -40,7 +40,10 @@ class ArrayType {
     array = []
 
     constructor(array = []) {
-        this.array = array
+        this.array = array.map(v => {
+            if (v instanceof Array) return new ArrayType([...v])
+            return v
+        })
     }
 
     static toArray(x) {
@@ -67,7 +70,7 @@ class ArrayType {
                     if (typeof x.jwArrayHandler == "function") {
                         return x.jwArrayHandler()
                     }
-                    return Cast.toString(x)
+                    return "Object"
                 case "undefined":
                     return "null"
                 case "number":
@@ -106,6 +109,15 @@ class ArrayType {
         root.appendChild(span(`Length: ${this.array.length}`))
 
         return root
+    }
+
+    flat(depth = 1) {
+        depth = Math.floor(depth)
+        if (depth < 1) return this
+        return new ArrayType(this.array.reduce((o, v) => {
+            if (v instanceof ArrayType) return [...o, ...v.flat(depth - 1).array]
+            return [...o, v]
+        }, []))
     }
 
     get length() {
@@ -183,6 +195,18 @@ class Extension {
                         }
                     },
                     hideFromPalette: true, //doesn't work for some reason
+                    ...jwArray.Block
+                },
+                {
+                    opcode: 'parse',
+                    text: 'parse [INPUT] as array',
+                    arguments: {
+                        INPUT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '["a", "b", "c"]',
+                            exemptFromNormalization: true
+                        }
+                    },
                     ...jwArray.Block
                 },
                 {
@@ -324,6 +348,18 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'flat',
+                    text: 'flat [ARRAY] with depth [DEPTH]',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        DEPTH: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    },
+                    ...jwArray.Block
+                },
                 "---",
                 {
                     opcode: 'forEachI',
@@ -392,6 +428,10 @@ class Extension {
 
     fromList({LIST}) {
         return jwArray.Type.toArray(LIST)
+    }
+
+    parse({INPUT}) {
+        return jwArray.Type.toArray(INPUT)
     }
 
     split({STRING, DIVIDER}) {
@@ -468,6 +508,13 @@ class Extension {
 
         ARRAY.array.reverse()
         return ARRAY
+    }
+
+    flat({ARRAY, DEPTH}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        DEPTH = Cast.toNumber(DEPTH)
+
+        return ARRAY.flat(DEPTH)
     }
 
     forEachI({}, util) {

@@ -1755,7 +1755,7 @@ class JSGenerator {
             const property = node.property;
             const isStage = node.object.value === '_stage_';
             const objectReference = this.localVariables.next();
-            this.source += `var ${objectReference} = ${isStage ? 'stage' : `runtime.getSpriteTargetByName(${object.asString()})`};`;
+            this.source += `var ${objectReference} = ${isStage ? 'stage' : `runtime.getSpriteTargetByName(${object.asString()})`};\n`;
 
             this.source += `if (${objectReference})`;
 
@@ -1789,9 +1789,10 @@ class JSGenerator {
                 this.source += `${objectReference}.setSize(${value.asNumber()});`;
                 break;
             default:
-                const variableReference = this.evaluateOnce(`${objectReference} && ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true)`);
+                const variableReference = this.localVariables.next();
+                this.source += `{\nconst ${variableReference} = ${objectReference} ? ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true) : "";\n`;
                 this.source += `if (${variableReference}) `;
-                this.source += `${variableReference}.value = ${value.asString()};`;
+                this.source += `${variableReference}.value = ${value.asString()};\n}\n`;
                 break;
             }
             break;
