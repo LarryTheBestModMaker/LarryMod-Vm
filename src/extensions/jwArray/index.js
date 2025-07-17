@@ -40,9 +40,7 @@ class ArrayType {
     array = []
 
     constructor(array = []) {
-        this.array = array
-
-        array.forEach(v => {
+        this.array = array.map(v => {
             if (v instanceof Array) return new ArrayType([...v])
             return v
         })
@@ -111,6 +109,15 @@ class ArrayType {
         root.appendChild(span(`Length: ${this.array.length}`))
 
         return root
+    }
+
+    flat(depth = 1) {
+        depth = Math.floor(depth)
+        if (depth < 1) return this.array
+        return new ArrayType(this.array.reduce((o, v) => {
+            if (v instanceof ArrayType) return [...o, ...v.flat(depth - 1).array]
+            return [...o, v]
+        }, []))
     }
 
     get length() {
@@ -507,8 +514,7 @@ class Extension {
         ARRAY = jwArray.Type.toArray(ARRAY)
         DEPTH = Cast.toNumber(DEPTH)
 
-        ARRAY.array.flat(DEPTH)
-        return ARRAY
+        return ARRAY.flat(DEPTH)
     }
 
     forEachI({}, util) {
