@@ -113,7 +113,7 @@ class ArrayType {
 
     flat(depth = 1) {
         depth = Math.floor(depth)
-        if (depth < 1) return this.array
+        if (depth < 1) return this
         return new ArrayType(this.array.reduce((o, v) => {
             if (v instanceof ArrayType) return [...o, ...v.flat(depth - 1).array]
             return [...o, v]
