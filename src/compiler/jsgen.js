@@ -1789,7 +1789,8 @@ class JSGenerator {
                 this.source += `${objectReference}.setSize(${value.asNumber()});`;
                 break;
             default:
-                const variableReference = this.evaluateOnce(`${objectReference} && ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true)`);
+                const variableReference = this.localVariables.next();
+                this.source += `const ${variableReference} = ${objectReference} ? : ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true)` : "";
                 this.source += `if (${variableReference}) `;
                 this.source += `${variableReference}.value = ${value.asString()};`;
                 break;
