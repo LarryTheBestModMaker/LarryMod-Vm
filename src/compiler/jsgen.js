@@ -1790,9 +1790,9 @@ class JSGenerator {
                 break;
             default:
                 const variableReference = this.localVariables.next();
-                this.source += `const ${variableReference} = ${objectReference} ? : ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true)` : "";
+                this.source += `const ${variableReference} = ${objectReference} ? : ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true) : "";\n`;
                 this.source += `if (${variableReference}) `;
-                this.source += `${variableReference}.value = ${value.asString()};`;
+                this.source += `${variableReference}.value = ${value.asString()};\n`;
                 break;
             }
             break;
