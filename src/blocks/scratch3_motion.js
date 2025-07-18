@@ -150,6 +150,10 @@ class Scratch3MotionBlocks {
             motion_direction: {
                 isSpriteSpecific: true,
                 getId: targetId => `${targetId}_direction`
+            },
+            motion_rotationstyle: {
+                isSpriteSpecific: true,
+                getId: targetId => `${targetId}_rotationstyle`
             }
         };
     }
