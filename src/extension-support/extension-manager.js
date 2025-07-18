@@ -528,7 +528,7 @@ class ExtensionManager {
         /* eslint-enable max-len */
 
         return new Promise((resolve, reject) => {
-            this.pendingExtensions.push({ extensionURL: blobUrl, resolve, reject });
+            this.pendingExtensions.push({ extensionURL: rewritten, resolve, reject });
             dispatch.addWorker(new ExtensionWorker());
         }).catch(error => this._failedLoadingExtensionScript(error));
     }

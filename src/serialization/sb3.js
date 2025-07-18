@@ -1474,8 +1474,9 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         target.id = object.id;
     }
 
-    if (object.hasOwnProperty('extensionData')) {
-        target.extensionData = object.extensionData;
+    if (object.hasOwnProperty('extensionData') || object.hasOwnProperty('extensionStorage')) {
+        target.extensionData = Object.assign(object.extensionStorage ?? {}, object.extensionData);
+        // We're prioritizing the keys in extensionData over the ones in extensionStorage
     }
 
     Promise.all(costumePromises).then(costumes => {
@@ -1665,8 +1666,9 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     if (json.extensionURLs) {
         extensions.extensionURLs = new Map(Object.entries(json.extensionURLs));
     }
-    if (json.extensionData) {
-        extensions.extensionData = json.extensionData;
+    if (json.extensionData || json.extensionStorage) {
+        extensions.extensionData = Object.assign(json.extensionStorage ?? {}, json.extensionData);
+        // We're prioritizing the keys in extensionData over the ones in extensionStorage
     }
 
     // Extract any custom fonts before loading costumes.
