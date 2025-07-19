@@ -1784,12 +1784,15 @@ class Runtime extends EventEmitter {
             }
         }
 
-        if (
-            typeof blockInfo.blockShape === 'number' || (typeof blockInfo.blockShape === 'string' && (
-                blockInfo.blockShape.startsWith("custom-") || blockInfo.blockShape.startsWith("native-")
-            ))
-        ) {
-            blockJSON.outputShape = blockInfo.blockShape;
+        const blockShape = blockInfo.blockShape;
+        if (typeof blockShape === 'number') {
+            blockJSON.outputShape = blockShape;
+        } else if (typeof blockShape === 'string') {
+          // assume we are handling a custom shape...
+          // if it doesnt exist it will default to a round reporter
+          if (blockShape.startsWith("native-")) blockJSON.outputShape = blockShape;
+          else if (!blockShape.startsWith("custom-")) blockJSON.outputShape = "custom-" + blockShape;
+          else blockJSON.outputShape = blockShape;
         }
         if (blockInfo.forceOutputType) {
             blockJSON.output = blockInfo.forceOutputType;
