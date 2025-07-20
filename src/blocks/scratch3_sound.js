@@ -253,7 +253,7 @@ class Scratch3SoundBlocks {
                     EFFECT: 'PITCH'
                 }, util);
                 let e = 1
-                if currentPitch == 0 && e == 1 {
+                if (currentPitch == 0 && e == 1) {
                     console.log("darn it")
                     e = 0
                 }
