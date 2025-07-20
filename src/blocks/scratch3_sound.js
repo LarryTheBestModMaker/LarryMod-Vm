@@ -236,6 +236,12 @@ class Scratch3SoundBlocks {
             const length = soundThis.getLength({
                 SOUND_MENU: sound
             }, util)
+            const currentPitch = soundThis.getEffectValue({
+                EFFECT: 'PITCH'
+            }, util)
+
+            const speedMultiplier = Math.pow(2, currentPitch / 12);
+            const adjustedLength = length / speedMultiplier;
 
             const index = soundThis._getSoundIndex(sound, util);
             if (index < 0) return 0;
@@ -247,7 +253,7 @@ class Scratch3SoundBlocks {
             const { soundId } = sprite.sounds[index];
             soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({now: () => soundThis.runtime.currentMSecs});
             soundThis.soundTimers["sound_" + soundId + "_timePosition"].start()
-            while (soundThis.soundTimers["sound_" + soundId + "_timePosition"] && (soundThis.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < length) {
+            while (soundThis.soundTimers["sound_" + soundId + "_timePosition"] && (soundThis.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < adjustedLength) {
                 await new Promise(resolve => setTimeout(resolve, 1))
             }
             if (soundThis.soundTimers["sound_" + soundId + "_timePosition"]) delete(soundThis.soundTimers["sound_" + soundId + "_timePosition"]);
