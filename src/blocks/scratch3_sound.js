@@ -252,6 +252,11 @@ class Scratch3SoundBlocks {
                 const currentPitch = soundThis.getEffectValue({
                     EFFECT: 'PITCH'
                 }, util);
+                let e = 1
+                if currentPitch == 0 && e == 1 {
+                    console.log("darn it")
+                    e = 0
+                }
 
                 const speedMultiplier = Math.pow(2, currentPitch / 14);
 
