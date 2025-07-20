@@ -235,14 +235,7 @@ class Scratch3SoundBlocks {
         (async function(soundThis) {
             const length = soundThis.getLength({
                 SOUND_MENU: sound
-            }, util)
-            const currentPitch = soundThis.getEffectValue({
-                EFFECT: 'PITCH'
-            }, util)
-
-            const speedMultiplier = Math.pow(2, currentPitch / 12);
-            const adjustedLength = length / speedMultiplier;
-
+            }, util);
             const index = soundThis._getSoundIndex(sound, util);
             if (index < 0) return 0;
 
@@ -251,12 +244,28 @@ class Scratch3SoundBlocks {
             if (!sprite) return 0;
 
             const { soundId } = sprite.sounds[index];
-            soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({now: () => soundThis.runtime.currentMSecs});
-            soundThis.soundTimers["sound_" + soundId + "_timePosition"].start()
-            while (soundThis.soundTimers["sound_" + soundId + "_timePosition"] && (soundThis.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000) < adjustedLength) {
-                await new Promise(resolve => setTimeout(resolve, 1))
+            soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({ now: () => soundThis.runtime.currentMSecs });
+            const timer = soundThis.soundTimers["sound_" + soundId + "_timePosition"];
+            timer.start();
+
+            while (timer) {
+                const currentPitch = soundThis.getEffectValue({
+                    EFFECT: 'PITCH'
+                }, util);
+
+                const speedMultiplier = Math.pow(2, currentPitch / 14);
+
+                const elapsedRealSeconds = timer.timeElapsed() / 1000;
+                const effectiveElapsed = elapsedRealSeconds * speedMultiplier;
+
+                if (effectiveElapsed >= length) break;
+
+                await new Promise(resolve => setTimeout(resolve, 1));
             }
-            if (soundThis.soundTimers["sound_" + soundId + "_timePosition"]) delete(soundThis.soundTimers["sound_" + soundId + "_timePosition"]);
+
+            if (soundThis.soundTimers["sound_" + soundId + "_timePosition"]) {
+                delete soundThis.soundTimers["sound_" + soundId + "_timePosition"];
+            }
         })(soundThis)
     }
 
