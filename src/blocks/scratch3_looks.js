@@ -389,7 +389,8 @@ class Scratch3LooksBlocks {
             looks_setTintColor: this.setTintColor,
 
             looks_hideallsprites: this.hideAllSprites, // not a legacy no-op block anymore :)
-            looks_showallsprites: this.showAllSprites
+            looks_showallsprites: this.showAllSprites,
+            looks_getAllSpritesVisible: this.getAllSpritesVisible
         };
     }
 
@@ -1008,6 +1009,23 @@ class Scratch3LooksBlocks {
             if (!target.isStage) {
                 target.setVisible(true)
             }
+        }
+    }
+
+    getAllSpritesVisible (args) {
+        const trueOrFalse = []
+        const isVisOrInvis = args.VISIBLE_TYPE;
+        const targets = this.runtime.targets;
+        for (const target of targets) {
+            if (!target.isStage) {
+                trueOrFalse.push(target.visible)
+            }
+        }
+        switch (isVisOrInvis) {
+            case 'show':
+                return !trueOrFalse.includes(false) ? true : false
+            case 'hide':
+                return !trueOrFalse.includes(true) ? true : false
         }
     }
 }

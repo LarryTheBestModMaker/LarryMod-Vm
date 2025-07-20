@@ -166,7 +166,8 @@ const outputBlocks = [
     'motion_rotationstyle',
     'sensing_dayssince',
     'operator_percentage',
-    'operator_clamp'
+    'operator_clamp',
+    'looks_getAllSpritesVisible'
 ];
 
 module.exports = {
