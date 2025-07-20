@@ -167,7 +167,8 @@ const outputBlocks = [
     'sensing_dayssince',
     'operator_percentage',
     'operator_clamp',
-    'looks_getAllSpritesVisible'
+    'looks_getAllSpritesVisible',
+    'event_whenlesserthan'
 ];
 
 module.exports = {

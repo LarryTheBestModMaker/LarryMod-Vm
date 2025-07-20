@@ -84,6 +84,7 @@ class Scratch3EventBlocks {
             event_broadcast: this.broadcast,
             event_broadcastandwait: this.broadcastAndWait,
             event_whengreaterthan: this.hatGreaterThanPredicate
+            event_whenlesserthan: this.hatLesserThanPredicate
         };
     }
 
@@ -145,6 +146,10 @@ class Scratch3EventBlocks {
                 restartExistingThreads: false,
                 edgeActivated: true
             },
+            event_whenlesserthan: {
+                restartExistingThreads: false,
+                edgeActivated: true
+            },
             event_whenbroadcastreceived: {
                 restartExistingThreads: true
             }
@@ -163,6 +168,17 @@ class Scratch3EventBlocks {
             return util.ioQuery('clock', 'projectTimer') > value;
         case 'loudness':
             return this.runtime.audioEngine && this.runtime.audioEngine.getLoudness() > value;
+        }
+        return false;
+    }
+    hatLesserThanPredicate (args, util) {
+        const option = Cast.toString(args.WHENGREATERTHANMENU).toLowerCase();
+        const value = Cast.toNumber(args.VALUE);
+        switch (option) {
+        case 'timer':
+            return util.ioQuery('clock', 'projectTimer') < value;
+        case 'loudness':
+            return this.runtime.audioEngine && this.runtime.audioEngine.getLoudness() < value;
         }
         return false;
     }
