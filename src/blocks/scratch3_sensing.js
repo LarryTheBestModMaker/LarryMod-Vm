@@ -640,6 +640,7 @@ class Scratch3SensingBlocks {
             case 'x position': return attrTarget.x;
             case 'y position': return attrTarget.y;
             case 'direction': return attrTarget.direction;
+            case 'rotation style': return attrTarget.rotationStyle;
             case 'costume #': return attrTarget.currentCostume + 1;
             case 'costume name':
                 return attrTarget.getCostumes()[attrTarget.currentCostume].name;

@@ -925,6 +925,8 @@ class JSGenerator {
                         return new TypedInput(`(${objectReference} ? ${objectReference}.y : 0)`, TYPE_NUMBER);
                     case 'direction':
                         return new TypedInput(`(${objectReference} ? ${objectReference}.direction : 0)`, TYPE_NUMBER);
+                    case 'rotation style':
+                        return new TypedInput(`(${objectReference} ? ${objectReference}.rotationStyle : 0)`, TYPE_UNKNOWN);
                     case 'costume #':
                         return new TypedInput(`(${objectReference} ? ${objectReference}.currentCostume + 1 : 0)`, TYPE_NUMBER);
                     case 'costume name':
