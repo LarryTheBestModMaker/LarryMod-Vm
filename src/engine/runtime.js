@@ -1784,8 +1784,14 @@ class Runtime extends EventEmitter {
             }
         }
 
-        if (typeof blockInfo.blockShape === 'number') {
-            blockJSON.outputShape = blockInfo.blockShape;
+        const blockShape = blockInfo.blockShape;
+        if (typeof blockShape === 'number') blockJSON.outputShape = blockShape;
+        else if (typeof blockShape === 'string') {
+            // assume we are handling a custom shape...
+            // if it doesnt exist it will default to a round reporter
+            if (blockShape.startsWith('native-')) blockJSON.outputShape = blockShape;
+            else if (!blockShape.startsWith('custom-')) blockJSON.outputShape = 'custom-' + blockShape;
+            else blockJSON.outputShape = blockShape;
         }
         if (blockInfo.forceOutputType) {
             blockJSON.output = blockInfo.forceOutputType;
@@ -1964,8 +1970,16 @@ class Runtime extends EventEmitter {
                 // shaped like a hexagon
                 argJSON.check = argInfo.check || argTypeInfo.check;
             }
-            if (argInfo.shape) {
-                argJSON.shape = argInfo.shape;
+            const argShape = argInfo.shape;
+            if (argShape) {
+                if (typeof argShape === 'number') argJSON.shape = argShape;
+                else {
+                    // assume we are handling a custom shape...
+                    // if it doesnt exist it will default to a null input
+                    if (argShape.startsWith('native-')) argJSON.shape = argShape;
+                    else if (!argShape.startsWith('custom-')) argJSON.shape = 'custom-' + argShape;
+                    else argJSON.shape = argShape;
+                }
             }
 
             let valueName;

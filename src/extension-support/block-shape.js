@@ -9,22 +9,22 @@ const BlockShape = {
     HEXAGONAL: 1,
 
     /**
-     * Output shape: rounded (numbers).
+     * Output shape: rounded (numbers/strings).
      */
     ROUND: 2,
 
     /**
-     * Output shape: squared (any/all values; strings).
+     * Output shape: squared (arrays).
      */
     SQUARE: 3,
 
     /**
-     * Output shape: leaf-ed (custom shape thatl ooks cool).
+     * Output shape: leaf-ed (vectors).
      */
     LEAF: 4,
 
     /**
-     * Output shape: plus (custom).
+     * Output shape: plus (objects/classes or class instances).
      */
     PLUS: 5,
 };
