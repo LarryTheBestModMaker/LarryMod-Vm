@@ -14,7 +14,7 @@ const BlockShape = {
     ROUND: 2,
 
     /**
-     * Output shape: squared (arrays).
+     * Output shape: squared (arrays/array buffers/uint arrays).
      */
     SQUARE: 3,
 

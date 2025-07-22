@@ -1969,7 +1969,7 @@ class Runtime extends EventEmitter {
                 // shaped like a hexagon
                 argJSON.check = argInfo.check || argTypeInfo.check;
             }
-            const argShape = argInfo.shape;
+            const argShape = argTypeInfo.shape || argInfo.shape;
             if (argShape) {
                 if (typeof argShape === 'number') argJSON.shape = argShape;
                 else {

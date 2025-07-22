@@ -317,6 +317,14 @@ class JgDevBlocks {
                     }
                 },
                 {
+                    opcode: 'docsScreenshotBlock',
+                    text: 'text',
+                    blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.TICKET,
+                    color1: '#0088FF',
+                    disableMonitor: true
+                },
+                {
                     opcode: 'costumeTypeTest',
                     blockType: BlockType.REPORTER,
                     text: 'test custom type updating/rendering (new instance)'
