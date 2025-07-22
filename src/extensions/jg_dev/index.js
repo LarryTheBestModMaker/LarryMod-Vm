@@ -317,6 +317,14 @@ class JgDevBlocks {
                     }
                 },
                 {
+                    opcode: 'docsScreenshotBlock',
+                    text: 'text',
+                    blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.TICKET,
+                    color1: '#0088FF',
+                    disableMonitor: true
+                },
+                {
                     opcode: 'costumeTypeTest',
                     blockType: BlockType.REPORTER,
                     text: 'test custom type updating/rendering (new instance)'
@@ -365,6 +373,148 @@ class JgDevBlocks {
                             menu: 'epicLabelTestMenu',
                         }
                     }
+                },
+                {
+                    blockType: BlockType.LABEL,
+                    text: "Native CUSTOM_SHAPES"
+                },
+                {
+                    opcode: 'customShapeOCTAGONAL',
+                    text: 'custom shape OCTAGONAL [TEST]',
+                    forceOutputType: BlockShape.OCTAGONAL,
+                    blockShape: BlockShape.OCTAGONAL,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeBUMPED',
+                    text: 'custom shape BUMPED [TEST]',
+                    forceOutputType: BlockShape.BUMPED,
+                    blockShape: BlockShape.BUMPED,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeINDENTED',
+                    text: 'custom shape INDENTED [TEST]',
+                    forceOutputType: BlockShape.INDENTED,
+                    blockShape: BlockShape.INDENTED,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeSCRAPPED',
+                    text: 'custom shape SCRAPPED [TEST]',
+                    forceOutputType: BlockShape.SCRAPPED,
+                    blockShape: BlockShape.SCRAPPED,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeARROW',
+                    text: 'custom shape ARROW [TEST]',
+                    forceOutputType: BlockShape.ARROW,
+                    blockShape: BlockShape.ARROW,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeTICKET',
+                    text: 'custom shape TICKET [TEST]',
+                    forceOutputType: BlockShape.TICKET,
+                    blockShape: BlockShape.TICKET,
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEST: {
+                            type: ArgumentType.STRING,
+                        }
+                    }
+                },
+                {
+                    opcode: 'customShapeInputOCTAGONAL',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.OCTAGONAL,
+                            check: BlockShape.OCTAGONAL,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
+                },
+                {
+                    opcode: 'customShapeInputBUMPED',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.BUMPED,
+                            check: BlockShape.BUMPED,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
+                },
+                {
+                    opcode: 'customShapeInputINDENTED',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.INDENTED,
+                            check: BlockShape.INDENTED,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
+                },
+                {
+                    opcode: 'customShapeInputSCRAPPED',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.SCRAPPED,
+                            check: BlockShape.SCRAPPED,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
+                },
+                {
+                    opcode: 'customShapeInputARROW',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.ARROW,
+                            check: BlockShape.ARROW,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
+                },
+                {
+                    opcode: 'customShapeInputTICKET',
+                    arguments: {
+                        TEST: {
+                            shape: BlockShape.TICKET,
+                            check: BlockShape.TICKET,
+                        }
+                    },
+                    text: 'custom shape [TEST]',
+                    blockType: BlockType.REPORTER,
                 },
                 {
                     blockType: BlockType.LABEL,
