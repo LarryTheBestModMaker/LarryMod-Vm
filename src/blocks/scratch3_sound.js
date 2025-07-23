@@ -22,6 +22,8 @@ class Scratch3SoundBlocks {
 
         this.soundTimers = {};
 
+        this.thisTestVariable = 12;
+
         // Clear sound effects on green flag and stop button events.
         this.stopAllSounds = this.stopAllSounds.bind(this);
         this._stopWaitingSoundsForTarget = this._stopWaitingSoundsForTarget.bind(this);
@@ -164,7 +166,9 @@ class Scratch3SoundBlocks {
             sound_play_at_seconds: this.playAtSeconds,
             sound_play_at_seconds_until_done: this.playAtSecondsAndWait,
             sound_getSoundVolume: this.currentSoundVolume,
-            sound_getTimePosition: this.getTimePosition
+            sound_getTimePosition: this.getTimePosition,
+
+            looks_changestretchby: this.test
         };
     }
 
@@ -230,6 +234,10 @@ class Scratch3SoundBlocks {
         }
     }
 
+    test({CHANGE}) {
+        this.thisTestVariable = CHANGE;
+    }
+
     _playSoundTimer(sound, util) {
         const soundThis = this;
         (async function(soundThis) {
@@ -255,7 +263,7 @@ class Scratch3SoundBlocks {
                     EFFECT: 'PITCH'
                 }, util);
 
-                const speedMultiplier = 2 ** (currentPitch / 12);
+                const speedMultiplier = 2 ** (currentPitch / this.thisTestVariable);
 
                 const elapsedRealSeconds = timer.timeElapsed() / 1000;
                 const effectiveElapsed = elapsedRealSeconds * speedMultiplier;

@@ -364,7 +364,7 @@ class Scratch3LooksBlocks {
             looks_getEffectValue: this.getEffectValue,
             looks_changesizeby: this.changeSize,
             looks_setsizeto: this.setSize,
-            looks_changestretchby: () => {},
+            // looks_changestretchby: () => {},
             looks_setstretchto: this.stretchSet,
             looks_gotofrontback: this.goToFrontBack,
             looks_goforwardbackwardlayers: this.goForwardBackwardLayers,
