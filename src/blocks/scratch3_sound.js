@@ -22,7 +22,7 @@ class Scratch3SoundBlocks {
 
         this.soundTimers = {};
 
-        this.thisTestVariable = 12;
+        this.thisTestVariable = 10;
 
         // Clear sound effects on green flag and stop button events.
         this.stopAllSounds = this.stopAllSounds.bind(this);
@@ -261,7 +261,7 @@ class Scratch3SoundBlocks {
                     EFFECT: 'PITCH'
                 }, util);
 
-                const speedMultiplier = 2 ** (currentPitch / soundThis.thisTestVariable);
+                const speedMultiplier = 2 ** (-currentPitch / soundThis.thisTestVariable);
 
                 const elapsedRealSeconds = timer.timeElapsed() / 1000;
                 const effectiveElapsed = elapsedRealSeconds * speedMultiplier;
