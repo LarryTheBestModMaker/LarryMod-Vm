@@ -168,7 +168,8 @@ const outputBlocks = [
     'operator_percentage',
     'operator_clamp',
     'looks_getAllSpritesVisible',
-    'event_whenlesserthan'
+    'event_whenlesserthan',
+    'looks_changestretchby'
 ];
 
 module.exports = {

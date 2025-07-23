@@ -234,8 +234,8 @@ class Scratch3SoundBlocks {
         }
     }
 
-    test({CHANGE}) {
-        this.thisTestVariable = CHANGE;
+    test(args) {
+        this.thisTestVariable = args.CHANGE;
     }
 
     _playSoundTimer(sound, util) {
@@ -255,8 +255,6 @@ class Scratch3SoundBlocks {
             soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({ now: () => soundThis.runtime.currentMSecs });
             const timer = soundThis.soundTimers["sound_" + soundId + "_timePosition"];
             timer.start();
-            
-            let e = 1
 
             while (timer) {
                 const currentPitch = soundThis.getEffectValue({
