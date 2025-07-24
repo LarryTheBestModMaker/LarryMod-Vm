@@ -25,7 +25,8 @@ class DateType {
     static from(x) {
         if (x instanceof DateType) return new DateType(x.date)
         if (x instanceof Date) return new DateType(x)
-        if (typeof x == 'string' || typeof x == 'number') return new DateType(new Date(x))
+        if (typeof x == 'number' || Number(x) == x) return new DateType(new Date(Number(x)))
+        if (typeof x == 'string') return new DateType(new Date(x))
         return new DateType()
     }
 
@@ -90,6 +91,18 @@ class Extension {
                     opcode: 'epoch',
                     text: 'unix epoch',
                     ...jwDate.Block
+                },
+                {
+                    opcode: 'parse',
+                    text: 'parse [INPUT]',
+                    arguments: {
+                        INPUT: {
+                            type: ArgumentType.String,
+                            defaultValue: "1/1/1970 01:23",
+                            exemptFromNormalization: true
+                        }
+                    }
+                    ...jwDate.Block
                 }
             ],
             menus: {}
@@ -102,6 +115,10 @@ class Extension {
 
     epoch() {
         return jwDate.Type.from(0)
+    }
+
+    parse({INPUT}) {
+        return jwDate.Type.from(INPUT)
     }
 }
 
