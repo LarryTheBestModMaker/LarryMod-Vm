@@ -62,8 +62,7 @@ const jwDate = {
     Argument: {
         shape: BlockShape.TICKET,
         check: ["jwDate"]
-    },
-    ExpantaNum
+    }
 }
 
 class Extension {
@@ -71,14 +70,8 @@ class Extension {
         vm.jwDate = jwDate
         vm.runtime.registerSerializer(
             "jwDate",
-            v => v.number.toJSON(),
-            v => {
-                let x = new ExpantaNum(0)
-                try {
-                    x = ExpantaNum.fromJSON(v)
-                } catch {}
-                return new jwDate.Type(x)
-            }
+            v => v.date.valueOf(),
+            v => jwDate.Type.from(v)
         )
     }
 
