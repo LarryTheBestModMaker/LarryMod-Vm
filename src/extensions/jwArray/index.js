@@ -12,13 +12,22 @@ let arrayLimit = 2 ** 32
 * @returns {string}
 */
 function formatNumber(x) {
-   if (x >= 1e6) {
-       return x.toExponential(4)
-   } else {
-       x = Math.floor(x * 1000) / 1000
-       return x.toFixed(Math.min(3, (String(x).split('.')[1] || '').length))
-   }
+    if (x >= 1e6) {
+        return x.toExponential(4)
+    } else {
+        x = Math.floor(x * 1000) / 1000
+        return x.toFixed(Math.min(3, (String(x).split('.')[1] || '').length))
+    }
 }
+
+const escapeHTML = unsafe => {
+    return unsafe
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;")
+};
 
 function clampIndex(x) {
     return Math.min(Math.max(x, 0), arrayLimit)
@@ -78,7 +87,7 @@ class ArrayType {
                 case "boolean":
                     return x ? "true" : "false"
                 case "string":
-                    return `"${Cast.toString(x)}"`
+                    return `"${escapeHTML(Cast.toString(x))}"`
             }
         } catch {}
         return "?"

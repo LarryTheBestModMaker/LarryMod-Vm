@@ -163,6 +163,8 @@ const defaultBuiltinExtensions = {
     jwColor: () => require("../extensions/jwColor"),
     // access to extraFiles
     jwStorage: () => require("../extensions/jwStorage"),
+    // date type
+    jwDate: () => require("../extensions/jwDate"),
 
     // jw: They'll think its made by jwklong >:)
     // (but it's not (yet (maybe (probably not (but its made by ianyourgod)))))
