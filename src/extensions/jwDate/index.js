@@ -101,7 +101,7 @@ class Extension {
                             defaultValue: "1/1/1970 01:23",
                             exemptFromNormalization: true
                         }
-                    }
+                    },
                     ...jwDate.Block
                 }
             ],
