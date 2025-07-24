@@ -17,6 +17,7 @@ class Scratch3ProcedureBlocks {
             procedures_definition: this.definition,
             procedures_call: this.call,
             procedures_set: this.set,
+            procedures_stopcallerscript: this.stopcallerscript,
             argument_reporter_string_number: this.argumentReporterStringNumber,
             argument_reporter_boolean: this.argumentReporterBoolean,
             argument_reporter_command: this.argumentReporterCommand
@@ -83,6 +84,10 @@ class Scratch3ProcedureBlocks {
           else thread.stackFrames[0].params = { [param.fields.VALUE.value]: args.VALUE }
         } catch { /* shouldn't happen */ }
       }
+    }
+
+    stopcallerscript(_, util) {
+        util.thread.status = 4 /* based off the "stop caller script" block from (@sharkpool-sp)'s extension "My Blocks Plus" */
     }
 
     argumentReporterStringNumber(args, util) {
