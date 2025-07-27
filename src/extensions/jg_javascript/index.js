@@ -121,7 +121,6 @@ class jgJavascript {
         const unsandbox = await this.runtime.vm.securityManager.canUnsandbox('JavaScript');
         if (!unsandbox) return;
         this.runningEditorUnsandboxed = true;
-        vm.extensionManager.refreshBlocks
         this.runtime.extensionManager.refreshBlocks("jgJavascript");
     }
     sandbox() {
