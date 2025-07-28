@@ -1644,7 +1644,7 @@ class Runtime extends EventEmitter {
             colour: blockInfo.color1 ?? categoryInfo.color1,
             colourSecondary: blockInfo.color2 ?? categoryInfo.color2,
             colourTertiary: blockInfo.color3 ?? categoryInfo.color3,
-            blockText: blockInfo.blockText ?? extensionInfo.blockText,
+            blockText: blockInfo.blockText ?? categoryInfo.blockText,
             canDragDuplicate: blockInfo.canDragDuplicate === true
         };
         const context = {
