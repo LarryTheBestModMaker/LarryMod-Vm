@@ -7,7 +7,7 @@ let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
 function initBlockTools() {
-  /* add our custom input */
+  // Global message listener (outside of block registration)
   window.addEventListener("message", (e) => {
     if (e.data?.type === "code-change") {
       const handler = codeEditorHandlers.get(e.data.id);
@@ -16,72 +16,72 @@ function initBlockTools() {
   });
 
   const recyclableDiv = document.createElement("div");
-  recyclableDiv.style.marginTop = "-2px";
-  recyclableDiv.style.width = "300px";
-  recyclableDiv.style.height = "200px";
+  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 5px; width: 300px; height: 200px;`);
+
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("style", "border-radius: 10px; border: none; width: 100%; height: calc(100% - 10px);");
+  iframe.setAttribute("sandbox", "allow-scripts");
+  iframe.setAttribute("src", `data:text/html;,${encodeURIComponent(
+`<!DOCTYPE html>
+<html><head>
+  <style>html, body, #editor { margin: 0; padding: 0; height: 100%; width: 100%; }</style>
+</head>
+<body>
+  <div id="editor"></div>
+  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/ace.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/mode-javascript.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/theme-monokai.js"></script>
+  <script>
+    window.addEventListener("message", function(e) {
+      const id = e.data.id;
+      const editor = ace.edit("editor");
+      editor.setOptions({
+        fontSize: "12px",
+        showPrintMargin: false,
+        highlightActiveLine: true,
+        useWorker: false
+      });
+
+      editor.session.setMode("ace/mode/javascript");
+      editor.setTheme("ace/theme/monokai");
+      editor.setValue(e.data.value || "", -1);
+
+      editor.session.on("change", () => parent.postMessage({
+        type: "code-change", id, value: editor.getValue()
+      }, "*"));
+    }, { once: true });
+  </script>
+</body>
+</html>`
+      )}`);
+      recyclableDiv.appendChild(iframe);
 
   ScratchBlocks.FieldCustom.registerInput(
     "SPjavascriptV2-codeEditor",
     recyclableDiv,
     (field, input) => {
-      /* on init */
-      const isLightMode = document.body.getAttribute("theme") === "light";
-      const outerID = field.sourceBlock_.id;
+      const srcBlock = field.sourceBlock_;
+      const outerID = srcBlock.id;
+      let offset;
+      switch (srcBlock.outputShape_) {
+        case 1:
+          break;
+        case 2:
+          break;
+        case 3:
+          break;
+      }
 
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", `width: 100%; height: 100%; border: none;`);
-      input.appendChild(iframe);
-      iframe.onload = () => {
-        const doc = iframe.contentDocument;
-        doc.open();
-        doc.write(`
-<!DOCTYPE html>
-<html>
-<head><style>#editor,body,html{margin:0;padding:0;height:100%;width:100%}</style></head>
-<body>
-  <div id=editor></div>
-  <script>
-    window.addEventListener("message", function(e) {
-      /*
-        Import the "brace" library (ace editor fork) and other necessary modules
-        this is used by our custom input
-      */
-      const ace = parent.require("brace");
-      require("brace/mode/javascript");
-      require("brace/theme/monokai");
-      require("brace/theme/solarized_light");
-
-      const { value, theme } = e.data;
-      const editor = ace.edit("editor");
-      editor.getSession().setMode("ace/mode/javascript");
-      editor.setTheme(theme);
-      editor.setValue(value || "", -1);
-
-      editor.getSession().on("change", () => {
-        parent.postMessage({
-          type: "code-change",
-          id: "${outerID}",
-          value: editor.getValue()
-        }, "*");
-      });
-    }, { once: true });
-  </script>
-</body>
-</html>
-        `);
-        doc.close();
-
-        iframe.contentWindow.postMessage({
-          value: field.getValue(),
-          theme: isLightMode ? "ace/theme/solarized_light" : "ace/theme/monokai"
-        }, "*");
-      };
+      const iframe = input.firstChild;
+      iframe.onload = () => iframe.contentWindow.postMessage({
+        id: outerID, value: field.getValue()
+      }, "*");
 
       // Listen for code updates
       codeEditorHandlers.set(outerID, (value) => field.setValue(value));
     },
-    () => { /* no work need to be done here */ },
-    () => { /* no work need to be done here */ }
+    () => {},
+    () => {}
   );
 }
 if (isScratchBlocksReady) initBlockTools();
@@ -117,7 +117,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockText: "#323330", // only reason this is here is to test individual text colors 
           blockType: BlockType.COMMAND,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: { type: ArgumentType.STRING, defaultValue: `alert("Hello!")` }
           }
@@ -127,7 +127,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -140,7 +140,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -153,7 +153,7 @@ class SPjavascriptV2 {
           opcode: "jsCommandBinded",
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
@@ -168,10 +168,10 @@ class SPjavascriptV2 {
         },
         {
           opcode: "jsReporterBinded",
-          text: "run [CODE]",
+          text: "run [CODE] with data [ARGS]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
@@ -186,10 +186,10 @@ class SPjavascriptV2 {
         },
         {
           opcode: "jsBooleanBinded",
-          text: "run [CODE]",
+          text: "run [CODE] with data [ARGS]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
