@@ -117,7 +117,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockText: "#323330", // only reason this is here is to test individual text colors 
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: { type: ArgumentType.STRING, defaultValue: `alert("Hello!")` }
           }
@@ -127,7 +127,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -140,7 +140,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -153,7 +153,7 @@ class SPjavascriptV2 {
           opcode: "jsCommandBinded",
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
@@ -171,7 +171,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
@@ -189,7 +189,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
