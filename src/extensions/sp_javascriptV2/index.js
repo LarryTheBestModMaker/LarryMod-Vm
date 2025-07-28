@@ -5,7 +5,8 @@ const Cast = require("../../util/cast");
 
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
-if (isScratchBlocksReady) {
+
+function initBlockTools() {
   /* add our custom input */
   window.addEventListener("message", (e) => {
     if (e.data?.type === "code-change") {
@@ -83,6 +84,7 @@ if (isScratchBlocksReady) {
     () => { /* no work need to be done here */ }
   );
 }
+if (isScratchBlocksReady) initBlockTools();
 
 class SPjavascriptV2 {
   constructor(runtime) {
@@ -91,7 +93,10 @@ class SPjavascriptV2 {
 
     this.runtime.vm.on("workspaceUpdate", () => {
       codeEditorHandlers.clear();
-      if (!isScratchBlocksReady) isScratchBlocksReady = typeof ScratchBlocks === "object";
+      if (!isScratchBlocksReady) {
+        isScratchBlocksReady = typeof ScratchBlocks === "object";
+        if (isScratchBlocksReady) initBlockTools();
+      }
     });
   }
   getInfo() {
@@ -110,6 +115,7 @@ class SPjavascriptV2 {
         {
           opcode: "jsCommand",
           text: "run [CODE]",
+          blockText: "#323330", // only reason this is here is to test individual text colors 
           blockType: BlockType.COMMAND,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
@@ -154,7 +160,7 @@ class SPjavascriptV2 {
               defaultValue: `alert(FOO);`
             },
             ARGS: {
-              type: Scratch.ArgumentType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: `{ "FOO": "bar" }`,
               exemptFromNormalization: true
             }
@@ -172,7 +178,7 @@ class SPjavascriptV2 {
               defaultValue: `STRING + Math.random()`
             },
             ARGS: {
-              type: Scratch.ArgumentType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: `{ "STRING": "output: " }`,
               exemptFromNormalization: true
             }
@@ -190,7 +196,7 @@ class SPjavascriptV2 {
               defaultValue: `Math.random() > THRESHOLD`
             },
             ARGS: {
-              type: Scratch.ArgumentType.STRING,
+              type: ArgumentType.STRING,
               defaultValue: `{ "THRESHOLD": 0.5 }`,
               exemptFromNormalization: true
             }
