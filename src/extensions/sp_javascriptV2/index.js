@@ -26,18 +26,20 @@ function initBlockTools() {
     "SPjavascriptV2-codeEditor",
     recyclableDiv,
     (field) => {
-      field.inputSource.setAttribute("pointer-events", "none");
+      /* on init */
       const input = field.inputSource.firstChild;
       const srcBlock = field.sourceBlock_;
-      const outerID = srcBlock.id;
-
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
-      iframe.setAttribute("sandbox", "allow-scripts");
       if (srcBlock.parentBlock_.outputShape_ !== 3) {
         srcBlock.width *= 1.2;
         srcBlock.svgGroup_.transform.baseVal[0].matrix.e *= 2;
+        console.log(srcBlock.parentBlock_);
+        debugger;
       }
+
+      field.inputSource.setAttribute("pointer-events", "none");
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+      iframe.setAttribute("sandbox", "allow-scripts");
 
       const html = `
 <!DOCTYPE html>
@@ -59,30 +61,31 @@ function initBlockTools() {
 
       editor.session.setMode("ace/mode/javascript");
       editor.setTheme("ace/theme/monokai");
-      editor.setValue(e.data.value || "", -1);
-
+      editor.setValue(e.data.value);
       editor.session.on("change", () => parent.postMessage({
-        type: "code-change", id: "${outerID}", value: editor.getValue()
+        type: "code-change", id: "${srcBlock.id}", value: editor.getValue()
       }, "*"));
     }, { once: true });
   </script>
 </body>
 </html>`;
       iframe.src = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-
-      let value = field.getValue();
-      if (value === "needsInit-1@#4%^7*(0") {
-        const outerType = srcBlock.parentBlock_.type;
-        if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
-        else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
-        else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
-      }
-
       input.replaceChild(iframe, input.firstChild);
-      iframe.onload = () => iframe.contentWindow.postMessage({ value }, "*");
+      iframe.onload = () => {
+        let value = field.getValue();
+        if (value === "needsInit-1@#4%^7*(0") {
+          const outerType = srcBlock.parentBlock_.type;
+          if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
+          else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
+          else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+          field.setValue(value);
+        }
+
+        iframe.contentWindow.postMessage({ value }, "*");
+      };
 
       // Listen for code updates
-      codeEditorHandlers.set(outerID, (value) => field.setValue(value));
+      codeEditorHandlers.set(srcBlock.id, (value) => field.setValue(value));
     },
     () => { /* no work needs to be done here */ },
     () => { /* no work needs to be done here */ }
