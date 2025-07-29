@@ -117,6 +117,7 @@ class SPjavascriptV2 {
         {
           opcode: "codeInput",
           text: "[CODE]",
+          blockType: BlockType.REPORTER
           blockShape: BlockShape.SQUARE,
           arguments: {
             CODE: {
