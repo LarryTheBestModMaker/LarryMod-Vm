@@ -1,4 +1,5 @@
 const BlockType = require("../../extension-support/block-type");
+const BlockShape = require("../../extension-support/block-shape");
 const ArgumentType = require("../../extension-support/argument-type");
 const SandboxRunner = require("../../util/sandboxed-javascript-runner");
 const Cast = require("../../util/cast");
@@ -113,6 +114,17 @@ class SPjavascriptV2 {
           text: this.isEditorUnsandboxed ? "Run Sandboxed" : "Run Unsandboxed",
           blockType: BlockType.BUTTON,
         },
+        {
+          opcode: "codeInput",
+          text: "[CODE]",
+          blockShape: BlockShape.SQUARE,
+          arguments: {
+            CODE: {
+              type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
+              defaultValue: ``
+            }
+          }
+        },
         /* shown if ScratchBlocks is not availiable */
         {
           opcode: "jsCommand",
@@ -157,10 +169,7 @@ class SPjavascriptV2 {
           blockType: BlockType.COMMAND,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
-            CODE: {
-              type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
-              defaultValue: `alert(FOO);`
-            },
+            CODE: { fillIn: "codeInput" },
             ARGS: {
               type: ArgumentType.STRING,
               defaultValue: `{ "FOO": "bar" }`,
@@ -175,10 +184,7 @@ class SPjavascriptV2 {
           disableMonitor: true,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
-            CODE: {
-              type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
-              defaultValue: `STRING + Math.random()`
-            },
+            CODE: { fillIn: "codeInput" },
             ARGS: {
               type: ArgumentType.STRING,
               defaultValue: `{ "STRING": "output: " }`,
@@ -193,10 +199,7 @@ class SPjavascriptV2 {
           disableMonitor: true,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
-            CODE: {
-              type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
-              defaultValue: `Math.random() > THRESHOLD`
-            },
+            CODE: { fillIn: "codeInput" },
             ARGS: {
               type: ArgumentType.STRING,
               defaultValue: `{ "THRESHOLD": 0.5 }`,
@@ -244,6 +247,10 @@ class SPjavascriptV2 {
       console.warn(`Failed to parse Javascript Data JSON: ${err}`);
       return {};
     }
+  }
+
+  codeInput({CODE}) {
+    return Cast.toString(CODE)
   }
 
   runCode(code, binds) {
