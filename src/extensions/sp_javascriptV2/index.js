@@ -124,7 +124,8 @@ class SPjavascriptV2 {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
               defaultValue: ``
             }
-          }
+          },
+          hideFromPalette: true
         },
         /* shown if ScratchBlocks is not availiable */
         {
