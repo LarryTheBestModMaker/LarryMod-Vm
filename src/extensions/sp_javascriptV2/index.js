@@ -25,12 +25,13 @@ function initBlockTools() {
     "SPjavascriptV2-codeEditor",
     recyclableDiv,
     (field) => {
+      field.inputSource.setAttribute("pointer-events", "none");
       const input = field.inputSource.firstChild;
       const srcBlock = field.sourceBlock_;
       const outerID = srcBlock.id;
 
       const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+      iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
       iframe.setAttribute("sandbox", "allow-scripts");
       switch (srcBlock.outputShape_) {
         case 1:
