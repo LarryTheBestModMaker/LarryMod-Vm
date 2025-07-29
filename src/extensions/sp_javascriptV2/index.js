@@ -7,7 +7,6 @@ let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
 function initBlockTools() {
-  // Global message listener (outside of block registration)
   window.addEventListener("message", (e) => {
     if (e.data?.type === "code-change") {
       const handler = codeEditorHandlers.get(e.data.id);
@@ -16,15 +15,39 @@ function initBlockTools() {
   });
 
   const recyclableDiv = document.createElement("div");
-  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 5px; width: 300px; height: 200px;`);
+  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 10px; width: 300px; height: 200px;`);
 
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("style", "border-radius: 10px; border: none; width: 100%; height: calc(100% - 10px);");
-  iframe.setAttribute("sandbox", "allow-scripts");
-  iframe.setAttribute("src", `data:text/html;,${encodeURIComponent(
+  const fakeDiv = document.createElement("div");
+  fakeDiv.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+  recyclableDiv.appendChild(fakeDiv);
+
+  ScratchBlocks.FieldCustom.registerInput(
+    "SPjavascriptV2-codeEditor",
+    recyclableDiv,
+    (field) => {
+      const input = field.inputSource.firstChild;
+      const srcBlock = field.sourceBlock_;
+      const outerID = srcBlock.id;
+
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+      iframe.setAttribute("sandbox", "allow-scripts");
+      switch (srcBlock.outputShape_) {
+        case 1:
+          iframe.style.transform = "translateX(20px)";
+          iframe.style.width = "85%";
+          break;
+        case 2:
+          iframe.style.transform = "translateX(15px)";
+          iframe.style.width = "90%";
+          break;
+        default: break;
+      }
+
+      iframe.setAttribute("src", `data:text/html;,${encodeURIComponent(
 `<!DOCTYPE html>
 <html><head>
-  <style>html, body, #editor { margin: 0; padding: 0; height: 100%; width: 100%; }</style>
+  <style>html, body, #editor {background: #272822; margin: 0; padding: 0; height: 100%; width: 100%;}</style>
 </head>
 <body>
   <div id="editor"></div>
@@ -33,13 +56,10 @@ function initBlockTools() {
   <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.3/src-min-noconflict/theme-monokai.js"></script>
   <script>
     window.addEventListener("message", function(e) {
-      const id = e.data.id;
       const editor = ace.edit("editor");
       editor.setOptions({
-        fontSize: "12px",
-        showPrintMargin: false,
-        highlightActiveLine: true,
-        useWorker: false
+        fontSize: "12px", showPrintMargin: false,
+        highlightActiveLine: true, useWorker: false
       });
 
       editor.session.setMode("ace/mode/javascript");
@@ -47,41 +67,22 @@ function initBlockTools() {
       editor.setValue(e.data.value || "", -1);
 
       editor.session.on("change", () => parent.postMessage({
-        type: "code-change", id, value: editor.getValue()
+        type: "code-change", id: "${outerID}", value: editor.getValue()
       }, "*"));
     }, { once: true });
   </script>
 </body>
 </html>`
       )}`);
-      recyclableDiv.appendChild(iframe);
 
-  ScratchBlocks.FieldCustom.registerInput(
-    "SPjavascriptV2-codeEditor",
-    recyclableDiv,
-    (field, input) => {
-      const srcBlock = field.sourceBlock_;
-      const outerID = srcBlock.id;
-      let offset;
-      switch (srcBlock.outputShape_) {
-        case 1:
-          break;
-        case 2:
-          break;
-        case 3:
-          break;
-      }
-
-      const iframe = input.firstChild;
-      iframe.onload = () => iframe.contentWindow.postMessage({
-        id: outerID, value: field.getValue()
-      }, "*");
+      input.replaceChild(iframe, input.firstChild);
+      iframe.onload = () => iframe.contentWindow.postMessage({ value: field.getValue() }, "*");
 
       // Listen for code updates
       codeEditorHandlers.set(outerID, (value) => field.setValue(value));
     },
-    () => {},
-    () => {}
+    () => { /* no work needs to be done here */ },
+    () => { /* no work needs to be done here */ }
   );
 }
 if (isScratchBlocksReady) initBlockTools();
