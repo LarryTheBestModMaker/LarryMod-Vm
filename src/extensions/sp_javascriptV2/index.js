@@ -16,7 +16,7 @@ function initBlockTools() {
   });
 
   const recyclableDiv = document.createElement("div");
-  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 10px; width: 300px; height: 200px;`);
+  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 10px; width: 250px; height: 200px;`);
 
   const fakeDiv = document.createElement("div");
   fakeDiv.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
@@ -34,20 +34,13 @@ function initBlockTools() {
       const iframe = document.createElement("iframe");
       iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
       iframe.setAttribute("sandbox", "allow-scripts");
-      switch (srcBlock.outputShape_) {
-        case 1:
-          iframe.style.transform = "translateX(20px)";
-          iframe.style.width = "85%";
-          break;
-        case 2:
-          iframe.style.transform = "translateX(15px)";
-          iframe.style.width = "90%";
-          break;
-        default: break;
+      if (srcBlock.parentBlock_.outputShape_ !== 3) {
+        srcBlock.width *= 1.2;
+        srcBlock.svgGroup_.transform.baseVal[0].matrix.e *= 2;
       }
 
-      iframe.setAttribute("src", `data:text/html;,${encodeURIComponent(
-`<!DOCTYPE html>
+      const html = `
+<!DOCTYPE html>
 <html><head>
   <style>html, body, #editor {background: #272822; margin: 0; padding: 0; height: 100%; width: 100%;}</style>
 </head>
@@ -60,7 +53,7 @@ function initBlockTools() {
     window.addEventListener("message", function(e) {
       const editor = ace.edit("editor");
       editor.setOptions({
-        fontSize: "12px", showPrintMargin: false,
+        fontSize: "15px", showPrintMargin: false,
         highlightActiveLine: true, useWorker: false
       });
 
@@ -74,11 +67,19 @@ function initBlockTools() {
     }, { once: true });
   </script>
 </body>
-</html>`
-      )}`);
+</html>`;
+      iframe.src = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+
+      let value = field.getValue();
+      if (value === "needsInit-1@#4%^7*(0") {
+        const outerType = srcBlock.parentBlock_.type;
+        if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
+        else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
+        else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+      }
 
       input.replaceChild(iframe, input.firstChild);
-      iframe.onload = () => iframe.contentWindow.postMessage({ value: field.getValue() }, "*");
+      iframe.onload = () => iframe.contentWindow.postMessage({ value }, "*");
 
       // Listen for code updates
       codeEditorHandlers.set(outerID, (value) => field.setValue(value));
@@ -119,19 +120,18 @@ class SPjavascriptV2 {
           text: "[CODE]",
           blockType: BlockType.REPORTER,
           blockShape: BlockShape.SQUARE,
+          hideFromPalette: true,
           arguments: {
             CODE: {
               type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
-              defaultValue: ``
+              defaultValue: "needsInit-1@#4%^7*(0"
             }
           },
-          hideFromPalette: true
         },
         /* shown if ScratchBlocks is not availiable */
         {
           opcode: "jsCommand",
           text: "run [CODE]",
-          blockText: "#323330", // only reason this is here is to test individual text colors 
           blockType: BlockType.COMMAND,
           hideFromPalette: isScratchBlocksReady,
           arguments: {
@@ -251,8 +251,8 @@ class SPjavascriptV2 {
     }
   }
 
-  codeInput({CODE}) {
-    return Cast.toString(CODE)
+  codeInput(args) {
+    return args.CODE;
   }
 
   runCode(code, binds) {
