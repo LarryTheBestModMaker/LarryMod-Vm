@@ -1679,8 +1679,8 @@ class JSGenerator {
             break;
 
         case 'procedures.return':
-            if (this.isProcedure) this.source += `return ${this.descendInput(node.return).asUnknown()};\n`;
-            else this.retire();
+            this.source += 'retire();';
+            this.source += `return ${this.descendInput(node.return).asUnknown()};\n`;
             break;
         case 'procedures.call': {
             const procedureCode = node.code;
