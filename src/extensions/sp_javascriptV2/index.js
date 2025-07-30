@@ -73,6 +73,7 @@ function initBlockTools() {
           if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
           else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
           else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+          else if (outerType.endsWith("defineGlobalFunc")) value = `(param1) => {\nreturn btoa(param1);\n}`;
           field.setValue(value);
         }
 
@@ -228,7 +229,7 @@ class SPjavascriptV2 {
           blockType: BlockType.COMMAND,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
-            ARGS: {
+            NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
             },
             CODE: { fillIn: "codeInput" }
@@ -240,7 +241,7 @@ class SPjavascriptV2 {
           blockType: BlockType.COMMAND,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
-            ARGS: {
+            NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
             }
           }
