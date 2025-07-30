@@ -29,16 +29,11 @@ function initBlockTools() {
       /* on init */
       const input = field.inputSource.firstChild;
       const srcBlock = field.sourceBlock_;
-      if (srcBlock.parentBlock_.outputShape_ !== 3) {
-        srcBlock.width *= 1.2;
-        srcBlock.svgGroup_.transform.baseVal[0].matrix.e *= 2;
-        console.log(srcBlock.parentBlock_);
-        debugger;
-      }
+      const dragCheck = srcBlock.svgGroup_.classList.contains("blocklyDragging") ? "none" : "all";
 
       field.inputSource.setAttribute("pointer-events", "none");
       const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+      iframe.setAttribute("style", `pointer-events: ${dragCheck}; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);`);
       iframe.setAttribute("sandbox", "allow-scripts");
 
       const html = `
@@ -84,8 +79,20 @@ function initBlockTools() {
         iframe.contentWindow.postMessage({ value }, "*");
       };
 
-      // Listen for code updates
+      // listen for code updates
       codeEditorHandlers.set(srcBlock.id, (value) => field.setValue(value));
+
+      // monkey patch this function since MutationObservers will lag
+      // this patch allows dragging blocks to not act weird with mouse touching
+      const parent = srcBlock.parentBlock_;
+      const ogSetAtt = parent.svgGroup_.setAttribute
+      parent.svgGroup_.setAttribute = (...args) => {
+        if (args[0] === "class") {
+          if (args[1].includes("blocklyDragging")) iframe.style.pointerEvents = "none";
+          else iframe.style.pointerEvents = "all";
+        }
+        ogSetAtt.call(parent.svgGroup_, ...args);
+      }
     },
     () => { /* no work needs to be done here */ },
     () => { /* no work needs to be done here */ }
@@ -105,6 +112,8 @@ class SPjavascriptV2 {
         if (isScratchBlocksReady) initBlockTools();
       }
     });
+
+    this.globalFuncs = new Map();
   }
   getInfo() {
     return {
@@ -212,6 +221,30 @@ class SPjavascriptV2 {
             }
           }
         },
+        ...(isScratchBlocksReady ? ["---"] : []),
+        {
+          opcode: "defineGlobalFunc",
+          text: "create global function named [NAME] with code [CODE]",
+          blockType: BlockType.COMMAND,
+          hideFromPalette: !isScratchBlocksReady,
+          arguments: {
+            ARGS: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
+            },
+            CODE: { fillIn: "codeInput" }
+          }
+        },
+        {
+          opcode: "deleteGlobalFunc",
+          text: "delete global function [NAME]",
+          blockType: BlockType.COMMAND,
+          hideFromPalette: !isScratchBlocksReady,
+          arguments: {
+            ARGS: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
+            }
+          }
+        },
         {
           opcode: "packagerInfo",
           text: "Sandbox in Packager Notice",
@@ -254,12 +287,25 @@ class SPjavascriptV2 {
     }
   }
 
-  codeInput(args) {
-    return args.CODE;
+  isLegalFuncName(name) {
+    try {
+      new Function(`function ${name}(){}`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   runCode(code, binds) {
     let binders = "";
+
+    /* inject global functions */
+    if (this.globalFuncs.size > 0) {
+      const funcs = this.globalFuncs.entries().toArray();
+      for (const [name, code] of funcs) binders += `const ${name} = ${code}\n`;
+    }
+
+    /* inject arguments */
     if (binds !== undefined) {
       for (let [name, value] of Object.entries(binds)) {
         // normalize values
@@ -298,6 +344,10 @@ class SPjavascriptV2 {
   }
 
   // block funcs
+  codeInput(args) {
+    return args.CODE;
+  }
+
   jsCommand(args) {
     this.runCode(Cast.toString(args.CODE));
   }
@@ -342,6 +392,23 @@ class SPjavascriptV2 {
       })();
     }
     return Cast.toBoolean(possiblePromise);
+  }
+
+  defineGlobalFunc(args) {
+    const funcName = Cast.toString(args.NAME);
+    if (this.isLegalFuncName(funcName)) {
+      const funcRegex = /^function\s*\([^)]*\)\s*\{[\s\S]*\}$/;
+      const lambRegex = /^\([^)]*\)\s*=>\s*(\{[\s\S]*\}|[^{}][^\n]*)$/;
+      const code = Cast.toString(args.CODE).trim();
+      if (funcRegex.test(code) || lambRegex.test(code)) this.globalFuncs.set(funcName, code);
+      else throw new Error("Global Code must be 'function' or 'lambda'!");
+    } else {
+      throw new Error("Illegal Function Name!");
+    }
+  }
+
+  deleteGlobalFunc(args) {
+    this.globalFuncs.delete(Cast.toString(args.NAME));
   }
 }
 
