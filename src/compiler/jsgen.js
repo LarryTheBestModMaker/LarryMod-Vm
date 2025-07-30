@@ -662,13 +662,13 @@ class JSGenerator {
         case 'pmEventsExpansion.broadcastFunction':
             // we need to do function otherwise this block would be stupidly long
             let source = '(yield* (function*() {';
-            source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );`;
-            source += `if (broadcastVar) broadcastVar.isSent = true;`;
+            source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );\n`;
+            source += `if (broadcastVar) broadcastVar.isSent = true;\n`;
             const threads = this.localVariables.next();
-            source += `var ${threads} = startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} });`;
+            source += `var ${threads} = startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} });\n`;
             const threadVar = this.localVariables.next();
-            source += `for (const ${threadVar} of ${threads}) { ${threadVar}.__evex_recievedDataa = '' };`;
-            source += `yield* waitThreads(${threads});`;
+            source += `for (const ${threadVar} of ${threads}) { ${threadVar}.__evex_recievedDataa = '' };\n`;
+            source += `yield* waitThreads(${threads});\n`;
             // wait an extra frame so the thread has the new value
             if (this.isWarp) {
                 source += 'if (isStuck()) yield;\n';
@@ -680,27 +680,27 @@ class JSGenerator {
             // get value
             const value = this.localVariables.next();
             const thread = this.localVariables.next();
-            source += `var ${value} = undefined;`;
+            source += `var ${value} = undefined;\n`;
             source += `for (var ${thread} of ${threads}) {`;
             // if not undefined, return value
             source += `if (typeof ${thread}.__evex_returnDataa !== 'undefined') {`;
-            source += `return ${thread}.__evex_returnDataa;`;
+            source += `return ${thread}.__evex_returnDataa;\n`;
             source += `}`;
             source += `}`;
             // no value, return empty value
-            source += `return '';`;
+            source += `return '';\n`;
             source += '})())';
             return new TypedInput(source, TYPE_STRING);
         case 'pmEventsExpansion.broadcastFunctionArgs': {
             // we need to do function otherwise this block would be stupidly long
             let source = '(yield* (function*() {';
             const threads = this.localVariables.next();
-            source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );`;
-            source += `if (broadcastVar) broadcastVar.isSent = true;`;
-            source += `var ${threads} = startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} });`;
+            source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );\n`;
+            source += `if (broadcastVar) broadcastVar.isSent = true;\n`;
+            source += `var ${threads} = startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} });\n`;
             const threadVar = this.localVariables.next();
-            source += `for (const ${threadVar} of ${threads}) { ${threadVar}.__evex_recievedDataa = ${this.descendInput(node.args).asString()} };`;
-            source += `yield* waitThreads(${threads});`;
+            source += `for (const ${threadVar} of ${threads}) { ${threadVar}.__evex_recievedDataa = ${this.descendInput(node.args).asString()} };\n`;
+            source += `yield* waitThreads(${threads});\n`;
             // wait an extra frame so the thread has the new value
             if (this.isWarp) {
                 source += 'if (isStuck()) yield;\n';
@@ -712,15 +712,15 @@ class JSGenerator {
             // get value
             const value = this.localVariables.next();
             const thread = this.localVariables.next();
-            source += `var ${value} = undefined;`;
+            source += `var ${value} = undefined;\n`;
             source += `for (var ${thread} of ${threads}) {`;
             // if not undefined, return value
             source += `if (typeof ${thread}.__evex_returnDataa !== 'undefined') {`;
-            source += `return ${thread}.__evex_returnDataa;`;
+            source += `return ${thread}.__evex_returnDataa;\n`;
             source += `}`;
             source += `}`;
             // no value, return empty value
-            source += `return '';`;
+            source += `return '';\n`;
             source += '})())';
             return new TypedInput(source, TYPE_STRING);
         }
@@ -1163,7 +1163,7 @@ class JSGenerator {
             break;
         case 'control.case':
             if (this.currentFrame.parent !== 'control.switch') {
-                this.source += `throw 'All "case" blocks must be inside of a "switch" block.';`;
+                this.source += `throw 'All "case" blocks must be inside of a "switch" block.';\n`;
                 break;
             }
             this.source += `case ${this.descendInput(node.condition).asString()}:\n`;
@@ -1187,31 +1187,31 @@ class JSGenerator {
             const currentBlockId = this.localVariables.next();
             const branchBlock = this.localVariables.next();
             // get block id so we can get branch
-            this.source += `var ${currentBlockId} = thread.peekStack();`;
-            this.source += `var ${branchBlock} = thread.target.blocks.getBranch(${currentBlockId}, 0);`;
+            this.source += `var ${currentBlockId} = thread.peekStack();\n`;
+            this.source += `var ${branchBlock} = thread.target.blocks.getBranch(${currentBlockId}, 0);\n`;
             // push new thread if we found a branch
             this.source += `if (${branchBlock}) {`;
-            this.source += `runtime._pushThread(${branchBlock}, target, {});`;
+            this.source += `runtime._pushThread(${branchBlock}, target, {});\n`;
             this.source += `}`;
             break;
         }
         case 'control.exitCase':
             if (!this.currentFrame.importantData.containedByCase) {
-                this.source += `throw 'All "exit case" blocks must be inside of a "case" block.';`;
+                this.source += `throw 'All "exit case" blocks must be inside of a "case" block.';\n`;
                 break;
             }
             this.source += `break;\n`;
             break;
         case 'control.exitLoop':
             if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "escape loop" blocks must be inside of a looping block.';`;
+                this.source += `throw 'All "escape loop" blocks must be inside of a looping block.';\n`;
                 break;
             }
             this.source += `break;\n`;
             break;
         case 'control.continueLoop':
             if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "continue loop" blocks must be inside of a looping block.';`;
+                this.source += `throw 'All "continue loop" blocks must be inside of a looping block.';\n`;
                 break;
             }
             this.source += `continue;\n`;
@@ -1409,14 +1409,14 @@ class JSGenerator {
             this.isInHat = false;
             break;
         case 'event.broadcast':
-            this.source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );`;
-            this.source += `if (broadcastVar) broadcastVar.isSent = true;`;
+            this.source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );\n`;
+            this.source += `if (broadcastVar) broadcastVar.isSent = true;\n`;
             this.source += `startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} });\n`;
             this.resetVariableInputs();
             break;
         case 'event.broadcastAndWait':
-            this.source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );`;
-            this.source += `if (broadcastVar) broadcastVar.isSent = true;`;
+            this.source += `var broadcastVar = runtime.getTargetForStage().lookupBroadcastMsg("", ${this.descendInput(node.broadcast).asString()} );\n`;
+            this.source += `if (broadcastVar) broadcastVar.isSent = true;\n`;
             this.source += `yield* waitThreads(startHats("event_whenbroadcastreceived", { BROADCAST_OPTION: ${this.descendInput(node.broadcast).asString()} }));\n`;
             this.yielded();
             break;
@@ -1426,8 +1426,8 @@ class JSGenerator {
             const to = node.num ? 'index + 1' : 'value';
             this.source +=
             `for (let index = 0; index < ${list}.value.length; index++) {` +
-                `const value = ${list}.value[index];` +
-                `${set.source} = ${to};`;
+                `const value = ${list}.value[index];\n` +
+                `${set.source} = ${to};\n`;
             this.descendStack(node.do, new Frame(true, 'list.forEach'));
             this.source += `};\n`;
             break;
@@ -1491,12 +1491,12 @@ class JSGenerator {
 
         case 'list.filter':
             this.source += `${this.referenceVariable(node.list)}.value = ${this.referenceVariable(node.list)}.value.filter(function* (item, index) {`;
-            this.source += `    runtime.ext_scratch3_data._listFilterItem = item;`;
-            this.source += `    runtime.ext_scratch3_data._listFilterIndex = index + 1;`;
-            this.source += `    return ${this.descendInput(node.bool).asBoolean()};`;
+            this.source += `    runtime.ext_scratch3_data._listFilterItem = item;\n`;
+            this.source += `    runtime.ext_scratch3_data._listFilterIndex = index + 1;\n`;
+            this.source += `    return ${this.descendInput(node.bool).asBoolean()};\n`;
             this.source += `})`;
-            this.source += `runtime.ext_scratch3_data._listFilterItem = "";`;
-            this.source += `runtime.ext_scratch3_data._listFilterIndex = 0;`;
+            this.source += `runtime.ext_scratch3_data._listFilterItem = "";\n`;
+            this.source += `runtime.ext_scratch3_data._listFilterIndex = 0;\n`;
             break;
 
         case 'looks.backwardLayers':
@@ -1679,7 +1679,8 @@ class JSGenerator {
             break;
 
         case 'procedures.return':
-            this.source += `return ${this.descendInput(node.return).asUnknown()};`;
+            if (this.isProcedure) this.source += `return ${this.descendInput(node.return).asUnknown()};\n`;
+            else this.retire();
             break;
         case 'procedures.call': {
             const procedureCode = node.code;
@@ -1744,7 +1745,7 @@ class JSGenerator {
 
         case 'visualReport': {
             const value = this.localVariables.next();
-            this.source += `const ${value} = ${this.descendInput(node.input, true).asUnknown()};`;
+            this.source += `const ${value} = ${this.descendInput(node.input, true).asUnknown()};\n`;
             // blocks like legacy no-ops can return a literal `undefined`
             this.source += `if (${value} !== undefined) runtime.visualReport("${sanitize(this.script.topBlockId)}", ${value});\n`;
             break;
@@ -1761,32 +1762,32 @@ class JSGenerator {
 
             switch (property) {
             case 'volume':
-                this.source += `runtime.ext_scratch3_sound._updateVolume(${value.asNumber()}, ${objectReference});`;
+                this.source += `runtime.ext_scratch3_sound._updateVolume(${value.asNumber()}, ${objectReference});\n`;
                 break;
             case 'x position':
                 // comment
-                this.source += `${objectReference}.setXY(${value.asNumber()}, ${objectReference}.y);`;
+                this.source += `${objectReference}.setXY(${value.asNumber()}, ${objectReference}.y);\n`;
                 break;
             case 'y position':
-                this.source += `${objectReference}.setXY(${objectReference}.x, ${value.asNumber()});`;
+                this.source += `${objectReference}.setXY(${objectReference}.x, ${value.asNumber()});\n`;
                 break;
             case 'direction':
-                this.source += `${objectReference}.setDirection(${value.asNumber()});`;
+                this.source += `${objectReference}.setDirection(${value.asNumber()});\n`;
                 break;
             case 'costume':
                 const costume = value.type === TYPE_NUMBER
                     ? value.asNumber()
                     : value.asString();
-                this.source += `runtime.ext_scratch3_looks._setCostume(${objectReference}, ${costume});`;
+                this.source += `runtime.ext_scratch3_looks._setCostume(${objectReference}, ${costume});\n`;
                 break;
             case 'backdrop':
                 const backdrop = value.type === TYPE_NUMBER
                     ? value.asNumber()
                     : value.asString();
-                this.source += `runtime.ext_scratch3_looks._setBackdrop(${objectReference}, ${backdrop});`;
+                this.source += `runtime.ext_scratch3_looks._setBackdrop(${objectReference}, ${backdrop});\n`;
                 break;
             case 'size':
-                this.source += `${objectReference}.setSize(${value.asNumber()});`;
+                this.source += `${objectReference}.setSize(${value.asNumber()});\n`;
                 break;
             default:
                 const variableReference = this.localVariables.next();
@@ -1807,8 +1808,8 @@ class JSGenerator {
                     ? 'thread.variables'
                     : 'tempVars';
             this.source += this.isOptimized
-                ? `${hostObj}[${name.asString()}] = ${val.asUnknown()};`
-                : `set(${hostObj}, ${name.asString()}, ${val.asUnknown()});`;
+                ? `${hostObj}[${name.asString()}] = ${val.asUnknown()};\n`
+                : `set(${hostObj}, ${name.asString()}, ${val.asUnknown()});\n`;
             break;
         }
         case 'tempVars.delete': {
@@ -1819,8 +1820,8 @@ class JSGenerator {
                     ? 'thread.variables'
                     : 'tempVars';
             this.source += this.isOptimized
-                ? `delete ${hostObj}[${name.asString()}];`
-                : `remove(${hostObj}, ${name.asString()});`;
+                ? `delete ${hostObj}[${name.asString()}];\n`
+                : `remove(${hostObj}, ${name.asString()});\n`;
             break;
         }
         case 'tempVars.deleteAll': {
@@ -1829,7 +1830,7 @@ class JSGenerator {
                 : node.thread
                     ? 'thread.variables'
                     : 'tempVars';
-            this.source += `${hostObj} = Object.create(null);`;
+            this.source += `${hostObj} = Object.create(null);\n`;
             break;
         }
         case 'tempVars.forEach': {
@@ -1856,7 +1857,7 @@ class JSGenerator {
             break;
         }
         case 'control.dualBlock':
-            this.source += `console.log("dual block works");`
+            this.source += `console.log("dual block works");\n`
             break
 
         default:
@@ -2094,12 +2095,12 @@ class JSGenerator {
         script += this.source;
 
         script += '} catch (err) {';
-        script += `console.log("${sanitize(script)}");`;
+        script += `console.log("${sanitize(script)}");\n`;
         script += 'console.error(err);';
         script += `runtime.emit("BLOCK_STACK_ERROR", {`;
         script += `id:"${sanitize(this.script.topBlockId)}",`;
         script += `value:String(err)`;
-        script += `});`;
+        script += `});\n`;
         script += '}\n';
         if (!this.isProcedure) {
             script += 'retire();\n';
