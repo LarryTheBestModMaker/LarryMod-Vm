@@ -334,10 +334,12 @@ class SPjavascriptV2 {
       const funcs = this.globalFuncs.entries().toArray();
       for (const [name, funcData] of funcs) {
         if (funcData.isBlockCode) {
-          binders += `const ${name} = function(...args) {\n`;
-          binders += `const target = vm.runtime.getTargetById("${funcData.origin}");\n`;
-          binders += `const thread = vm.runtime._pushThread("${funcData.id}", target);\n`;
-          binders += `thread.jsExtData = [...args];\n`;
+          binders += `const ${name} = async function(...args) {\n`;
+          if (funcData.id) {
+            binders += `const target = vm.runtime.getTargetById("${funcData.origin}");\n`;
+            binders += `const thread = vm.runtime._pushThread("${funcData.id}", target);\n`;
+            binders += `thread.jsExtData = [...args];\n`;
+          }
           binders += "}\n";
         } else {
           binders += `const ${name} = ${funcData.code}\n`;
@@ -451,7 +453,7 @@ class SPjavascriptV2 {
     const funcName = Cast.toString(args.NAME);
     if (this.isLegalFuncName(funcName)) {
       const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1);
-      if (branch) this.globalFuncs.set(funcName, { id: branch, origin: util.target.id, isBlockCode: true });
+      this.globalFuncs.set(funcName, { id: branch, origin: util.target.id, isBlockCode: true });
     } else {
       throw new Error("Illegal Function Name!");
     }
