@@ -15,8 +15,10 @@ function initBlockTools() {
     }
   });
 
+  // we cant have nice things
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const recyclableDiv = document.createElement("div");
-  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 10px; width: 250px; height: 200px;`);
+  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; padding-top: 10px; width: 250px; height: 200px;`);
 
   const fakeDiv = document.createElement("div");
   fakeDiv.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
@@ -32,8 +34,9 @@ function initBlockTools() {
       const dragCheck = srcBlock.svgGroup_.classList.contains("blocklyDragging") ? "none" : "all";
 
       field.inputSource.setAttribute("pointer-events", "none");
+      input.style.height = "210px";
       const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", `pointer-events: ${dragCheck}; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);`);
+      iframe.setAttribute("style", `pointer-events: ${dragCheck}; background: #272822; border-radius: 10px; border: none; ${isSafari ? "" : "width: 100%;"} height: calc(100% - 20px);`);
       iframe.setAttribute("sandbox", "allow-scripts");
 
       const html = `
@@ -164,6 +167,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
+          allowDropAnywhere: true,
           hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
@@ -205,6 +209,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
+          allowDropAnywhere: true,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
