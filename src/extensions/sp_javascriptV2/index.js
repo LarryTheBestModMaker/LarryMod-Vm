@@ -7,6 +7,10 @@ const Cast = require("../../util/cast");
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
+function runCode(x) {
+  return eval(x)
+}
+
 function initBlockTools() {
   window.addEventListener("message", (e) => {
     if (e.data?.type === "code-change") {
@@ -363,7 +367,7 @@ class SPjavascriptV2 {
       let result;
       try {
         // eslint-disable-next-line no-eval
-        result = eval(binders + code);
+        result = runCode(binders + code);
       } catch (err) {
         throw err;
       }
