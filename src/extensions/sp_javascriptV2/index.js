@@ -259,7 +259,7 @@ class SPjavascriptV2 {
           opcode: "deleteGlobalFunc",
           text: "delete global function [NAME]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !this.isEditorUnsandboxed,
+          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
           arguments: {
             NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
