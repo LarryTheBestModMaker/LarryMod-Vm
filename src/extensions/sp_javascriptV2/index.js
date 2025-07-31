@@ -7,6 +7,10 @@ const Cast = require("../../util/cast");
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
+function runCode(x) {
+  return eval(x)
+}
+
 function initBlockTools() {
   window.addEventListener("message", (e) => {
     if (e.data?.type === "code-change") {
@@ -15,8 +19,10 @@ function initBlockTools() {
     }
   });
 
+  // we cant have nice things
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const recyclableDiv = document.createElement("div");
-  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; margin-top: 10px; width: 250px; height: 200px;`);
+  recyclableDiv.setAttribute("style", `display: flex; justify-content: center; padding-top: 10px; width: 250px; height: 200px;`);
 
   const fakeDiv = document.createElement("div");
   fakeDiv.setAttribute("style", "background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
@@ -29,16 +35,12 @@ function initBlockTools() {
       /* on init */
       const input = field.inputSource.firstChild;
       const srcBlock = field.sourceBlock_;
-      if (srcBlock.parentBlock_.outputShape_ !== 3) {
-        srcBlock.width *= 1.2;
-        srcBlock.svgGroup_.transform.baseVal[0].matrix.e *= 2;
-        console.log(srcBlock.parentBlock_);
-        debugger;
-      }
+      const dragCheck = srcBlock.svgGroup_.classList.contains("blocklyDragging") ? "none" : "all";
 
       field.inputSource.setAttribute("pointer-events", "none");
+      input.style.height = "210px";
       const iframe = document.createElement("iframe");
-      iframe.setAttribute("style", "pointer-events: all; background: #272822; border-radius: 10px; border: none; width: 100%; height: calc(100% - 20px);");
+      iframe.setAttribute("style", `pointer-events: ${dragCheck}; background: #272822; border-radius: 10px; border: none; ${isSafari ? "" : "width: 100%;"} height: calc(100% - 20px);`);
       iframe.setAttribute("sandbox", "allow-scripts");
 
       const html = `
@@ -78,14 +80,27 @@ function initBlockTools() {
           if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
           else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
           else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+          else if (outerType.endsWith("defineGlobalFunc")) value = `(param1) => {\nreturn btoa(param1);\n}`;
           field.setValue(value);
         }
 
         iframe.contentWindow.postMessage({ value }, "*");
       };
 
-      // Listen for code updates
+      // listen for code updates
       codeEditorHandlers.set(srcBlock.id, (value) => field.setValue(value));
+
+      // monkey patch this function since MutationObservers will lag
+      // this patch allows dragging blocks to not act weird with mouse touching
+      const parent = srcBlock.parentBlock_;
+      const ogSetAtt = parent.svgGroup_.setAttribute
+      parent.svgGroup_.setAttribute = (...args) => {
+        if (args[0] === "class") {
+          if (args[1].includes("blocklyDragging")) iframe.style.pointerEvents = "none";
+          else iframe.style.pointerEvents = "all";
+        }
+        ogSetAtt.call(parent.svgGroup_, ...args);
+      }
     },
     () => { /* no work needs to be done here */ },
     () => { /* no work needs to be done here */ }
@@ -105,6 +120,8 @@ class SPjavascriptV2 {
         if (isScratchBlocksReady) initBlockTools();
       }
     });
+
+    this.globalFuncs = new Map();
   }
   getInfo() {
     return {
@@ -131,6 +148,14 @@ class SPjavascriptV2 {
             }
           },
         },
+        {
+          opcode: "argumentReport",
+          text: "data",
+          blockType: BlockType.REPORTER,
+          hideFromPalette: true,
+          canDragDuplicate: true,
+          disableMonitor: true,
+        },
         /* shown if ScratchBlocks is not availiable */
         {
           opcode: "jsCommand",
@@ -146,6 +171,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
+          allowDropAnywhere: true,
           hideFromPalette: isScratchBlocksReady,
           arguments: {
             CODE: {
@@ -187,6 +213,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.REPORTER,
           disableMonitor: true,
+          allowDropAnywhere: true,
           hideFromPalette: !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
@@ -209,6 +236,42 @@ class SPjavascriptV2 {
               type: ArgumentType.STRING,
               defaultValue: `{ "THRESHOLD": 0.5 }`,
               exemptFromNormalization: true
+            }
+          }
+        },
+        ...(isScratchBlocksReady ? ["---"] : []),
+        {
+          opcode: "defineGlobalFunc",
+          text: "create global function named [NAME] with code [CODE]",
+          blockType: BlockType.COMMAND,
+          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
+          arguments: {
+            NAME: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
+            },
+            CODE: { fillIn: "codeInput" }
+          }
+        },
+        {
+          opcode: "defineScratchCode",
+          text: "create local function named [NAME] with code [CODE]",
+          blockType: BlockType.CONDITIONAL,
+          hideFromPalette: !this.isEditorUnsandboxed,
+          arguments: {
+            NAME: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
+            },
+            CODE: { fillIn: "argumentReport" }
+          }
+        },
+        {
+          opcode: "deleteGlobalFunc",
+          text: "delete global function [NAME]",
+          blockType: BlockType.COMMAND,
+          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
+          arguments: {
+            NAME: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
             }
           }
         },
@@ -254,12 +317,35 @@ class SPjavascriptV2 {
     }
   }
 
-  codeInput(args) {
-    return args.CODE;
+  isLegalFuncName(name) {
+    try {
+      new Function(`function ${name}(){}`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   runCode(code, binds) {
     let binders = "";
+
+    /* inject global functions */
+    if (this.globalFuncs.size > 0) {
+      const funcs = this.globalFuncs.entries().toArray();
+      for (const [name, funcData] of funcs) {
+        if (funcData.isBlockCode) {
+          binders += `const ${name} = function(...args) {\n`;
+          binders += `const target = vm.runtime.getTargetById("${funcData.origin}");\n`;
+          binders += `const thread = vm.runtime._pushThread("${funcData.id}", target);\n`;
+          binders += `thread.jsExtData = [...args];\n`;
+          binders += "}\n";
+        } else {
+          binders += `const ${name} = ${funcData.code}\n`;
+        }
+      }
+    }
+
+    /* inject arguments */
     if (binds !== undefined) {
       for (let [name, value] of Object.entries(binds)) {
         // normalize values
@@ -281,9 +367,9 @@ class SPjavascriptV2 {
       let result;
       try {
         // eslint-disable-next-line no-eval
-        result = eval(binders + code);
+        result = runCode(binders + code);
       } catch (err) {
-        result = err;
+        throw err;
       }
       return result;
     }
@@ -298,6 +384,10 @@ class SPjavascriptV2 {
   }
 
   // block funcs
+  codeInput(args) {
+    return args.CODE;
+  }
+
   jsCommand(args) {
     this.runCode(Cast.toString(args.CODE));
   }
@@ -342,6 +432,37 @@ class SPjavascriptV2 {
       })();
     }
     return Cast.toBoolean(possiblePromise);
+  }
+
+  defineGlobalFunc(args) {
+    const funcName = Cast.toString(args.NAME);
+    if (this.isLegalFuncName(funcName)) {
+      const funcRegex = /^function\s*\([^)]*\)\s*\{[\s\S]*\}$/;
+      const lambRegex = /^\([^)]*\)\s*=>\s*(\{[\s\S]*\}|[^{}][^\n]*)$/;
+      const code = Cast.toString(args.CODE).trim();
+      if (funcRegex.test(code) || lambRegex.test(code)) this.globalFuncs.set(funcName, { code, isBlockCode: false });
+      else throw new Error("Global Code must be 'function' or 'lambda'!");
+    } else {
+      throw new Error("Illegal Function Name!");
+    }
+  }
+
+  defineScratchCode(args, util) {
+    const funcName = Cast.toString(args.NAME);
+    if (this.isLegalFuncName(funcName)) {
+      const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1);
+      if (branch) this.globalFuncs.set(funcName, { id: branch, origin: util.target.id, isBlockCode: true });
+    } else {
+      throw new Error("Illegal Function Name!");
+    }
+  }
+
+  argumentReport(_, util) {
+    return util.thread.jsExtData ? JSON.stringify(util.thread.jsExtData) : "[]";
+  }
+
+  deleteGlobalFunc(args) {
+    this.globalFuncs.delete(Cast.toString(args.NAME));
   }
 }
 

@@ -367,7 +367,6 @@ class ScriptTreeGenerator {
                 kind: 'control.inlineStackOutput',
                 code: this.descendSubstack(block, 'SUBSTACK')
             };
-
         case 'looks_backdropnumbername':
             if (block.fields.NUMBER_NAME.value === 'number') {
                 return {
@@ -1599,11 +1598,14 @@ class ScriptTreeGenerator {
             return {
                 kind: 'pen.stamp'
             };
-        case 'procedures_return': 
+        case 'procedures_return': {
+            const topBlock = this.getBlockById(this.thread.topBlock);
             return {
                 kind: 'procedures.return',
-                return: this.descendInputOfBlock(block, 'return')
+                return: this.descendInputOfBlock(block, 'return'),
+                isDefineClicked: topBlock ? topBlock.opcode.startsWith("procedures_definition") : false
             };
+        }
         case 'procedures_set': 
             return {
                 kind: 'procedures.set',
