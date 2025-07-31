@@ -367,7 +367,7 @@ class SPjavascriptV2 {
       } catch (err) {
         throw err;
       }
-      return typeof result == "object" ? JSON.stringify(result) : result;
+      return result;
     }
     // we are sandboxed
     return new Promise((resolve) => {
