@@ -365,7 +365,7 @@ class SPjavascriptV2 {
         // eslint-disable-next-line no-eval
         result = eval(binders + code);
       } catch (err) {
-        result = err;
+        throw err;
       }
       return result;
     }
