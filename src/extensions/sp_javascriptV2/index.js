@@ -7,8 +7,8 @@ const Cast = require("../../util/cast");
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
-function runCode(x) {
-  return eval(x)
+async function runCode(x) {
+  return await Object.getPrototypeOf(async function() {}).constructor(x)();
 }
 
 function initBlockTools() {
@@ -326,7 +326,7 @@ class SPjavascriptV2 {
     }
   }
 
-  runCode(code, binds) {
+  async runCode(code, binds) {
     let binders = "";
 
     /* inject global functions */
@@ -367,7 +367,7 @@ class SPjavascriptV2 {
       let result;
       try {
         // eslint-disable-next-line no-eval
-        result = runCode(binders + code);
+        result = await runCode(binders + code);
       } catch (err) {
         throw err;
       }
@@ -388,28 +388,28 @@ class SPjavascriptV2 {
     return args.CODE;
   }
 
-  jsCommand(args) {
-    this.runCode(Cast.toString(args.CODE));
+  async jsCommand(args) {
+    await this.runCode(Cast.toString(args.CODE));
   }
-  jsCommandBinded(args) {
-    this.runCode(
+  async jsCommandBinded(args) {
+    await this.runCode(
       Cast.toString(args.CODE),
       this.parseArguments(args.ARGS)
     );
   }
 
-  jsReporter(args) {
-    return this.runCode(Cast.toString(args.CODE));
+  async jsReporter(args) {
+    return await this.runCode(Cast.toString(args.CODE));
   }
-  jsReporterBinded(args) {
-    return this.runCode(
+  async jsReporterBinded(args) {
+    return await this.runCode(
       Cast.toString(args.CODE),
       this.parseArguments(args.ARGS)
     );
   }
 
-  jsBoolean(args) {
-    const possiblePromise = this.runCode(Cast.toString(args.CODE));
+  async jsBoolean(args) {
+    const possiblePromise = await this.runCode(Cast.toString(args.CODE));
     /* force output a boolean */
     if (possiblePromise && typeof possiblePromise.then === "function") {
       return (async () => {
@@ -419,8 +419,8 @@ class SPjavascriptV2 {
     }
     return Cast.toBoolean(possiblePromise);
   }
-  jsBooleanBinded(args) {
-    const possiblePromise = this.runCode(
+  async jsBooleanBinded(args) {
+    const possiblePromise = await this.runCode(
       Cast.toString(args.CODE),
       this.parseArguments(args.ARGS)
     );
