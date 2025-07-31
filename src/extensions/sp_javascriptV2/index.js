@@ -141,6 +141,14 @@ class SPjavascriptV2 {
             }
           },
         },
+        {
+          opcode: "argumentReport",
+          text: "data",
+          blockType: BlockType.REPORTER,
+          hideFromPalette: true,
+          canDragDuplicate: true,
+          disableMonitor: true,
+        },
         /* shown if ScratchBlocks is not availiable */
         {
           opcode: "jsCommand",
@@ -227,7 +235,7 @@ class SPjavascriptV2 {
           opcode: "defineGlobalFunc",
           text: "create global function named [NAME] with code [CODE]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
           arguments: {
             NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
@@ -236,10 +244,22 @@ class SPjavascriptV2 {
           }
         },
         {
+          opcode: "defineScratchCode",
+          text: "create local function named [NAME] with code [CODE]",
+          blockType: BlockType.CONDITIONAL,
+          hideFromPalette: !this.isEditorUnsandboxed,
+          arguments: {
+            NAME: {
+              type: ArgumentType.STRING, defaultValue: "myFunction"
+            },
+            CODE: { fillIn: "argumentReport" }
+          }
+        },
+        {
           opcode: "deleteGlobalFunc",
           text: "delete global function [NAME]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: !this.isEditorUnsandboxed,
           arguments: {
             NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
@@ -303,7 +323,17 @@ class SPjavascriptV2 {
     /* inject global functions */
     if (this.globalFuncs.size > 0) {
       const funcs = this.globalFuncs.entries().toArray();
-      for (const [name, code] of funcs) binders += `const ${name} = ${code}\n`;
+      for (const [name, funcData] of funcs) {
+        if (funcData.isBlockCode) {
+          binders += `const ${name} = function(...args) {\n`;
+          binders += `const target = vm.runtime.getTargetById("${funcData.origin}");\n`;
+          binders += `const thread = vm.runtime._pushThread("${funcData.id}", target);\n`;
+          binders += `thread.jsExtData = [...args];\n`;
+          binders += "}\n";
+        } else {
+          binders += `const ${name} = ${funcData.code}\n`;
+        }
+      }
     }
 
     /* inject arguments */
@@ -401,11 +431,25 @@ class SPjavascriptV2 {
       const funcRegex = /^function\s*\([^)]*\)\s*\{[\s\S]*\}$/;
       const lambRegex = /^\([^)]*\)\s*=>\s*(\{[\s\S]*\}|[^{}][^\n]*)$/;
       const code = Cast.toString(args.CODE).trim();
-      if (funcRegex.test(code) || lambRegex.test(code)) this.globalFuncs.set(funcName, code);
+      if (funcRegex.test(code) || lambRegex.test(code)) this.globalFuncs.set(funcName, { code, isBlockCode: false });
       else throw new Error("Global Code must be 'function' or 'lambda'!");
     } else {
       throw new Error("Illegal Function Name!");
     }
+  }
+
+  defineScratchCode(args, util) {
+    const funcName = Cast.toString(args.NAME);
+    if (this.isLegalFuncName(funcName)) {
+      const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1);
+      if (branch) this.globalFuncs.set(funcName, { id: branch, origin: util.target.id, isBlockCode: true });
+    } else {
+      throw new Error("Illegal Function Name!");
+    }
+  }
+
+  argumentReport(_, util) {
+    return util.thread.jsExtData ? JSON.stringify(util.thread.jsExtData) : "[]";
   }
 
   deleteGlobalFunc(args) {
