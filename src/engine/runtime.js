@@ -1638,7 +1638,7 @@ class Runtime extends EventEmitter {
 
         const blockJSON = {
             type: extendedOpcode,
-            inputsInline: blockInfo.inputsInline ?? true,
+            inputsInline: true,
             category: categoryInfo.name,
             extensions: blockInfo.extensions ?? [],
             colour: blockInfo.color1 ?? categoryInfo.color1,
