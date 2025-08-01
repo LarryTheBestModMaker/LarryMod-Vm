@@ -98,7 +98,7 @@ class SharedDispatch {
      * @private
      */
     _isRemoteService (service) {
-        return this._getServiceProvider(service).isRemote;
+        return this._getServiceProvider(service)?.isRemote ?? false;
     }
 
     /**
