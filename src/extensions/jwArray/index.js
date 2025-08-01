@@ -519,7 +519,7 @@ class Extension {
 
     builderAppend({VALUE}, util) {
         if (util.thread._jwArrayBuilderIndex && this.builderIndex[util.thread._jwArrayBuilderIndex]) {
-            this.builderIndex[util.thread._jwArrayBuilderIndex].push(value)
+            this.builderIndex[util.thread._jwArrayBuilderIndex].push(VALUE)
         }
     }
 
