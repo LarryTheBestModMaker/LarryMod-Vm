@@ -509,7 +509,7 @@ class SPjavascriptV2 {
     // Delay the Deletion of this Thread
     if (util.stackTimerNeedsInit()) {
       util.startStackTimer(0);
-      runtime.requestRedraw();
+      this.runtime.requestRedraw();
       util.yield();
     } else if (!util.stackTimerFinished()) util.yield();
     util.thread.stopThisScript();
