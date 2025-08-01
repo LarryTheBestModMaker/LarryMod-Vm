@@ -787,7 +787,7 @@ class ExtensionManager {
                 results.push(result);
             } catch (e) {
                 // TODO: more meaningful error reporting
-                log.error(`Error processing block: ${e.message}, Block:\n${JSON.stringify(blockInfo)}`);
+                log.error(`Error processing block: ${e.message}, Block:\n${JSON.stringify(blockInfo)}`, e);
             }
             return results;
         }, []);
