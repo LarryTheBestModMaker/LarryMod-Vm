@@ -514,7 +514,7 @@ class Extension {
 
         const output = this.builderIndex[util.stackFrame.jwArrayBuilderIndex]
         delete this.builderIndex[util.stackFrame.jwArrayBuilderIndex]
-        return output
+        return new jwArray.Type(output)
     }
 
     builderAppend({VALUE}, util) {
