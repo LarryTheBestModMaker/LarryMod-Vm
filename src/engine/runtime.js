@@ -1145,6 +1145,14 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Event name for thread finishing.
+     * @const {string}
+     */
+    static get THREAD_FINISHED () {
+        return 'THREAD_FINISHED'
+    }
+
+    /**
      * How rapidly we try to step threads by default, in ms.
      */
     static get THREAD_STEP_INTERVAL () {
