@@ -267,7 +267,7 @@ class Extension {
                     text: 'array builder',
                     branches: [{
                         accepts: 'jwArrayBuilder'
-                    }]
+                    }],
                     ...jwArray.Block
                 },
                 {
