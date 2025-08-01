@@ -504,7 +504,7 @@ class SPjavascriptV2 {
     this.globalFuncs.delete(Cast.toString(args.NAME));
   }
 
-  respondData(args, util) {
+  returnData(args, util) {
     util.thread.justReported = args.DATA;
     // Delay the Deletion of this Thread
     if (util.stackTimerNeedsInit()) {
