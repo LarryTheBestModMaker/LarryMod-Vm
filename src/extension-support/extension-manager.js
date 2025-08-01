@@ -960,6 +960,10 @@ class ExtensionManager {
 
                 // avoid promise latency if we can call direct
                 const serviceObject = dispatch.services[serviceName];
+                if (!serviceObject) {
+                    // extension was likely removed
+                    return () => {};
+                }
                 if (!serviceObject[funcName]) {
                     // The function might show up later as a dynamic property of the service object
                     log.warn(`Could not find extension block function called ${funcName}`);
