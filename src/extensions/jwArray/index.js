@@ -509,7 +509,7 @@ class Extension {
 
         const thread = vm.runtime._pushThread(branch, util.target)
         let index = this.builderIndex.push([])
-        thread.stackFrames[0].jwArrayBuilderIndex = index
+        thread._jwArrayBuilderIndex = index
         await waitForThread(thread)
 
         const output = this.builderIndex[index]
@@ -518,8 +518,8 @@ class Extension {
     }
 
     builderAppend({VALUE}, util) {
-        if (util.stackFrame.jwArrayBuilderIndex && this.builderIndex[util.stackFrame.jwArrayBuilderIndex]) {
-            this.builderIndex[util.stackFrame.jwArrayBuilderIndex].push(value)
+        if (util.thread._jwArrayBuilderIndex && this.builderIndex[util.thread._jwArrayBuilderIndex]) {
+            this.builderIndex[util.thread._jwArrayBuilderIndex].push(value)
         }
     }
 
