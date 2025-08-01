@@ -309,7 +309,7 @@ class SPjavascriptV2 {
 
   parseArguments(argJSON) {
     try {
-      if (value.constructor?.name === "Object") return argJSON;
+      if (argJSON.constructor?.name === "Object") return argJSON;
       else {
         // this is a PM custom return api value
         argJSON = argJSON.toString();
