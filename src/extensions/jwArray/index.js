@@ -507,7 +507,6 @@ class Extension {
         let branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
         if (!branch) return new jwArray.Type()
 
-        /*
         const thread = vm.runtime._pushThread(branch, util.target)
         let index = this.builderIndex.push([])-1
         thread._jwArrayBuilderIndex = index
@@ -516,31 +515,12 @@ class Extension {
         const output = this.builderIndex[index]
         delete this.builderIndex[index]
         return new jwArray.Type(output)
-        */
-
-        if (util.stackFrame.executed) {
-            const output = util.stackFrame.returnValue
-            delete util.thread.peekStackFrame().executed
-            delete util.thread.peekStackFrame().returnValue
-            return output
-        }
-
-        util.stackFrame.executed = true
-        util.thread.peekStackFrame().waitingReporter = true;
-		util.stackFrame.returnValue = [];
-		util.thread.pushStack(branch);
     }
 
     builderAppend({VALUE}, util) {
-        /*
         if (util.thread._jwArrayBuilderIndex && this.builderIndex[util.thread._jwArrayBuilderIndex]) {
             this.builderIndex[util.thread._jwArrayBuilderIndex].push(VALUE)
         }
-        */
-        
-        if (util.stackFrame.returnValue) {
-			util.stackFrame.returnValue.push(args.VALUE);
-		}
     }
 
     get({ARRAY, INDEX}) {
