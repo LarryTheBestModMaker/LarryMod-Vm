@@ -512,8 +512,8 @@ class Extension {
         thread.stackFrames[0].jwArrayBuilderIndex = index
         await waitForThread(thread)
 
-        const output = this.builderIndex[util.stackFrame.jwArrayBuilderIndex]
-        delete this.builderIndex[util.stackFrame.jwArrayBuilderIndex]
+        const output = this.builderIndex[index]
+        delete this.builderIndex[index]
         return new jwArray.Type(output)
     }
 
