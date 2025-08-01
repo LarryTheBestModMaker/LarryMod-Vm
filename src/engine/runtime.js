@@ -2948,7 +2948,7 @@ class Runtime extends EventEmitter {
             this._stopThread(this.sequencer.activeThread);
         }
         // Remove all remaining threads from executing in the next tick.
-        this.threads.forEach(v => v.status !== Thread.STATUS_DONE && this.emit('THREAD_FINISHED', v))
+        this.threads.forEach(v => v.status !== Thread.STATUS_DONE && this.emit(Runtime.THREAD_FINISHED, v))
         this.threads = [];
         this.threadMap.clear();
     }
