@@ -160,6 +160,7 @@ class SPjavascriptV2 {
           opcode: "returnData",
           blockType: BlockType.COMMAND,
           isTerminal: true,
+          hideFromPalette: true,
           text: "return [DATA]",
           arguments: {
             DATA: { type: ArgumentType.STRING }
@@ -276,8 +277,9 @@ class SPjavascriptV2 {
           xml: `
             <block type="SPjavascriptV2_defineScratchCode">
               <value name="NAME"><shadow type="text"><field name="TEXT">myFunction</field></shadow></value>
+              <value name="CODE"><shadow type="SPjavascriptV2_argumentReport"></shadow></value>
               <value name="SUBSTACK"><block type="SPjavascriptV2_returnData">
-                <value name="VALUE"><shadow type="text"><field name="TEXT">completed</field></shadow></value>
+                <value name="DATA"><shadow type="text"><field name="TEXT">completed</field></shadow></value>
               </block></value>
             </block>
           `
