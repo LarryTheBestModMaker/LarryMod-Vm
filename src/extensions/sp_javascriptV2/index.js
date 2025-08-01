@@ -78,8 +78,8 @@ function initBlockTools() {
         if (value === "needsInit-1@#4%^7*(0") {
           const outerType = srcBlock.parentBlock_.type;
           if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
-          else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
-          else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+          else if (outerType.endsWith("jsReporterBinded")) value = `return STRING + Math.random()`;
+          else if (outerType.endsWith("jsBooleanBinded")) value = `return Math.random() > THRESHOLD`;
           else if (outerType.endsWith("defineGlobalFunc")) value = `(param1) => {\nreturn btoa(param1);\n}`;
           field.setValue(value);
         }
