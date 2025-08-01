@@ -43,6 +43,24 @@ function span(text) {
     return el
 }
 
+function waitForThread(thread) {
+    return new Promise((resolve, reject) => {
+        if (thread.status == 4) {
+            resolve()
+            return
+        }
+
+        let handler = t => {
+            if (t === thread) {
+                resolve()
+                vm.runtime.off('THREAD_FINISHED', handler)
+            }
+        }
+
+        vm.runtime.on('THREAD_FINISHED', handler)
+    })
+}
+
 class ArrayType {
     customId = "jwArray"
 
@@ -98,8 +116,19 @@ class ArrayType {
     }
 
     toString() {
-        return JSON.stringify(this.array)
+        return JSON.stringify(this.toJSON())
     }
+    toJSON() {
+        return this.array.map(v => {
+            if (typeof v == "object") {
+                if (v.toJSON && typeof v.toJSON == "function") return v.toJSON()
+                if (v.toString && typeof v.toString == "function") return v.toString()
+                return JSON.stringify(v)
+            }
+            return v
+        })
+    }
+
     toMonitorContent = () => span(this.toString())
 
     toReporterContent() {
@@ -231,6 +260,28 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
+                },
+                "---",
+                {
+                    opcode: 'builder',
+                    text: 'array builder',
+                    branches: [{
+                        accepts: 'jwArrayBuilder'
+                    }],
+                    ...jwArray.Block
+                },
+                {
+                    opcode: 'builderAppend',
+                    text: 'append [VALUE] to builder',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "foo",
+                            exemptFromNormalization: true
+                        }
+                    },
+                    notchAccepts: 'jwArrayBuilder'
                 },
                 "---",
                 {
@@ -448,6 +499,28 @@ class Extension {
         DIVIDER = Cast.toString(DIVIDER)
 
         return new jwArray.Type(STRING.split(DIVIDER))
+    }
+
+    builderIndex = []
+
+    async builder({}, util) {
+        let branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
+        if (!branch) return new jwArray.Type()
+
+        const thread = vm.runtime._pushThread(branch, util.target)
+        let index = this.builderIndex.push([])
+        thread.stackFrames[0].jwArrayBuilderIndex = index
+        await waitForThread(thread)
+
+        const output = this.builderIndex[index]
+        delete this.builderIndex[index]
+        return new jwArray.Type(output)
+    }
+
+    builderAppend({VALUE}, util) {
+        if (util.stackFrame.jwArrayBuilderIndex && this.builderIndex[util.stackFrame.jwArrayBuilderIndex]) {
+            this.builderIndex[util.stackFrame.jwArrayBuilderIndex].push(value)
+        }
     }
 
     get({ARRAY, INDEX}) {
