@@ -508,7 +508,7 @@ class Extension {
         if (!branch) return new jwArray.Type()
 
         const thread = vm.runtime._pushThread(branch, util.target)
-        let index = this.builderIndex.push([])
+        let index = this.builderIndex.push([])-1
         thread._jwArrayBuilderIndex = index
         await waitForThread(thread)
 
