@@ -528,7 +528,7 @@ class Extension {
         util.stackFrame.executed = true
         util.thread.peekStackFrame().waitingReporter = true;
 		util.stackFrame.returnValue = [];
-		util.thread.pushStack(branchBlockId);
+		util.thread.pushStack(branch);
     }
 
     builderAppend({VALUE}, util) {
