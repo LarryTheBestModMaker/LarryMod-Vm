@@ -309,8 +309,13 @@ class SPjavascriptV2 {
 
   parseArguments(argJSON) {
     try {
-      if (typeof argJSON === "object" && !Array.isArray(argJSON)) return argJSON;
-      else return JSON.parse(argJSON);
+      if (value.constructor?.name === "Object") return argJSON;
+      else {
+        // this is a PM custom return api value
+        argJSON = argJSON.toString();
+        if (typeof argJSON === "object" && !Array.isArray(argJSON)) return argJSON;
+        else return JSON.parse(argJSON);
+      }
     } catch(err) {
       console.warn(`Failed to parse Javascript Data JSON: ${err}`);
       return {};
