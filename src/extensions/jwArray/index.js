@@ -486,7 +486,7 @@ class Extension {
                     // save edited
                     const stackSource = compiler.source;
                     compiler.source = originalSource;
-                    return new imports.TypedInput(stackSource, TYPE_UNKNOWN);
+                    return new imports.TypedInput(stackSource, imports.TYPE_UNKNOWN);
                 }
             }
         };
