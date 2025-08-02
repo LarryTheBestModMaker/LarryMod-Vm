@@ -518,7 +518,6 @@ class VirtualMachine extends EventEmitter {
                 const proj = zip.file('project.json');
                 if (!proj) return reject('No project.json file inside the given project');
                 const json = JSON.parse(await proj.async('string'));
-                delete json.meta;
                 json.projectVersion = this.isSB2(json) ? 2 : 3;
 
                 this._projectZip = zip
