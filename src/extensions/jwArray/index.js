@@ -199,7 +199,7 @@ class Extension {
                 return w
             }))
         );
-        this.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
+        vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
     }
 
     getInfo() {
