@@ -484,8 +484,8 @@ class Extension {
                     compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop())`
                     compiler.source += '})())';
                     // save edited
-                    const stackSource = this.source;
-                    this.source = originalSource;
+                    const stackSource = compiler.source;
+                    compiler.source = originalSource;
                     return new TypedInput(stackSource, TYPE_UNKNOWN);
                 }
             }
