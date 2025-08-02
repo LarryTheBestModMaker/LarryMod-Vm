@@ -199,6 +199,7 @@ class Extension {
                 return w
             }))
         );
+        this.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
     }
 
     getInfo() {
@@ -465,6 +466,31 @@ class Extension {
             }
         };
     }
+
+    getCompileInfo() {
+        return {
+            ir: {
+                builder: (generator, block) => ({
+                    kind: 'input',
+                    substack: generator.descendSubstack(block, 'SUBSTACK')
+                }),
+            },
+            js: {
+                builder: (node, compiler, imports) => {
+                    const originalSource = compiler.source;
+                    compiler.source = '(yield* (function*() {';
+                    compiler.source += `runtime.ext_jwArray.builderIndex.push([])`
+                    compiler.descendStack(node.substack, new imports.Frame(false));
+                    compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop())`
+                    compiler.source += '})())';
+                    // save edited
+                    const stackSource = this.source;
+                    this.source = originalSource;
+                    return new TypedInput(stackSource, TYPE_UNKNOWN);
+                }
+            }
+        };
+    }
     
     getLists() {
         const globalLists = Object.values(vm.runtime.getTargetForStage().variables)
@@ -503,24 +529,13 @@ class Extension {
 
     builderIndex = []
 
-    async builder({}, util) {
-        let branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
-        if (!branch) return new jwArray.Type()
-
-        const thread = vm.runtime._pushThread(branch, util.target)
-        let index = this.builderIndex.push([])-1
-        thread._jwArrayBuilderIndex = index
-        await waitForThread(thread)
-
-        const output = this.builderIndex[index]
-        delete this.builderIndex[index]
-        return new jwArray.Type(output)
+    builder() {
+        return 'noop'
     }
 
     builderAppend({VALUE}, util) {
-        if (util.thread._jwArrayBuilderIndex) {
-            this.builderIndex[util.thread._jwArrayBuilderIndex] ??= []
-            this.builderIndex[util.thread._jwArrayBuilderIndex].push(VALUE)
+        if (this.builderIndex.length > 0) {
+            this.builderIndex[this.builderIndex.length-1].push(VALUE)
         }
     }
 
