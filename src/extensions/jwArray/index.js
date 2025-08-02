@@ -479,9 +479,9 @@ class Extension {
                 builder: (node, compiler, imports) => {
                     const originalSource = compiler.source;
                     compiler.source = '(yield* (function*() {';
-                    compiler.source += `runtime.ext_jwArray.builderIndex.push([])`
+                    compiler.source += `runtime.ext_jwArray.builderIndex.push([]);`
                     compiler.descendStack(node.substack, new imports.Frame(false));
-                    compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop())`
+                    compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop());`
                     compiler.source += '})())';
                     // save edited
                     const stackSource = compiler.source;
