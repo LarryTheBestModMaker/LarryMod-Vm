@@ -1657,6 +1657,7 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     };
 
     // Store the origin field (e.g. project originated at CSFirst) so that we can save it again.
+    if (window.testLog) console.log(json)
     if (json.meta && json.meta.origin) {
         runtime.origin = json.meta.origin;
     } else if (json.platform) {
