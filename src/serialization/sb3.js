@@ -1325,7 +1325,10 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         for (const blockId in object.blocks) {
             if (!object.blocks.hasOwnProperty(blockId)) continue;
             const blockJSON = object.blocks[blockId];
-            if (window.testLog) console.log(blockJSON);
+            if (window.testLog) {
+              console.log(blockJSON);
+              if (window.testFunc) window.testFunc(blockJSON);
+            }
             blocks.createBlock(blockJSON);
         }
     }
@@ -1657,11 +1660,10 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     };
 
     // Store the origin field (e.g. project originated at CSFirst) so that we can save it again.
-    if (window.testLog) console.log(json)
-    if (json.meta && json.meta.origin) {
-        runtime.origin = json.meta.origin;
-    } else if (json.platform) {
-        runtime.origin = json.platform.name;
+    if (json.meta) {
+        if (json.meta.origin) runtime.origin = json.meta.origin;
+        else if (json.meta.platform) runtime.origin = json.meta.platform.name;
+        else runtime.origin = null;
     } else {
         runtime.origin = null;
     }
