@@ -1325,6 +1325,7 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         for (const blockId in object.blocks) {
             if (!object.blocks.hasOwnProperty(blockId)) continue;
             const blockJSON = object.blocks[blockId];
+            if (window.testLog) console.log(blockJSON);
             blocks.createBlock(blockJSON);
         }
     }
@@ -1661,6 +1662,7 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     } else {
         runtime.origin = null;
     }
+    if (window.testLog) console.log(runtime.origin);
 
     // Extract custom extension IDs, if they exist.
     if (json.extensionURLs) {
