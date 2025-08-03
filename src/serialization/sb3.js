@@ -1388,7 +1388,7 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
 
         // convert TurboWarp custom reporters to PenguinMod's format
         if (runtime.origin === 'TurboWarp') for (const block of _converterCache) {
-            convertProcedureCompat(block, object.blocks);
+            convertProcedureCompat(block, blocks);
         }
     }
     // Costumes from JSON.
