@@ -1286,7 +1286,6 @@ const parseScratchAssets = function (object, runtime, zip) {
  * @param {!object} blocks - all blocks in the sprite container
  */
 const convertProcedureCompat = function (blockJSON, blocks) {
-  console.log(blockJSON);
   switch (blockJSON.opcode) {
     case 'procedures_return': {
       blockJSON.inputs.return = blockJSON.inputs.VALUE;
@@ -1296,6 +1295,7 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // climb stack tree to change the define opcode if needed
       let parent = "", thisBlock = blockJSON;
       while (parent !== null) {
+        console.log(parent, thisBlock);
         parent = thisBlock.parent ? thisBlock.parent : null;
         if (parent) thisBlock = blocks._blocks[parent];
       }
@@ -1307,11 +1307,19 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       break;
     }
     case 'procedures_call': {
-      const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
-      if (defineId) {
-        const protoId = blocks._blocks[defineId].inputs.custom_block.block;
-        if (blocks._blocks[protoId].mutation.returns === 'true') {
-          blockJSON.mutation.returns = 'true';
+      // check if we're in a reporter slot
+      const parent = blocks._blocks[blockJSON.parent];
+      if (parent) {
+        if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'true';
+        else {
+          // we could be in a branch
+          const values = Object.values(parent.inputs);
+          for (const input of inputs) {
+            if (input.block === blockJSON.id && input.name.startsWith("SUBSTACK")) {
+              blockJSON.mutation.returns = 'true';
+              break;
+            }
+          }
         }
       }
       break;
