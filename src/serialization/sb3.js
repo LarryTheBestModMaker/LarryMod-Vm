@@ -1286,8 +1286,7 @@ const parseScratchAssets = function (object, runtime, zip) {
  * @param {!object} blocks - all blocks in the sprite container
  */
 const convertProcedureCompat = function (blockJSON, blocks) {
-  switch (blockJSON.opcode) {
-    case 'procedures_return': {
+  if (blockJSON.opcode === 'procedures_return') {
       blockJSON.inputs.return = blockJSON.inputs.VALUE;
       blockJSON.inputs.return.name = "return";
       delete blockJSON.inputs.VALUE;
@@ -1295,47 +1294,41 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // climb stack tree to change the procedure to returnable
       let thisBlock = blockJSON;
       let parent = thisBlock.parent;
-      console.log(blockJSON, structuredClone(blocks._blocks));
-      window.test = [blockJSON, structuredClone(blocks._blocks)];
       while (parent !== null) {
-        if (parent) {
-          thisBlock = blocks._blocks[parent];
-          parent = thisBlock?.parent ?? null;
-        }
+          if (parent) {
+              thisBlock = blocks._blocks[parent];
+              parent = thisBlock?.parent ?? null;
+          }
       }
       if (thisBlock && thisBlock.opcode === 'procedures_definition') {
-        thisBlock.opcode = 'procedures_definition_return';
-        const proto = blocks._blocks[thisBlock.inputs.custom_block.block];
-        proto.mutation.returns = 'true';
+          thisBlock.opcode = 'procedures_definition_return';
+          const proto = blocks._blocks[thisBlock.inputs.custom_block.block];
+          proto.mutation.returns = 'true';
       }
-      break;
-    }
-    case 'procedures_call': {
+  } else if (blockJSON.opcode === 'procedures_call') {
       const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
       if (defineId) {
-        const protoId = blocks._blocks[defineId].inputs.custom_block.block;
-        if (blocks._blocks[protoId].mutation.returns === 'true') {
-          blockJSON.mutation.returns = 'true';
-        }
+          const protoId = blocks._blocks[defineId].inputs.custom_block.block;
+          if (blocks._blocks[protoId].mutation.returns === 'true') {
+              blockJSON.mutation.returns = 'true';
+          }
       }
 
-      // check if we're in a reporter slot
+      // check if we're not in a reporter slot
       const parent = blocks._blocks[blockJSON.parent];
       if (parent) {
-        if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'false';
-        else {
-          // we could be in a branch
-          for (const input of Object.values(parent.inputs)) {
-            if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
-              blockJSON.mutation.returns = 'false';
-              break;
-            }
+          if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'false';
+          else {
+              // we could be in a branch
+              for (const input of Object.values(parent.inputs)) {
+                  console.log(input, blockJSON.id);
+                  if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
+                      blockJSON.mutation.returns = 'false';
+                      break;
+                  }
+              }
           }
-        }
       }
-      break;
-    }
-    default: break;
   }
 };
 
@@ -1381,15 +1374,21 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
 
         deserializeBlocks(object.blocks);
         // Take a second pass to create objects and add extensions
+        const _converterCache = [];
         for (const blockId in object.blocks) {
             if (!object.blocks.hasOwnProperty(blockId)) continue;
             const blockJSON = object.blocks[blockId];
             if (runtime.origin === 'TurboWarp') {
-              // TurboWarp does their procedure returns in a better way (SP's opinion)
-              // anyways since ours is different we need to convert it
-              convertProcedureCompat(blockJSON, blocks);
+                if (blockJSON.opcode === 'procedures_call' || blockJSON.opcode === 'procedures_return') {
+                    _converterCache.push(blockJSON);
+                }
             }
             blocks.createBlock(blockJSON);
+        }
+
+        // convert TurboWarp custom reporters to PenguinMod's format
+        if (runtime.origin === 'TurboWarp') for (const block of _converterCache) {
+            convertProcedureCompat(block, object.blocks);
         }
     }
     // Costumes from JSON.
