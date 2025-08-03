@@ -337,7 +337,7 @@ const isSafeConstantForEqualsOptimization = input => {
  * A frame contains some information about the current substack being compiled.
  */
 class Frame {
-    constructor (isLoop, parentKind) {
+    constructor (isLoop, parentKind, overrideLoop = false) {
         /**
          * Whether the current stack runs in a loop (while, for)
          * @type {boolean}
@@ -350,6 +350,8 @@ class Frame {
          * @type {boolean}
          */
         this.isLastBlock = false;
+
+        this.overrideLoop = overrideLoop 
 
         /**
          * General important data that needs to be carried down from other threads.
@@ -497,6 +499,9 @@ class JSGenerator {
     isLastBlockInLoop () {
         for (let i = this.frames.length - 1; i >= 0; i--) {
             const frame = this.frames[i];
+            if (frame.overrideLoop) {
+                return frame.isLoop
+            }
             if (!frame.isLastBlock) {
                 return false;
             }
