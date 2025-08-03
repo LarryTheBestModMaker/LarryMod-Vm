@@ -1292,12 +1292,14 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       blockJSON.inputs.return.name = "return";
       delete blockJSON.inputs.VALUE;
 
-      // climb stack tree to change the define opcode if needed
-      let parent = "", thisBlock = blockJSON;
+      // climb stack tree to change the procedure to returnable
+      let thisBlock = blockJSON;
+      let parent = thisBlock.parent;
       while (parent !== null) {
-        console.log(parent, thisBlock);
-        parent = thisBlock.parent ? thisBlock.parent : null;
-        if (parent) thisBlock = blocks._blocks[parent];
+        if (parent) {
+          thisBlock = blocks._blocks[parent];
+          parent = thisBlock?.parent ?? null;
+        }
       }
       if (thisBlock && thisBlock.opcode === 'procedures_definition') {
         thisBlock.opcode = 'procedures_definition_return';
@@ -1310,12 +1312,12 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // check if we're in a reporter slot
       const parent = blocks._blocks[blockJSON.parent];
       if (parent) {
-        if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'true';
+        if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'false';
         else {
           // we could be in a branch
           const values = Object.values(parent.inputs);
           for (const input of inputs) {
-            if (input.block === blockJSON.id && input.name.startsWith("SUBSTACK")) {
+            if (input.block === blockJSON.id && !input.name.startsWith("SUBSTACK")) {
               blockJSON.mutation.returns = 'true';
               break;
             }
