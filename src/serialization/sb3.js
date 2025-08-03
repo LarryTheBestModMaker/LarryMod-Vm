@@ -1776,7 +1776,7 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
         .then(targets => replaceUnsafeCharsInVariableIds(targets))
         .then(targets => {
             // all blocks have been created, its safe to reset the origin from Turbowarp
-            if (runtime.origin === 'Turbowarp') runtime.origin = null;
+            if (runtime.origin === 'TurboWarp') runtime.origin = null;
 
             // at this point, stage size has not been set by 'runtime.parseProjectOptions'
             const stage = targets.find(t => t.isStage);
