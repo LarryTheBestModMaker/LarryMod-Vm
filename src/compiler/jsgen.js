@@ -572,7 +572,7 @@ class JSGenerator {
             const originalSource = this.source;
             this.source = '(yield* (function*() {';
             // descend now since descendStack modifies source
-            this.descendStack(node.code, new Frame(false, 'control.inlineStackOutput'));
+            this.descendStack(node.code, new Frame(false, 'control.inlineStackOutput', true));
             this.source += '})())';
             // save edited
             const stackSource = this.source;
