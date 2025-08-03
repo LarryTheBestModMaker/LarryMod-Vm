@@ -1286,6 +1286,7 @@ const parseScratchAssets = function (object, runtime, zip) {
  * @param {!object} blocks - all blocks in the sprite container
  */
 const convertProcedureCompat = function (blockJSON, blocks) {
+  console.log(blockJSON);
   switch (blockJSON.opcode) {
     case 'procedures_return': {
       blockJSON.inputs.return = blockJSON.inputs.VALUE;
@@ -1298,21 +1299,18 @@ const convertProcedureCompat = function (blockJSON, blocks) {
         if (parent) thisBlock = blocks._blocks[parent];
       }
       if (thisBlock && thisBlock.opcode === 'procedures_definition') {
-        thisBlock.opcode = 'procedures_definition_return'
+        thisBlock.opcode = 'procedures_definition_return';
+        const proto = blocks._blocks[thisBlock.inputs.custom_block.block];
+        proto.mutation.returns = 'true';
       }
       break;
     }
-    case 'procedures_prototype':
-      if (blocks._blocks[blockJSON.parent].opcode.endsWith("return")) {
-        blockJSON.mutation.returns = "true";
-      }
-      break;
     case 'procedures_call': {
       const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
       if (defineId) {
         const protoId = blocks._blocks[defineId].inputs.custom_block.block;
-        if (blocks._blocks[protoId].mutation.returns === "true") {
-          blockJSON.mutation.returns = "true";
+        if (blocks._blocks[protoId].mutation.returns === 'true') {
+          blockJSON.mutation.returns = 'true';
         }
       }
       break;
