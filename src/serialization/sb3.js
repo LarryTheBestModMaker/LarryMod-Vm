@@ -1282,12 +1282,12 @@ const parseScratchAssets = function (object, runtime, zip) {
 
 /**
  * Convert a Procedure Block to a PenguinMod-acceptable format (TurboWarp compatibility)
- * @param {!object} object blockJSON - blockJSON for a block
- * @param {!object} object blocks - all blocks in the sprite container
+ * @param {!object} blockJSON - blockJSON for a block
+ * @param {!object} blocks - all blocks in the sprite container
  */
 const convertProcedureCompat = function (blockJSON, blocks) {
   switch (blockJSON.opcode) {
-    case 'procedures_return':
+    case 'procedures_return': {
       blockJSON.inputs.return = blockJSON.inputs.VALUE;
       delete blockJSON.inputs.VALUE;
 
@@ -1301,9 +1301,22 @@ const convertProcedureCompat = function (blockJSON, blocks) {
         thisBlock.opcode = 'procedures_definition_return'
       }
       break;
-    case 'procedures_call':
-      console.log(blockJSON, blocks);
+    }
+    case 'procedures_prototype':
+      if (blocks._blocks[blockJSON.parent].opcode.endsWith("return")) {
+        blockJSON.mutation.returns = "true";
+      }
       break;
+    case 'procedures_call': {
+      const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
+      if (defineId) {
+        const protoId = blocks._blocks[defineId].inputs.custom_block.block;
+        if (blocks._blocks[protoId].mutation.returns === "true") {
+          blockJSON.mutation.returns = "true";
+        }
+      }
+      break;
+    }
     default: break;
   }
 };
