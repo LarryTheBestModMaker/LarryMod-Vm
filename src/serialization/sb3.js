@@ -1295,6 +1295,8 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // climb stack tree to change the procedure to returnable
       let thisBlock = blockJSON;
       let parent = thisBlock.parent;
+      console.log(structuredClone(blockJSON, blocks._blocks));
+      window.test = [blockJSON, structuredClone(blockJSON, blocks._blocks)];
       while (parent !== null) {
         if (parent) {
           thisBlock = blocks._blocks[parent];
@@ -1309,6 +1311,14 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       break;
     }
     case 'procedures_call': {
+      const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
+      if (defineId) {
+        const protoId = blocks._blocks[defineId].inputs.custom_block.block;
+        if (blocks._blocks[protoId].mutation.returns === 'true') {
+          blockJSON.mutation.returns = 'true';
+        }
+      }
+
       // check if we're in a reporter slot
       const parent = blocks._blocks[blockJSON.parent];
       if (parent) {
@@ -1317,8 +1327,8 @@ const convertProcedureCompat = function (blockJSON, blocks) {
           // we could be in a branch
           const values = Object.values(parent.inputs);
           for (const input of inputs) {
-            if (input.block === blockJSON.id && !input.name.startsWith("SUBSTACK")) {
-              blockJSON.mutation.returns = 'true';
+            if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
+              blockJSON.mutation.returns = 'false';
               break;
             }
           }
