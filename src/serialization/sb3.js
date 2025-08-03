@@ -1321,7 +1321,6 @@ const convertProcedureCompat = function (blockJSON, blocks) {
           else {
               // we could be in a branch
               for (const input of Object.values(parent.inputs)) {
-                  console.log(input, blockJSON.id);
                   if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
                       blockJSON.mutation.returns = 'false';
                       break;
