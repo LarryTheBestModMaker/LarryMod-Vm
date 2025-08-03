@@ -1294,7 +1294,7 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // climb stack tree to change the define opcode if needed
       let parent = "", thisBlock = blockJSON;
       while (parent !== null) {
-        parent = blockJSON.parent;
+        parent = thisBlock.parent;
         if (parent) thisBlock = blocks._blocks[parent];
       }
       if (thisBlock && thisBlock.opcode === 'procedures_definition') {
