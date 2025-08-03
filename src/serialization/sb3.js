@@ -1295,8 +1295,8 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       // climb stack tree to change the procedure to returnable
       let thisBlock = blockJSON;
       let parent = thisBlock.parent;
-      console.log(structuredClone(blockJSON, blocks._blocks));
-      window.test = [blockJSON, structuredClone(blockJSON, blocks._blocks)];
+      console.log(blockJSON, structuredClone(blocks._blocks));
+      window.test = [blockJSON, structuredClone(blocks._blocks)];
       while (parent !== null) {
         if (parent) {
           thisBlock = blocks._blocks[parent];
@@ -1325,8 +1325,7 @@ const convertProcedureCompat = function (blockJSON, blocks) {
         if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'false';
         else {
           // we could be in a branch
-          const values = Object.values(parent.inputs);
-          for (const input of inputs) {
+          for (const input of Object.values(parent.inputs)) {
             if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
               blockJSON.mutation.returns = 'false';
               break;
