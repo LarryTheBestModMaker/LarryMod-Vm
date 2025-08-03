@@ -1281,6 +1281,57 @@ const parseScratchAssets = function (object, runtime, zip) {
 };
 
 /**
+ * Convert a Procedure Block to a PenguinMod-acceptable format (TurboWarp compatibility)
+ * @param {!object} blockJSON - blockJSON for a block
+ * @param {!object} blocks - all blocks in the sprite container
+ */
+const convertProcedureCompat = function (blockJSON, blocks) {
+  if (blockJSON.opcode === 'procedures_return') {
+      blockJSON.inputs.return = blockJSON.inputs.VALUE;
+      blockJSON.inputs.return.name = "return";
+      delete blockJSON.inputs.VALUE;
+
+      // climb stack tree to change the procedure to returnable
+      let thisBlock = blockJSON;
+      let parent = thisBlock.parent;
+      while (parent !== null) {
+          if (parent) {
+              thisBlock = blocks._blocks[parent];
+              parent = thisBlock?.parent ?? null;
+          }
+      }
+      if (thisBlock && thisBlock.opcode === 'procedures_definition') {
+          thisBlock.opcode = 'procedures_definition_return';
+          const proto = blocks._blocks[thisBlock.inputs.custom_block.block];
+          proto.mutation.returns = 'true';
+      }
+  } else if (blockJSON.opcode === 'procedures_call') {
+      const defineId = blocks.getProcedureDefinition(blockJSON.mutation.proccode);
+      if (defineId) {
+          const protoId = blocks._blocks[defineId].inputs.custom_block.block;
+          if (blocks._blocks[protoId].mutation.returns === 'true') {
+              blockJSON.mutation.returns = 'true';
+          }
+      }
+
+      // check if we're not in a reporter slot
+      const parent = blocks._blocks[blockJSON.parent];
+      if (parent) {
+          if (parent.next === blockJSON.id) blockJSON.mutation.returns = 'false';
+          else {
+              // we could be in a branch
+              for (const input of Object.values(parent.inputs)) {
+                  if (input.block === blockJSON.id && input.name.startsWith('SUBSTACK')) {
+                      blockJSON.mutation.returns = 'false';
+                      break;
+                  }
+              }
+          }
+      }
+  }
+};
+
+/**
  * Parse a single "Scratch object" and create all its in-memory VM objects.
  * @param {!object} object From-JSON "Scratch object:" sprite, stage, watcher.
  * @param {!Runtime} runtime Runtime object to load all structures into.
@@ -1322,11 +1373,20 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
 
         deserializeBlocks(object.blocks);
         // Take a second pass to create objects and add extensions
+        const _converterCache = [];
         for (const blockId in object.blocks) {
             if (!object.blocks.hasOwnProperty(blockId)) continue;
             const blockJSON = object.blocks[blockId];
+            if (runtime.origin === 'TurboWarp') {
+                if (blockJSON.opcode === 'procedures_call' || blockJSON.opcode === 'procedures_return') {
+                    _converterCache.push(blockJSON);
+                }
+            }
             blocks.createBlock(blockJSON);
         }
+
+        // convert TurboWarp custom reporters to PenguinMod's format
+        if (runtime.origin === 'TurboWarp') for (const block of _converterCache) convertProcedureCompat(block, blocks);
     }
     // Costumes from JSON.
     const {costumePromises} = assets;
@@ -1656,8 +1716,10 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     };
 
     // Store the origin field (e.g. project originated at CSFirst) so that we can save it again.
-    if (json.meta && json.meta.origin) {
-        runtime.origin = json.meta.origin;
+    if (json.meta) {
+        if (json.meta.origin) runtime.origin = json.meta.origin;
+        else if (json.meta.platform) runtime.origin = json.meta.platform.name;
+        else runtime.origin = null;
     } else {
         runtime.origin = null;
     }
@@ -1713,6 +1775,9 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
             }))
         .then(targets => replaceUnsafeCharsInVariableIds(targets))
         .then(targets => {
+            // all blocks have been created, its safe to reset the origin from Turbowarp
+            if (runtime.origin === 'TurboWarp') runtime.origin = null;
+
             // at this point, stage size has not been set by 'runtime.parseProjectOptions'
             const stage = targets.find(t => t.isStage);
             if (stage) {

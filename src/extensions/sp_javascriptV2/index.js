@@ -78,8 +78,8 @@ function initBlockTools() {
         if (value === "needsInit-1@#4%^7*(0") {
           const outerType = srcBlock.parentBlock_.type;
           if (outerType.endsWith("jsCommandBinded")) value = `alert(FOO);`;
-          else if (outerType.endsWith("jsReporterBinded")) value = `STRING + Math.random()`;
-          else if (outerType.endsWith("jsBooleanBinded")) value = `Math.random() > THRESHOLD`;
+          else if (outerType.endsWith("jsReporterBinded")) value = `return STRING + Math.random()`;
+          else if (outerType.endsWith("jsBooleanBinded")) value = `return Math.random() > THRESHOLD`;
           else if (outerType.endsWith("defineGlobalFunc")) value = `(param1) => {\nreturn btoa(param1);\n}`;
           field.setValue(value);
         }
@@ -155,6 +155,16 @@ class SPjavascriptV2 {
           hideFromPalette: true,
           canDragDuplicate: true,
           disableMonitor: true,
+        },
+        {
+          opcode: "returnData",
+          blockType: BlockType.COMMAND,
+          isTerminal: true,
+          hideFromPalette: true,
+          text: "return [DATA]",
+          arguments: {
+            DATA: { type: ArgumentType.STRING }
+          },
         },
         /* shown if ScratchBlocks is not availiable */
         {
@@ -258,11 +268,21 @@ class SPjavascriptV2 {
           blockType: BlockType.CONDITIONAL,
           hideFromPalette: !this.isEditorUnsandboxed,
           arguments: {
-            NAME: {
-              type: ArgumentType.STRING, defaultValue: "myFunction"
-            },
+            NAME: { type: ArgumentType.STRING },
             CODE: { fillIn: "argumentReport" }
           }
+        },
+        {
+          blockType: BlockType.XML,
+          xml: `
+            <block type="SPjavascriptV2_defineScratchCode">
+              <value name="NAME"><shadow type="text"><field name="TEXT">myFunction</field></shadow></value>
+              <value name="CODE"><shadow type="SPjavascriptV2_argumentReport"></shadow></value>
+              <value name="SUBSTACK"><block type="SPjavascriptV2_returnData">
+                <value name="DATA"><shadow type="text"><field name="TEXT">completed</field></shadow></value>
+              </block></value>
+            </block>
+          `
         },
         {
           opcode: "deleteGlobalFunc",
@@ -341,9 +361,21 @@ class SPjavascriptV2 {
         if (funcData.isBlockCode) {
           binders += `const ${name} = async function(...args) {\n`;
           if (funcData.id) {
+            binders += `return new Promise((resolve) => {\n`;
             binders += `const target = vm.runtime.getTargetById("${funcData.origin}");\n`;
             binders += `const thread = vm.runtime._pushThread("${funcData.id}", target);\n`;
+            binders += `const threadID = thread.getId();\n`;
             binders += `thread.jsExtData = [...args];\n`;
+
+            /* listener for thread returns */
+            binders += `const endHandler = (t) => {\n`;
+            binders += `if (t.getId() === thread.getId()) {\n`;
+            binders += `vm.runtime.removeListener("THREAD_FINISHED", endHandler);\n`;
+            binders += `resolve(t.justReported);\n`;
+            binders += "}\n";
+            binders += "};\n";
+            binders += `vm.runtime.on("THREAD_FINISHED", endHandler);\n`;
+            binders += "});\n";
           }
           binders += "}\n";
         } else {
@@ -470,6 +502,17 @@ class SPjavascriptV2 {
 
   deleteGlobalFunc(args) {
     this.globalFuncs.delete(Cast.toString(args.NAME));
+  }
+
+  returnData(args, util) {
+    util.thread.justReported = args.DATA;
+    // Delay the Deletion of this Thread
+    if (util.stackTimerNeedsInit()) {
+      util.startStackTimer(0);
+      this.runtime.requestRedraw();
+      util.yield();
+    } else if (!util.stackTimerFinished()) util.yield();
+    util.thread.stopThisScript();
   }
 }
 
