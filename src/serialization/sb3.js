@@ -1281,6 +1281,36 @@ const parseScratchAssets = function (object, runtime, zip) {
 };
 
 /**
+ * Convert a Procedure Block to a PenguinMod-acceptable format (TurboWarp compatibility)
+ * @param {!object} object blockJSON - blockJSON for a block
+ * @param {!object} object blocks - all blocks in the sprite container
+ */
+const convertProcedureCompat = function (blockJSON, blocks) {
+  switch (blockJSON.opcode) {
+    case 'procedures_return':
+      blockJSON.inputs.return = blockJSON.inputs.VALUE;
+      delete blockJSON.inputs.VALUE;
+
+      // climb stack tree to change the define opcode if needed
+      let parent, thisBlock = blockJSON;
+      while (parent !== null) {
+        parent = blockJSON.parent;
+        if (parent !== null) {
+          thisBlock = blocks[parent];
+        }
+      }
+      if (thisBlock && thisBlock.opcode === 'procedures_definition') {
+        thisBlock.opcode = 'procedures_definition_return'
+      }
+      break;
+    case 'procedures_call':
+      console.log(blockJSON, blocks);
+      break;
+    default: break;
+  }
+};
+
+/**
  * Parse a single "Scratch object" and create all its in-memory VM objects.
  * @param {!object} object From-JSON "Scratch object:" sprite, stage, watcher.
  * @param {!Runtime} runtime Runtime object to load all structures into.
@@ -1325,9 +1355,10 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         for (const blockId in object.blocks) {
             if (!object.blocks.hasOwnProperty(blockId)) continue;
             const blockJSON = object.blocks[blockId];
-            if (window.testLog) {
-              console.log(blockJSON);
-              if (window.testFunc) window.testFunc(blockJSON);
+            if (runtime.origin === 'TurboWarp') {
+              // TurboWarp does their procedure returns in a better way (SP's opinion)
+              // anyways since ours is different we need to convert it
+              convertProcedureCompat(blockJSON, blocks);
             }
             blocks.createBlock(blockJSON);
         }
@@ -1667,7 +1698,6 @@ const deserialize = function (json, runtime, zip, isSingleSprite) {
     } else {
         runtime.origin = null;
     }
-    if (window.testLog) console.log(runtime.origin);
 
     // Extract custom extension IDs, if they exist.
     if (json.extensionURLs) {
