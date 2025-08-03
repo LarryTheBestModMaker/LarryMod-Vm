@@ -1386,8 +1386,9 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         }
 
         // convert TurboWarp custom reporters to PenguinMod's format
-        if (runtime.origin === 'TurboWarp') for (const block of _converterCache) {
-            convertProcedureCompat(block, blocks);
+        if (runtime.origin === 'TurboWarp') {
+            for (const block of _converterCache) convertProcedureCompat(block, blocks);
+            runtime.origin = null;
         }
     }
     // Costumes from JSON.
