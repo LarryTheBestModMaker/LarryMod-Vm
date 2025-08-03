@@ -1288,7 +1288,6 @@ const parseScratchAssets = function (object, runtime, zip) {
 const convertProcedureCompat = function (blockJSON, blocks) {
   switch (blockJSON.opcode) {
     case 'procedures_return':
-      console.log(blockJSON, blocks);
       blockJSON.inputs.return = blockJSON.inputs.VALUE;
       delete blockJSON.inputs.VALUE;
 
@@ -1296,7 +1295,7 @@ const convertProcedureCompat = function (blockJSON, blocks) {
       let parent = "", thisBlock = blockJSON;
       while (parent !== null) {
         parent = blockJSON.parent;
-        if (parent) thisBlock = blocks[parent];
+        if (parent) thisBlock = blocks._blocks[parent];
       }
       if (thisBlock && thisBlock.opcode === 'procedures_definition') {
         thisBlock.opcode = 'procedures_definition_return'
