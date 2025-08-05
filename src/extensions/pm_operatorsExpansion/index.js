@@ -982,7 +982,7 @@ class pmOperatorsExpansion {
                     return new TypedInput(`(${num1} || ${num2})`, TYPE_UNKNOWN);
                 },
                 ifIsTruthy: (node, compiler, {TypedInput, TYPE_UNKNOWN}) => {
-                    const num1 = compiler.descendInput(node.one).asUnknown();
+                    const num1 = compiler.descendInput(node.one).asBoolean();
                     const num2 = compiler.descendInput(node.two).asUnknown();
 
                     return new TypedInput(`(${num1} && ${num2})`, TYPE_UNKNOWN);
