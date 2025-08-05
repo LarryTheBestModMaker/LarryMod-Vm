@@ -4,6 +4,11 @@
  */
 const NotchShape = {
     /**
+     * Notch shape: switchCase (switch-case).
+     */
+    SWITCH: "switchCase",
+
+    /**
      * Notch shape: hexagonal (booleans/predicates).
      */
     HEXAGON: "hexagon",
