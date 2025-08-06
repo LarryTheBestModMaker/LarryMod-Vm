@@ -1149,6 +1149,14 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Event name for thread initialization.
+     * @const {string}
+     */
+    static get THREAD_STARTED () {
+        return 'THREAD_STARTED'
+    }
+
+    /**
      * Event name for thread finishing.
      * @const {string}
      */
@@ -2449,6 +2457,7 @@ class Runtime extends EventEmitter {
             thread.tryCompile();
         }
 
+        this.emit(Runtime.THREAD_STARTED, thread);
         return thread;
     }
 
