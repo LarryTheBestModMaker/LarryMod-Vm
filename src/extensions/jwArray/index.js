@@ -258,7 +258,7 @@ class Extension {
                     opcode: 'builder',
                     text: 'array builder',
                     branches: [{
-                        accepts: 'jwArrayBuilder'
+                        //accepts: 'jwArrayBuilder'
                     }],
                     ...jwArray.Block
                 },
@@ -273,7 +273,7 @@ class Extension {
                             exemptFromNormalization: true
                         }
                     },
-                    notchAccepts: 'jwArrayBuilder'
+                    //notchAccepts: 'jwArrayBuilder'
                 },
                 "---",
                 {
