@@ -475,7 +475,7 @@ class Extension {
                 },
                 builderAppend: (node, compiler, imports) => {
                     compiler.source += `var jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray;`
-                    compiler.source += `jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray ? jwArrayBuilderCurrentArray.push(${node.value}) : null`
+                    compiler.source += `jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray ? jwArrayBuilderCurrentArray.push(${node.value}) : undefined;`
                 }
             }
         };
@@ -522,8 +522,10 @@ class Extension {
         return 'noop'
     }
 
-    builderAppend() {
-        return 'noop'
+    builderAppend({VALUE}, util) {
+        if (this.builderIndex.length > 0) {
+            this.builderIndex[this.builderIndex.length-1].push(VALUE)
+        }
     }
 
     get({ARRAY, INDEX}) {
