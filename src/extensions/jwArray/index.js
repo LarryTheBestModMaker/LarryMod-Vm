@@ -7,15 +7,6 @@ let arrayLimit = 2 ** 32
 
 // credit to sharpool because i stole the for each code from his extension haha im soo evil
 
-let isScratchBlocksReady = typeof ScratchBlocks === 'object';
-if (isScratchBlocksReady) {
-    // yes, this is just the square notch shape, but I want it to strictly check for array blocks
-    ScratchBlocks.BlockSvg.registerCustomNotch(
-        'jwArrayBuilder', 
-        `l 2 0 c 1 0 2 1 2 2 l 0 4 c 0 1 1 2 2 2 h 24 c 1 0 2 -1 2 -2 l 0 -4 c 0 -1 1 -2 2 -2 l 2 0`
-    );
-}
-
 /**
 * @param {number} x
 * @returns {string}
@@ -257,9 +248,7 @@ class Extension {
                 {
                     opcode: 'builder',
                     text: 'array builder',
-                    branches: [{
-                        accepts: 'jwArrayBuilder'
-                    }],
+                    branches: [{}],
                     ...jwArray.Block
                 },
                 {
@@ -272,8 +261,7 @@ class Extension {
                             defaultValue: "foo",
                             exemptFromNormalization: true
                         }
-                    },
-                    notchAccepts: 'jwArrayBuilder'
+                    }
                 },
                 "---",
                 {
@@ -465,19 +453,29 @@ class Extension {
                     kind: 'input',
                     substack: generator.descendSubstack(block, 'SUBSTACK')
                 }),
+                builderAppend: (generator, block) => ({
+                    kind: 'stack',
+                    value: generator.descendInputOfBlock(block, 'VALUE')
+                })
             },
             js: {
                 builder: (node, compiler, imports) => {
                     const originalSource = compiler.source;
                     compiler.source = '(yield* (function*() {';
-                    compiler.source += `runtime.ext_jwArray.builderIndex.push([]);`
+                    compiler.source += `var jwArrayBuilderCurrentArray = [];`
+                    compiler.source += `runtime.ext_jwArray.builderIndex.push(jwArrayBuilderCurrentArray);`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop());`
+                    compiler.source += `var jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray[jwArrayBuilderCurrentArray.length - 2];`
+                    compiler.source += `return runtime.vm.jwArray.Type.toArray(runtime.ext_jwArray.builderIndex.pop());`
                     compiler.source += '})())';
                     // save edited
                     const stackSource = compiler.source;
                     compiler.source = originalSource;
                     return new imports.TypedInput(stackSource, imports.TYPE_UNKNOWN);
+                },
+                builderAppend: (node, compiler, imports) => {
+                    compiler.source += `var jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray;`
+                    compiler.source += `jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray ? jwArrayBuilderCurrentArray.push(${node.value}) : null`
                 }
             }
         };
@@ -524,10 +522,8 @@ class Extension {
         return 'noop'
     }
 
-    builderAppend({VALUE}, util) {
-        if (this.builderIndex.length > 0) {
-            this.builderIndex[this.builderIndex.length-1].push(VALUE)
-        }
+    builderAppend() {
+        return 'noop'
     }
 
     get({ARRAY, INDEX}) {
