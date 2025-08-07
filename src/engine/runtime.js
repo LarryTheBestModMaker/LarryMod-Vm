@@ -2081,6 +2081,10 @@ class Runtime extends EventEmitter {
                 context.inputList.push(`<mutation expanded="false" points="${argInfo.nodes}" color="${context.blockJSON.colour}" midle="[0,0]" scale="${argInfo.defaultSize || 30}"/>`);
             }
 
+            if (shadowType === 'matrix') {
+                context.inputList.push(`<mutation width="${argInfo.matrixWidth || 5}" height="${argInfo.matrixHeight || 5}"/>`)
+            }
+
             // A <field> displays a dynamic value: a user-editable text field, a drop-down menu, etc.
             // Leave out the field if defaultValue or fieldName are not specified
             if (fieldName && !variableID) {
