@@ -7,6 +7,15 @@ let arrayLimit = 2 ** 32
 
 // credit to sharpool because i stole the for each code from his extension haha im soo evil
 
+let isScratchBlocksReady = typeof ScratchBlocks === 'object';
+if (isScratchBlocksReady) {
+    // yes, this is just the square notch shape, but I want it to strictly check for array blocks
+    ScratchBlocks.BlockSvg.registerCustomNotch(
+        'jwArrayBuilder', 
+        `l 2 0 c 1 0 2 1 2 2 l 0 4 c 0 1 1 2 2 2 h 24 c 1 0 2 -1 2 -2 l 0 -4 c 0 -1 1 -2 2 -2 l 2 0`
+    );
+}
+
 /**
 * @param {number} x
 * @returns {string}
@@ -41,24 +50,6 @@ function span(text) {
     el.style.width = '100%'
     el.style.textAlign = 'center'
     return el
-}
-
-function waitForThread(thread) {
-    return new Promise((resolve, reject) => {
-        if (thread.status == 4) {
-            resolve()
-            return
-        }
-
-        let handler = t => {
-            if (t === thread) {
-                resolve()
-                vm.runtime.off('THREAD_FINISHED', handler)
-            }
-        }
-
-        vm.runtime.on('THREAD_FINISHED', handler)
-    })
 }
 
 class ArrayType {
