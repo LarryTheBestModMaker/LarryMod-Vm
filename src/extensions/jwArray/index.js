@@ -475,7 +475,7 @@ class Extension {
                 },
                 builderAppend: (node, compiler, imports) => {
                     compiler.source += `var jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray;`
-                    compiler.source += `jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray ? jwArrayBuilderCurrentArray.push(${node.value}) : undefined;`
+                    compiler.source += `jwArrayBuilderCurrentArray = jwArrayBuilderCurrentArray ? jwArrayBuilderCurrentArray.push(${compiler.descendInput(node.return).asUnknown()}) : undefined;`
                 }
             }
         };
