@@ -470,9 +470,10 @@ class Extension {
                 builder: (node, compiler, imports) => {
                     const originalSource = compiler.source;
                     compiler.source = '(yield* (function*() {';
-                    compiler.source += `runtime.ext_jwArray.builderIndex.push([]);`
+                    compiler.source += `thread._jwArrayBuilderIndex ??= []`
+                    compiler.source += `thread._jwArrayBuilderIndex.push([]);`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += `return new runtime.vm.jwArray.Type(runtime.ext_jwArray.builderIndex.pop());`
+                    compiler.source += `return new runtime.vm.jwArray.Type(thread._jwArrayBuilderIndex.pop());`
                     compiler.source += '})())';
                     // save edited
                     const stackSource = compiler.source;
@@ -518,15 +519,13 @@ class Extension {
         return new jwArray.Type(STRING.split(DIVIDER))
     }
 
-    builderIndex = []
-
     builder() {
         return 'noop'
     }
 
     builderAppend({VALUE}, util) {
-        if (this.builderIndex.length > 0) {
-            this.builderIndex[this.builderIndex.length-1].push(VALUE)
+        if (util.thread._jwArrayBuilderIndex && util.thread._jwArrayBuilderIndex.length > 0) {
+            util.thread._jwArrayBuilderIndex[util.thread._jwArrayBuilderIndex.length-1].push(VALUE)
         }
     }
 
