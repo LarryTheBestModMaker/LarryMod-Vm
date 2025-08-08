@@ -39,7 +39,9 @@ class Scratch3DataBlocks {
             data_listarray: this.data_listarray,
             data_arraylist: this.data_arraylist,
             data_listforeachnum: this.data_listforeachnum,
-            data_listforeachitem: this.data_listforeachitem
+            data_listforeachitem: this.data_listforeachitem,
+
+            data_shufflelist: this.data_shufflelist
         };
     }
 
@@ -318,6 +320,62 @@ class Scratch3DataBlocks {
             }
         }
         return false;
+    }
+
+    _random (from, to) { // used by compiler
+        const nFrom = Cast.toNumber(from);
+        const nTo = Cast.toNumber(to);
+        const low = nFrom <= nTo ? nFrom : nTo;
+        const high = nFrom <= nTo ? nTo : nFrom;
+        if (low === high) return low;
+        // If both arguments are ints, truncate the result to an int.
+        if (Cast.isInt(from) && Cast.isInt(to)) {
+            return low + Math.floor(Math.random() * ((high + 1) - low));
+        }
+        return (Math.random() * (high - low)) + low;
+    }
+
+    data_shufflelist (args, util) {
+        /*
+            code is from: https://scratch.mit.edu/projects/380622141/editor/
+        */
+        this.addToList({
+            LIST: args.LIST,
+            ITEM: ''
+        }, util)
+
+        for (var i = 0; i < this.lengthOfList(args, util); i++) {
+            this.replaceItemOfList({
+                INDEX: this.lengthOfList(args, util),
+                LIST: args.LIST,
+                ITEM: this._random(1, this.lengthOfList(args, util))
+            }, util)
+
+            this.insertAtList({
+                ITEM: this.getItemOfList({
+                    INDEX: this.getItemOfList({
+                        INDEX: this.lengthOfList(args, util),
+                        LIST: args.LIST
+                    }, util),
+                    LIST: args.LIST
+                }, util),
+                INDEX: this.lengthOfList(args, util),
+                LIST: args.LIST
+            }, util)
+
+            this.deleteOfList({
+                INDEX: this.getItemOfList({
+                    INDEX: this.lengthOfList(args, util),
+                    LIST: args.LIST
+                }, util),
+                LIST: args.LIST
+            }, util)
+        }
+
+        this.deleteOfList({
+            INDEX: this.lengthOfList(args, util),
+            LIST: args.LIST
+        }, util)
     }
 
     _listFilterItem = ""

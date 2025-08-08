@@ -169,7 +169,8 @@ const outputBlocks = [
     'operator_clamp',
     'looks_getAllSpritesVisible',
     'event_whenlesserthan',
-    'looks_changestretchby'
+    'looks_changestretchby',
+    'data_shufflelist'
 ];
 
 module.exports = {
