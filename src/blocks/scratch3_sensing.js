@@ -48,6 +48,8 @@ class Scratch3SensingBlocks {
          */
         this._questionList = [];
 
+        this.isTimerPaused = false;
+
         this.runtime.on('ANSWER', this._onAnswer.bind(this));
         this.runtime.on('PROJECT_START', this._resetAnswer.bind(this));
         this.runtime.on('PROJECT_STOP_ALL', this._clearAllQuestions.bind(this));
@@ -108,7 +110,10 @@ class Scratch3SensingBlocks {
             sensing_geturl: this.getUrl,
             sensing_getxyoftouchingsprite: this.getXYOfTouchingSprite,
 
-            sensing_dayssince: this.daysSince
+            sensing_dayssince: this.daysSince,
+            sensing_pausetimer: this.pauseTimer,
+            sensing_resumetimer: this.resumeTimer,
+            sensing_istimerpaused: this.pausedTimer,
         };
     }
 
@@ -667,6 +672,20 @@ class Scratch3SensingBlocks {
 
     getLoggedIn(args, util) {
         return util.ioQuery('userData', 'getLoggedIn');
+    }
+
+    pauseTimer (args, util) {
+        util.ioQuery('clock', 'pause');
+        this.isTimerPaused = true;
+    }
+
+    resumeTimer (args, util) {
+        util.ioQuery('clock', 'resume');
+        this.isTimerPaused = false;
+    }
+
+    pausedTimer (args, util) {
+        return this.isTimerPaused;
     }
 }
 

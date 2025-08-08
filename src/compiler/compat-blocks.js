@@ -172,7 +172,10 @@ const outputBlocks = [
     'looks_changestretchby',
     'data_shufflelist',
     'looks_getcostumelength',
-    'looks_getbackdroplength'
+    'looks_getbackdroplength',
+    'sensing_pausetimer',
+    'sensing_resumetimer',
+    'sensing_istimerpaused',
 ];
 
 module.exports = {
