@@ -101,6 +101,23 @@ let jwArray = {
 
 class Extension {
     constructor() {
+        vm.runtime.on("SPRITE_RENAMED", (change) => {
+          if (!vm.editingTarget) return;
+
+          let hasRefreshReason = false;
+          for (const block of Object.values(vm.editingTarget.blocks._blocks)) {
+            if (block.opcode === 'jwTargets_menu_sprite') {
+              const field = block.fields.sprite;
+              if (field.value === change.old) {
+                field.value = change.new;
+                hasRefreshReason = true;
+              }
+            }
+          }
+
+          if (hasRefreshReason) vm.runtime.requestBlocksUpdate();
+        });
+
         vm.jwTargets = Target
         vm.runtime.registerSerializer(
             "jwTargets", 
