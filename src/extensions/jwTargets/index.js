@@ -110,7 +110,7 @@ class Extension {
               const field = block.fields.sprite;
               if (field.value === change.old) {
                 field.value = change.new;
-                hasRefreshReason = true;
+                if (block.parent) hasRefreshReason = true;
               }
             }
           }
