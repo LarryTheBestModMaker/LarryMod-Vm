@@ -1149,11 +1149,43 @@ class Runtime extends EventEmitter {
     }
 
     /**
+     * Event name for thread initialization.
+     * @const {string}
+     */
+    static get THREAD_STARTED () {
+        return 'THREAD_STARTED'
+    }
+
+    /**
      * Event name for thread finishing.
      * @const {string}
      */
     static get THREAD_FINISHED () {
         return 'THREAD_FINISHED'
+    }
+
+    /**
+     * Event name for sprite renaming.
+     * @const {string}
+     */
+    static get SPRITE_RENAMED () {
+        return 'SPRITE_RENAMED'
+    }
+
+    /**
+     * Event name for costume renaming.
+     * @const {string}
+     */
+    static get COSTUME_RENAMED () {
+        return 'COSTUME_RENAMED'
+    }
+
+    /**
+     * Event name for sound renaming.
+     * @const {string}
+     */
+    static get SOUND_RENAMED () {
+        return 'SOUND_RENAMED'
     }
 
     /**
@@ -2073,6 +2105,10 @@ class Runtime extends EventEmitter {
                 context.inputList.push(`<mutation expanded="false" points="${argInfo.nodes}" color="${context.blockJSON.colour}" midle="[0,0]" scale="${argInfo.defaultSize || 30}"/>`);
             }
 
+            if (shadowType === 'matrix') {
+                context.inputList.push(`<mutation width="${argInfo.matrixWidth || 5}" height="${argInfo.matrixHeight || 5}"/>`)
+            }
+
             // A <field> displays a dynamic value: a user-editable text field, a drop-down menu, etc.
             // Leave out the field if defaultValue or fieldName are not specified
             if (fieldName && !variableID) {
@@ -2449,6 +2485,7 @@ class Runtime extends EventEmitter {
             thread.tryCompile();
         }
 
+        this.emit(Runtime.THREAD_STARTED, thread);
         return thread;
     }
 
