@@ -170,7 +170,8 @@ const outputBlocks = [
     'looks_getAllSpritesVisible',
     'event_whenlesserthan',
     'looks_changestretchby',
-    'data_shufflelist'
+    'data_shufflelist',
+    'looks_getcostumelength'
 ];
 
 module.exports = {

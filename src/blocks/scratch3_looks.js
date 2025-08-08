@@ -390,7 +390,8 @@ class Scratch3LooksBlocks {
 
             looks_hideallsprites: this.hideAllSprites, // not a legacy no-op block anymore :)
             looks_showallsprites: this.showAllSprites,
-            looks_getAllSpritesVisible: this.getAllSpritesVisible
+            looks_getAllSpritesVisible: this.getAllSpritesVisible,
+            looks_getcostumelength: this.getCostumeLength
         };
     }
 
@@ -1026,6 +1027,16 @@ class Scratch3LooksBlocks {
                 return !trueOrFalse.includes(false) ? true : false
             case 'hide':
                 return !trueOrFalse.includes(true) ? true : false
+        }
+    }
+
+    getCostumeLength (args, util) {
+        switch(args.TARGET) {
+            case 'stage':
+                const Stage = this.runtime._stageTarget
+                return Stage.getCostumes().length
+            case 'sprite':
+                return util.target.getCostumes().length
         }
     }
 }
