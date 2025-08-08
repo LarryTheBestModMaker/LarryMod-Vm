@@ -261,7 +261,7 @@ class Scratch3SoundBlocks {
                     EFFECT: 'PITCH'
                 }, util);
 
-                const speedMultiplier = 1 / (1 ** (currentPitch / 100));
+                const speedMultiplier = Math.pow(2, currentPitch / 100);
 
                 const elapsedRealSeconds = timer.timeElapsed() / 1000;
                 const effectiveElapsed = elapsedRealSeconds * speedMultiplier;
