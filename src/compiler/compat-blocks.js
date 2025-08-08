@@ -171,7 +171,8 @@ const outputBlocks = [
     'event_whenlesserthan',
     'looks_changestretchby',
     'data_shufflelist',
-    'looks_getcostumelength'
+    'looks_getcostumelength',
+    'looks_getbackdroplength'
 ];
 
 module.exports = {

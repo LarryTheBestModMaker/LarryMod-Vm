@@ -391,7 +391,8 @@ class Scratch3LooksBlocks {
             looks_hideallsprites: this.hideAllSprites, // not a legacy no-op block anymore :)
             looks_showallsprites: this.showAllSprites,
             looks_getAllSpritesVisible: this.getAllSpritesVisible,
-            looks_getcostumelength: this.getCostumeLength
+            looks_getcostumelength: this.getCostumeLength,
+            looks_getbackdroplength: this.getBackdropLength,
         };
     }
 
@@ -527,6 +528,14 @@ class Scratch3LooksBlocks {
             },
             looks_backdropnumbername: {
                 getId: (_, fields) => getMonitorIdForBlockWithArgs('backdropnumbername', fields)
+            },
+
+            looks_getcostumelength: {
+                isSpriteSpecific: true,
+                getId: targetId => `${targetId}_getcostumelength`
+            },
+            looks_getbackdroplength: {
+                getId: targetId => `${targetId}_getbackdroplength`
             }
         };
     }
@@ -1030,14 +1039,12 @@ class Scratch3LooksBlocks {
         }
     }
 
-    getCostumeLength (args, util) {
-        switch(args.TARGET) {
-            case 'stage':
-                const Stage = this.runtime._stageTarget
-                return Stage.getCostumes().length
-            case 'sprite':
-                return util.target.getCostumes().length
-        }
+    getCostumeLength (_, util) {
+        return util.target.getCostumes().length
+    }
+    getBackdropLength () {
+        const Stage = this.runtime._stageTarget
+        return Stage.getCostumes().length
     }
 }
 
