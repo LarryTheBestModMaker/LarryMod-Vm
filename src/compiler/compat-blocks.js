@@ -81,8 +81,6 @@ const statementBlocks = [
     'argument_reporter_command',
 
     'event_whenlesserthan',
-    'sensing_pausetimer',
-    'sensing_resumetimer',
     'data_shufflelist',
     'sound_resume',
     'sound_resumeallsounds',
@@ -179,6 +177,8 @@ const outputBlocks = [
     'looks_getcostumelength',
     'looks_getbackdroplength',
     'sensing_istimerpaused',
+    'sensing_pausetimer',
+    'sensing_resumetimer',
 ];
 
 module.exports = {
