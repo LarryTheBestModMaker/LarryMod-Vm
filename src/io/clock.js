@@ -12,6 +12,10 @@ class Clock {
         this.runtime = runtime;
     }
 
+    static get _getPaused {
+        return this._paused
+    }
+
     projectTimer () {
         return this._projectTimer.timeElapsed() / 1000;
     }

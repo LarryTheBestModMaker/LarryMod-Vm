@@ -685,7 +685,8 @@ class Scratch3SensingBlocks {
     }
 
     pausedTimer (args, util) {
-        return this.isTimerPaused;
+        //return this.isTimerPaused;
+        return util.ioQuery('clock', '_getPaused')
     }
 }
 
