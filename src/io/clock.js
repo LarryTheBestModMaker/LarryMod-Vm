@@ -12,7 +12,7 @@ class Clock {
         this.runtime = runtime;
     }
 
-    static get _getPaused {
+    static get _getPaused () {
         return this._paused
     }
 
