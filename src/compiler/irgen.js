@@ -1738,6 +1738,14 @@ class ScriptTreeGenerator {
             return {
                 kind: 'timer.reset'
             };
+        case 'sensing_pausetimer':
+            return {
+                kind: 'timer.pause'
+            };
+        case 'sensing_resumetimer':
+            return {
+                kind: 'timer.resume'
+            };
 
             /*
             can someone set up the jsgen for these, i dont want to rn

@@ -1729,6 +1729,14 @@ class JSGenerator {
             this.source += 'runtime.ioDevices.clock.resetProjectTimer();\n';
             break;
 
+        case 'timer.pause':
+            this.source += 'runtime.ioDevices.clock.pause();\n';
+            break;
+
+        case 'timer.resume':
+            this.source += 'runtime.ioDevices.clock.resume();\n';
+            break;
+
         case 'tw.debugger':
             this.source += 'debugger;\n';
             break;
