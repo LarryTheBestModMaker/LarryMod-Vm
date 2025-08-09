@@ -966,7 +966,7 @@ class JSGenerator {
             return new TypedInput('runtime.ioDevices.clock.projectTimer()', TYPE_NUMBER);
 
         case 'timer.paused':
-            return new TypedInput('runtime.ioDevices.clock._getPaused', TYPE_BOOLEAN);
+            return new TypedInput('runtime.ioDevices.clock.getPaused()', TYPE_BOOLEAN);
 
         case 'tw.lastKeyPressed':
             return new TypedInput('runtime.ioDevices.keyboard.getLastKeyPressed()', TYPE_STRING);

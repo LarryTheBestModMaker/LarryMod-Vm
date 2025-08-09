@@ -12,8 +12,8 @@ class Clock {
         this.runtime = runtime;
     }
 
-    static get _getPaused () {
-        return this._paused
+    getPaused () {
+        return this._paused ?? false
     }
 
     projectTimer () {

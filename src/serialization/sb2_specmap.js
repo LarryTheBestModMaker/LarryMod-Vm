@@ -1141,6 +1141,11 @@ const specMap = {
         argMap: [
         ]
     },
+    'timerPaused': {
+        opcode: 'sensing_istimerpaused',
+        argMap: [
+        ]
+    },
     'getAttribute:of:': {
         opcode: 'sensing_of',
         argMap: [
