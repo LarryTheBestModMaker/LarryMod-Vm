@@ -3,6 +3,7 @@ const Timer = require('../util/timer');
 const MathUtil = require('../util/math-util');
 const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
 const { validateRegex } = require('../util/json-block-utilities');
+const Clock = require('../io/clock');
 
 class Scratch3SensingBlocks {
     constructor (runtime) {
@@ -686,7 +687,8 @@ class Scratch3SensingBlocks {
 
     pausedTimer (args, util) {
         //return this.isTimerPaused;
-        return util.ioQuery('clock', '_getPaused')
+        //return util.ioQuery('clock', '_getPaused')
+        return Clock._getPaused ?? false;
     }
 }
 
