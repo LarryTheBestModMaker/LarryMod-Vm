@@ -78,7 +78,14 @@ const statementBlocks = [
     'sound_play_at_seconds',
     'sound_play_at_seconds_until_done',
     'sound_pauseallsounds',
-    'argument_reporter_command'
+    'argument_reporter_command',
+
+    'event_whenlesserthan',
+    'sensing_pausetimer',
+    'sensing_resumetimer',
+    'data_shufflelist',
+    'sound_resume',
+    'sound_resumeallsounds',
 ];
 
 const outputBlocks = [
@@ -168,13 +175,9 @@ const outputBlocks = [
     'operator_percentage',
     'operator_clamp',
     'looks_getAllSpritesVisible',
-    'event_whenlesserthan',
-    'looks_changestretchby',
     'data_shufflelist',
     'looks_getcostumelength',
     'looks_getbackdroplength',
-    'sensing_pausetimer',
-    'sensing_resumetimer',
     'sensing_istimerpaused',
 ];
 

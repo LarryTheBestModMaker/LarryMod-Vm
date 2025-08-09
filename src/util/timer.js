@@ -116,6 +116,19 @@ class Timer {
     }
 
     /**
+     * Set the timer to the specified seconds.
+     * When paused, it will set the paused time instead.
+     * @param {number} seconds - number of seconds to set the timer to
+     */
+    setTimer (seconds) {
+        if (this._pausedTime !== null) {
+            this._pausedTime = seconds * 1000;
+        } else {
+            this.startTime = this.nowObj.now() - (seconds * 1000);
+        }
+    }
+
+    /**
      * Call a handler function after a specified amount of time has elapsed.
      * @param {function} handler - function to call after the timeout
      * @param {number} timeout - number of milliseconds to delay before calling the handler

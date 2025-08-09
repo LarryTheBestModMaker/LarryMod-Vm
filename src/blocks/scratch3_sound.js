@@ -21,6 +21,7 @@ class Scratch3SoundBlocks {
         this.waitingSounds = {};
 
         this.soundTimers = {};
+        this.pausedSounds = {};
 
         this.thisTestVariable = 10;
 
@@ -168,7 +169,10 @@ class Scratch3SoundBlocks {
             sound_getSoundVolume: this.currentSoundVolume,
             sound_getTimePosition: this.getTimePosition,
 
-            looks_changestretchby: this.test
+            sound_pause: this.pauseSound,
+            sound_pauseallsounds: this.pauseAllSounds,
+            sound_resume: this.resumeSound,
+            sound_resumeallsounds: this.resumeAllSounds,
         };
     }
 
@@ -226,9 +230,9 @@ class Scratch3SoundBlocks {
                 } else {
                     this._removeWaitingSound(target.id, soundId);
                 }
-                setTimeout((function(soundThis, sound, util) {
-                    soundThis._playSoundTimer(sound, util)
-                })(soundThis, sound, util), 0)
+                setTimeout((function(soundThis, sound, util, seconds) {
+                    soundThis._playSoundTimer(sound, util, seconds)
+                })(soundThis, sound, util, seconds), 0)
                 return sprite.soundBank.playSound(target, soundId, seconds);
             }
         }
@@ -238,7 +242,7 @@ class Scratch3SoundBlocks {
         this.thisTestVariable = args.CHANGE;
     }
 
-    _playSoundTimer(sound, util) {
+    _playSoundTimer(sound, util, seconds = 0) {
         const soundThis = this;
         (async function(soundThis) {
             const length = soundThis.getLength({
@@ -255,13 +259,14 @@ class Scratch3SoundBlocks {
             soundThis.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({ now: () => soundThis.runtime.currentMSecs });
             const timer = soundThis.soundTimers["sound_" + soundId + "_timePosition"];
             timer.start();
+            timer.setTimer(seconds);
 
             while (timer) {
                 const currentPitch = soundThis.getEffectValue({
                     EFFECT: 'PITCH'
                 }, util);
 
-                const speedMultiplier = Math.pow(2, currentPitch / 100);
+                const speedMultiplier = 2 ** (currentPitch / 100);
 
                 const elapsedRealSeconds = timer.timeElapsed() / 1000;
                 const effectiveElapsed = elapsedRealSeconds * speedMultiplier;
@@ -617,6 +622,98 @@ class Scratch3SoundBlocks {
 
     effectsMenu (args) {
         return args.EFFECT;
+    }
+
+    _boolify (bool) {
+        if ((bool == 0) || (bool == false) || (bool == "false")) return false;
+        if ((bool == 1) || (bool == true) || (bool == "true")) return true;
+        return;
+    }
+
+    pauseSound (args, util) {
+        const sound = args.SOUND_MENU
+
+        const index = this._getSoundIndex(sound, util);
+
+        const isPlaying = this.isSoundPlaying({
+            SOUND_MENU: sound
+        }, util);
+
+        if (this._boolify(isPlaying) && index >= 0) {
+            const target = util.target;
+            const sprite = target.sprite;
+            if (!sprite) return;
+
+            const { name, soundId } = sprite.sounds[index];
+
+            this.pausedSounds[soundId] = {
+                name: name,
+                timePosition: this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000 ?? 0
+            }
+            
+            this.stopSpecificSound({
+                SOUND_MENU: sound
+            }, util);
+
+            this.soundTimers["sound_" + soundId + "_timePosition"] = new Timer({ now: () => this.runtime.currentMSecs });
+            const timer = this.soundTimers["sound_" + soundId + "_timePosition"];
+            timer.start();
+            timer.setTimer(this.pausedSounds[soundId].timePosition);
+            timer.pause();
+        }
+    }
+
+    pauseAllSounds (_, util) {
+        const target = util.target;
+        const sprite = target.sprite;
+        if (!sprite) return;
+        for (let i = 0; i < sprite.sounds.length; i++) {
+            const { name } = sprite.sounds[i];
+            this.pauseSound({
+                SOUND_MENU: name
+            }, util)
+        }
+    }
+
+    resumeSound (args, util) {
+        const sound = args.SOUND_MENU
+
+        const isPlaying = this.isSoundPlaying({
+            SOUND_MENU: sound
+        }, util);
+
+        const index = this._getSoundIndex(sound, util);
+
+        if (!this._boolify(isPlaying) && index >= 0) {
+            const target = util.target;
+            const sprite = target.sprite;
+            if (!sprite) return;
+
+            const { soundId } = sprite.sounds[index];
+
+            if (!this.pausedSounds[soundId]) return;
+
+            if (this.soundTimers["sound_" + soundId + "_timePosition"]) delete this.soundTimers["sound_" + soundId + "_timePosition"];
+
+            this._playSoundAtTimePosition({
+                sound: Cast.toString(sound),
+                seconds: this.pausedSounds[soundId].timePosition
+            }, util, STORE_WAITING);
+
+            delete this.pausedSounds[soundId];
+        }
+    }
+
+    resumeAllSounds (_, util) {
+        const target = util.target;
+        const sprite = target.sprite;
+        if (!sprite) return;
+        for (let i = 0; i < sprite.sounds.length; i++) {
+            const { name } = sprite.sounds[i];
+            this.resumeSound({
+                SOUND_MENU: name
+            }, util)
+        }
     }
 }
 
