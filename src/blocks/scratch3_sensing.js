@@ -3,7 +3,6 @@ const Timer = require('../util/timer');
 const MathUtil = require('../util/math-util');
 const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
 const { validateRegex } = require('../util/json-block-utilities');
-const Clock = require('../io/clock');
 
 class Scratch3SensingBlocks {
     constructor (runtime) {

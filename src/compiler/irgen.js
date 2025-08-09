@@ -745,6 +745,11 @@ class ScriptTreeGenerator {
             return {
                 kind: 'timer.get'
             };
+        case 'sensing_istimerpaused':
+            this.usesTimer = true;
+            return {
+                kind: 'timer.paused'
+            };
         case 'sensing_touchingcolor':
             return {
                 kind: 'sensing.touchingColor',
