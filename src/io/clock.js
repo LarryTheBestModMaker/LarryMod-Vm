@@ -33,6 +33,10 @@ class Clock {
     resetProjectTimer () {
         this._projectTimer.start();
     }
+
+    setTimer (num) {
+        this._projectTimer.setTimer(num)
+    }
 }
 
 module.exports = Clock;

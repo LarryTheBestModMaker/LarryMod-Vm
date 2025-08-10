@@ -114,6 +114,7 @@ class Scratch3SensingBlocks {
             sensing_pausetimer: this.pauseTimer,
             sensing_resumetimer: this.resumeTimer,
             sensing_istimerpaused: this.pausedTimer,
+            sensing_settimer: this.setTimer,
         };
     }
 
@@ -687,6 +688,11 @@ class Scratch3SensingBlocks {
     pausedTimer (args, util) {
         //return this.isTimerPaused;
         return util.ioQuery('clock', 'getPaused')
+    }
+
+    setTimer (args, util) {
+        //return this.isTimerPaused;
+        return this.runtime.ioDevices.clock.setTimer(args.NUM);
     }
 }
 

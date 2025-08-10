@@ -179,6 +179,7 @@ const outputBlocks = [
     'sensing_istimerpaused',
     'sensing_pausetimer',
     'sensing_resumetimer',
+    'sensing_settimer',
 ];
 
 module.exports = {
