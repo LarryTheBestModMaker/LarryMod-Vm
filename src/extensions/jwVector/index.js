@@ -1,6 +1,7 @@
 const BlockType = require('../../extension-support/block-type')
 const BlockShape = require('../../extension-support/block-shape')
 const ArgumentType = require('../../extension-support/argument-type')
+const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
 /**
@@ -276,6 +277,23 @@ class Extension {
                     },
                     ...Vector.Block
                 },
+                "---",
+                {
+                    opcode: 'getPos',
+                    text: 'position',
+                    extensions: ["colours_motion"],
+                    filter: [TargetType.SPRITE],
+                    ...Vector.Block
+                },
+                {
+                    opcode: 'setPos',
+                    text: 'set position to [VECTOR]',
+                    arguments: {
+                        VECTOR: Vector.Argument
+                    },
+                    extensions: ["colours_motion"],
+                    filter: [TargetType.SPRITE]
+                }
             ]
         };
     }
@@ -371,6 +389,19 @@ class Extension {
             v.x * cos - v.y * sin,
             v.x * sin + v.y * cos
         )
+    }
+
+    getPos({}, util) {
+        return new Vector.Type(
+            util.target.x,
+            util.target.y
+        )
+    }
+
+    setPos({VECTOR}, util) {
+        VECTOR = Vector.Type.toVector(args.VECTOR)
+
+        util.target.setXY(VECTOR.x, VECTOR.y)
     }
 }
 
