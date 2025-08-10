@@ -463,11 +463,10 @@ class Blocks {
             // If this block is the initial block of a script, inform any runtime to forget about glows
             // as well as force end the script (if in compiler)
             if (this._blocks[e.blockId].topLevel) {
+                this.runtime.quietGlow(e.blockId);
                 if (this.runtime.compilerOptions.enabled) {
                     const thread = this.runtime.threads.find(t => t.getId() === `${editingTarget.id}&${e.blockId}`);
                     if (thread) this.runtime._stopThread(thread);
-                } else {
-                    this.runtime.quietGlow(e.blockId);
                 }
             }
             this.deleteBlock(e.blockId);
