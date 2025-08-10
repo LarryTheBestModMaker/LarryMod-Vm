@@ -413,8 +413,7 @@ class SPjavascriptV2 {
       return result;
     }
     // we are sandboxed
-    const codeRunner = binders + code;//`async function runCode(x = ${binders + code}) { return await Object.getPrototypeOf(async function() {}).constructor(x)()}`;
-    console.log(codeRunner);
+    const codeRunner = `Object.getPrototypeOf(async function() {}).constructor(${binders + code})()`;
     return new Promise((resolve) => {
       SandboxRunner.execute(codeRunner).then(result => {
         // result is { value: any, success: boolean }
