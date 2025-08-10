@@ -293,6 +293,23 @@ class Extension {
                     },
                     extensions: ["colours_motion"],
                     filter: [TargetType.SPRITE]
+                },
+                "---",
+                {
+                    opcode: 'getStretch',
+                    text: 'stretch',
+                    extensions: ["colours_looks"],
+                    filter: [TargetType.SPRITE],
+                    ...Vector.Block
+                },
+                {
+                    opcode: 'setStretch',
+                    text: 'set stretch to [VECTOR]',
+                    arguments: {
+                        VECTOR: Vector.Argument
+                    },
+                    extensions: ["colours_looks"],
+                    filter: [TargetType.SPRITE]
                 }
             ]
         };
@@ -399,9 +416,19 @@ class Extension {
     }
 
     setPos({VECTOR}, util) {
-        VECTOR = Vector.Type.toVector(args.VECTOR)
+        VECTOR = Vector.Type.toVector(VECTOR)
 
         util.target.setXY(VECTOR.x, VECTOR.y)
+    }
+
+    getStretch({}, util) {
+        return new Vector.Type(...util.target.stretch)
+    }
+
+    setStretch({VECTOR}, util) {
+        VECTOR = Vector.Type.toVector(VECTOR)
+
+        util.target.setStretch(VECTOR.x, VECTOR.y)
     }
 }
 
