@@ -413,8 +413,9 @@ class SPjavascriptV2 {
       return result;
     }
     // we are sandboxed
+    const codeRunner = `Object.getPrototypeOf(async function() {}).constructor(\`${(binders + code).replaceAll("`", "\\`")}\`)()`;
     return new Promise((resolve) => {
-      SandboxRunner.execute(binders + code).then(result => {
+      SandboxRunner.execute(codeRunner).then(result => {
         // result is { value: any, success: boolean }
         // in PM, we always ignore errors
         return resolve(result.value);
