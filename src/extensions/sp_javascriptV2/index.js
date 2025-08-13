@@ -266,7 +266,7 @@ class SPjavascriptV2 {
           opcode: "defineScratchCode",
           text: "create local function named [NAME] with code [CODE]",
           blockType: BlockType.CONDITIONAL,
-          hideFromPalette: !this.isEditorUnsandboxed,
+          hideFromPalette: true,
           arguments: {
             NAME: { type: ArgumentType.STRING },
             CODE: { fillIn: "argumentReport" }
@@ -274,6 +274,7 @@ class SPjavascriptV2 {
         },
         {
           blockType: BlockType.XML,
+          hideFromPalette: this.isEditorUnsandboxed,
           xml: `
             <block type="SPjavascriptV2_defineScratchCode">
               <value name="NAME"><shadow type="text"><field name="TEXT">myFunction</field></shadow></value>
