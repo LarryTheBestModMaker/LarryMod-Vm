@@ -274,7 +274,7 @@ class SPjavascriptV2 {
         },
         {
           blockType: BlockType.XML,
-          hideFromPalette: this.isEditorUnsandboxed,
+          hideFromPalette: !this.isEditorUnsandboxed,
           xml: `
             <block type="SPjavascriptV2_defineScratchCode">
               <value name="NAME"><shadow type="text"><field name="TEXT">myFunction</field></shadow></value>
