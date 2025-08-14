@@ -505,7 +505,8 @@ class Runtime extends EventEmitter {
             miscLimits: true,
             fencing: true,
             dangerousOptimizations: false,
-            disableOffscreenRendering: false
+            disableOffscreenRendering: false,
+            disableDirectionClamping: false
         };
 
         this.compilerOptions = {

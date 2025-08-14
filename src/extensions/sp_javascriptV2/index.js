@@ -7,6 +7,9 @@ const Cast = require("../../util/cast");
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
+// we cant have nice things
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 async function runCode(x) {
   return await Object.getPrototypeOf(async function() {}).constructor(x)();
 }
@@ -19,8 +22,6 @@ function initBlockTools() {
     }
   });
 
-  // we cant have nice things
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const recyclableDiv = document.createElement("div");
   recyclableDiv.setAttribute("style", `display: flex; justify-content: center; padding-top: 10px; width: 250px; height: 200px;`);
 
@@ -171,7 +172,7 @@ class SPjavascriptV2 {
           opcode: "jsCommand",
           text: "run [CODE]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: { type: ArgumentType.STRING, defaultValue: `alert("Hello!")` }
           }
@@ -182,7 +183,7 @@ class SPjavascriptV2 {
           blockType: BlockType.REPORTER,
           disableMonitor: true,
           allowDropAnywhere: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -195,7 +196,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -208,7 +209,7 @@ class SPjavascriptV2 {
           opcode: "jsCommandBinded",
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -224,7 +225,7 @@ class SPjavascriptV2 {
           blockType: BlockType.REPORTER,
           disableMonitor: true,
           allowDropAnywhere: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -239,7 +240,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -254,7 +255,7 @@ class SPjavascriptV2 {
           opcode: "defineGlobalFunc",
           text: "create global function named [NAME] with code [CODE]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
+          hideFromPalette: (isSafari || !isScratchBlocksReady) && !this.isEditorUnsandboxed,
           arguments: {
             NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
@@ -266,7 +267,7 @@ class SPjavascriptV2 {
           opcode: "defineScratchCode",
           text: "create local function named [NAME] with code [CODE]",
           blockType: BlockType.CONDITIONAL,
-          hideFromPalette: !this.isEditorUnsandboxed,
+          hideFromPalette: true,
           arguments: {
             NAME: { type: ArgumentType.STRING },
             CODE: { fillIn: "argumentReport" }
@@ -274,6 +275,7 @@ class SPjavascriptV2 {
         },
         {
           blockType: BlockType.XML,
+          hideFromPalette: !this.isEditorUnsandboxed,
           xml: `
             <block type="SPjavascriptV2_defineScratchCode">
               <value name="NAME"><shadow type="text"><field name="TEXT">myFunction</field></shadow></value>
