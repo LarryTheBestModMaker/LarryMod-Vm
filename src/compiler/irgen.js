@@ -692,6 +692,10 @@ class ScriptTreeGenerator {
                 return {
                     kind: 'sensing.second'
                 };
+            case 'millisecond':
+                return {
+                    kind: 'sensing.millisecond'
+                };
             case 'timestamp':
                 return {
                     kind: 'sensing.timestamp'

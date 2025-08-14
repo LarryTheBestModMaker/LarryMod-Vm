@@ -949,6 +949,8 @@ class JSGenerator {
         }
         case 'sensing.second':
             return new TypedInput(`(new Date().getSeconds())`, TYPE_NUMBER);
+        case 'sensing.millisecond':
+            return new TypedInput(`(new Date().getMilliseconds())`, TYPE_NUMBER);
         case 'sensing.timestamp':
             return new TypedInput(`(Date.now())`, TYPE_NUMBER);
         case 'sensing.touching':
