@@ -260,19 +260,13 @@ class ScriptTreeGenerator {
             const name = block.fields.VALUE.value;
             const index = this.script.arguments.lastIndexOf(name);
             if (index === -1) {
-                if (name.toLowerCase() === 'is compiled?' || 
-                    name.toLowerCase() === 'is turbowarp?' || 
-                    name.toLowerCase() === 'is penguinmod?' || 
-                    name.toLowerCase() === 'is dinosaurmod?' || 
-                    name.toLowerCase() === 'is penguinmod or turbowarp?') {
-                    return {
-                        kind: 'constant',
-                        value: true
-                    };
-                }
+                const nameCheck = name.toLowerCase();
+                const bool = nameCheck === 'is compiled?' || nameCheck === 'is penguinmod?' ||
+                    nameCheck === 'is penguinmod or turbowarp?';
+                // 'is turbowarp?' will return false since this is penguinmod, duh
                 return {
                     kind: 'constant',
-                    value: 0
+                    value: bool
                 };
             }
             return {
