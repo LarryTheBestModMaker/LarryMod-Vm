@@ -7,6 +7,9 @@ const Cast = require("../../util/cast");
 let isScratchBlocksReady = typeof ScratchBlocks === "object";
 const codeEditorHandlers = new Map();
 
+// we cant have nice things
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 async function runCode(x) {
   return await Object.getPrototypeOf(async function() {}).constructor(x)();
 }
@@ -19,8 +22,6 @@ function initBlockTools() {
     }
   });
 
-  // we cant have nice things
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const recyclableDiv = document.createElement("div");
   recyclableDiv.setAttribute("style", `display: flex; justify-content: center; padding-top: 10px; width: 250px; height: 200px;`);
 
