@@ -171,7 +171,7 @@ class SPjavascriptV2 {
           opcode: "jsCommand",
           text: "run [CODE]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: { type: ArgumentType.STRING, defaultValue: `alert("Hello!")` }
           }
@@ -182,7 +182,7 @@ class SPjavascriptV2 {
           blockType: BlockType.REPORTER,
           disableMonitor: true,
           allowDropAnywhere: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -195,7 +195,7 @@ class SPjavascriptV2 {
           text: "run [CODE]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: isScratchBlocksReady,
+          hideFromPalette: isScratchBlocksReady && !isSafari,
           arguments: {
             CODE: {
               type: ArgumentType.STRING,
@@ -208,7 +208,7 @@ class SPjavascriptV2 {
           opcode: "jsCommandBinded",
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -224,7 +224,7 @@ class SPjavascriptV2 {
           blockType: BlockType.REPORTER,
           disableMonitor: true,
           allowDropAnywhere: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -239,7 +239,7 @@ class SPjavascriptV2 {
           text: "run [CODE] with data [ARGS]",
           blockType: BlockType.BOOLEAN,
           disableMonitor: true,
-          hideFromPalette: !isScratchBlocksReady,
+          hideFromPalette: isSafari || !isScratchBlocksReady,
           arguments: {
             CODE: { fillIn: "codeInput" },
             ARGS: {
@@ -254,7 +254,7 @@ class SPjavascriptV2 {
           opcode: "defineGlobalFunc",
           text: "create global function named [NAME] with code [CODE]",
           blockType: BlockType.COMMAND,
-          hideFromPalette: !isScratchBlocksReady && !this.isEditorUnsandboxed,
+          hideFromPalette: (isSafari || !isScratchBlocksReady) && !this.isEditorUnsandboxed,
           arguments: {
             NAME: {
               type: ArgumentType.STRING, defaultValue: "myFunction"
