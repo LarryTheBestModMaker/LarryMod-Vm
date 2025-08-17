@@ -172,6 +172,9 @@ class SPjavascriptV2 {
         if (isScratchBlocksReady) initBlockTools();
       }
     });
+    if (typeof scaffolding === "undefined") {
+      this.runtime.once("PROJECT_LOADED", this.toggleSandbox);
+    }
 
     this.globalFuncs = new Map();
   }
