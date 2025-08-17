@@ -38,7 +38,7 @@ function initBlockTools() {
       const input = inputObject.firstChild;
       const srcBlock = field.sourceBlock_;
       const parent = srcBlock.parentBlock_;
-      const dragCheck = srcBlock.svgGroup_.classList.contains("blocklyDragging") ? "none" : "all";
+      const dragCheck = parent.isInFlyout || srcBlock.svgGroup_.classList.contains("blocklyDragging") ? "none" : "all";
 
       inputObject.setAttribute("pointer-events", "none");
       input.style.height = "210px";
@@ -143,7 +143,7 @@ function initBlockTools() {
       const ogSetAtt = parent.svgGroup_.setAttribute;
       parent.svgGroup_.setAttribute = (...args) => {
         if (args[0] === "class") {
-          if (args[1].includes("blocklyDragging")) {
+          if (parent.isInFlyout || args[1].includes("blocklyDragging")) {
             iframe.style.pointerEvents = "none";
             resizeHandle.style.pointerEvents = "none";
           } else {
