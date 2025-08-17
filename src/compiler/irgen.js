@@ -1602,7 +1602,7 @@ class ScriptTreeGenerator {
             return {
                 kind: 'procedures.return',
                 return: this.descendInputOfBlock(block, 'return'),
-                isDefineClicked: topBlock ? topBlock.opcode.startsWith("procedures_definition") : false
+                isDefineClicked: topBlock ? topBlock.opcode === "procedures_return" || topBlock.opcode.startsWith("procedures_definition") : false
             };
         }
         case 'procedures_set': 
