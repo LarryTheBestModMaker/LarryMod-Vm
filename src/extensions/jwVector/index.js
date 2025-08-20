@@ -279,7 +279,7 @@ class Extension {
                 },
                 {
                     opcode: 'round',
-                    text: '[ROUNDING] [VECTOR]',
+                    text: '[ROUNDING] of [VECTOR]',
                     arguments: {
                         ROUNDING: {
                             menu: 'roundingFunctions',
@@ -332,11 +332,11 @@ class Extension {
                             value: 'round'
                         },
                         {
-                            text: 'ceiling of',
+                            text: 'ceil', // might as well go full in on the inconsistencies since we are already doing "round of"
                             value: 'ceil'
                         },
                         {
-                            text: 'floor of',
+                            text: 'floor',
                             value: 'floor'
                         }
                     ]
