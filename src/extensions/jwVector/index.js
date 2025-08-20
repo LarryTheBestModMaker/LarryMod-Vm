@@ -279,6 +279,31 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: 'round',
+                    text: 'round [VECTOR]',
+                    arguments: {
+                        VECTOR: Vector.Argument
+                    },
+                    ...Vector.Block
+                },
+                {
+                    opcode: 'floor',
+                    text: 'floor of [VECTOR]',
+                    arguments: {
+                        VECTOR: Vector.Argument
+                    },
+                    ...Vector.Block
+                },
+                {
+                    opcode: 'ceiling',
+                    text: 'ceiling of [VECTOR]',
+                    arguments: {
+                        VECTOR: Vector.Argument
+                    },
+                    ...Vector.Block
+                },
+                "---",
+                {
                     opcode: 'getPos',
                     text: 'position',
                     extensions: ["colours_motion"],
@@ -406,6 +431,24 @@ class Extension {
             v.x * cos - v.y * sin,
             v.x * sin + v.y * cos
         )
+    }
+
+    round(args) {
+        const v = VectorType.toVector(args.VECTOR)
+
+        return new VectorType(Math.round(v.x), Math.round(v.y))
+    }
+
+    floor(args) {
+        const v = VectorType.toVector(args.VECTOR)
+
+        return new VectorType(Math.floor(v.x), Math.floor(v.y))
+    }
+
+    ceiling(args) {
+        const v = VectorType.toVector(args.VECTOR)
+
+        return new VectorType(Math.ceil(v.x), Math.ceil(v.y))
     }
 
     getPos({}, util) {
