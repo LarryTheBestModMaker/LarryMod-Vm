@@ -277,6 +277,17 @@ class Extension {
                     },
                     ...Vector.Block
                 },
+                {
+                    opcode: 'round',
+                    text: '[ROUNDING] of [VECTOR]',
+                    arguments: {
+                        ROUNDING: {
+                            menu: 'roundingFunctions',
+                        },
+                        VECTOR: Vector.Argument
+                    },
+                    ...Vector.Block
+                },
                 "---",
                 {
                     opcode: 'getPos',
@@ -311,7 +322,26 @@ class Extension {
                     extensions: ["colours_looks"],
                     filter: [TargetType.SPRITE]
                 }
-            ]
+            ],
+            menus: {
+                roundingFunctions: {
+                    acceptReporters: false,
+                    items: [
+                        {
+                            text: 'round',
+                            value: 'round'
+                        },
+                        {
+                            text: 'ceil', // might as well go full in on the inconsistencies since we are already doing "round of"
+                            value: 'ceil'
+                        },
+                        {
+                            text: 'floor',
+                            value: 'floor'
+                        }
+                    ]
+                },
+            }
         };
     }
 
@@ -408,6 +438,20 @@ class Extension {
         )
     }
 
+    round(args) {
+        const v = VectorType.toVector(args.VECTOR)
+        const r = Cast.toString(args.ROUNDING)
+
+        switch (r) {
+            case 'floor':
+                return new VectorType(Math.floor(v.x), Math.floor(v.y))
+            case 'ceil':
+                return new VectorType(Math.ceil(v.x), Math.ceil(v.y))
+        }
+
+        return new VectorType(Math.round(v.x), Math.round(v.y))
+    }
+    
     getPos({}, util) {
         return new Vector.Type(
             util.target.x,

@@ -464,10 +464,13 @@ class Blocks {
             // as well as force end the script (if in compiler)
             if (this._blocks[e.blockId].topLevel) {
                 this.runtime.quietGlow(e.blockId);
-                if (this.runtime.compilerOptions.enabled) {
-                    const thread = this.runtime.threads.find(t => t.getId() === `${editingTarget.id}&${e.blockId}`);
-                    if (thread) this.runtime._stopThread(thread);
-                }
+                if (this.runtime.compilerOptions.enabled) setTimeout(() => {
+                    // slighlty delay script end to handle tab switching vs real block deletion
+                    if (!this._blocks[e.blockId]) {
+                        const thread = this.runtime.threads.find(t => t.getId() === `${editingTarget.id}&${e.blockId}`);
+                        if (thread) this.runtime._stopThread(thread);
+                    }
+                }, 100);
             }
             this.deleteBlock(e.blockId);
             break;
