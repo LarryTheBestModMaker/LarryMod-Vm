@@ -592,7 +592,7 @@ class Scratch3TextBlocks {
 
         textState.animating = false;
         const costume = target.getCostumes()[target.currentCostume];
-        if (!costume) render;
+        if (!costume) return;
         this.runtime.renderer.updateDrawableSkinId(target.drawableID, costume.skinId); // Yield until the next tick.
     }
     stopAll () {
