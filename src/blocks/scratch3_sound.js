@@ -339,21 +339,6 @@ class Scratch3SoundBlocks {
     }
 
     getTimePosition (args, util) {
-        /*const index = this._getSoundIndex(args.SOUND_MENU, util);
-        if (index < 0) return 0;
-
-        const target = util.target;
-        const sprite = target.sprite;
-        if (!sprite) return 0;
-
-        const { soundId } = sprite.sounds[index];
-        
-        if (!this.soundTimers["sound_" + soundId + "_timePosition"]) return 0;
-        try {
-            return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000
-        } catch {
-            return 0;
-        }*/
         const index = this._getSoundIndex(args.SOUND_MENU, util);
         if (index < 0) return 0;
 
@@ -362,14 +347,18 @@ class Scratch3SoundBlocks {
         if (!sprite) return 0;
 
         const { soundId } = sprite.sounds[index];
-
+        
+        /*if (!this.soundTimers["sound_" + soundId + "_timePosition"]) return 0;
+        try {
+            return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000
+        } catch {
+            return 0;
+        }*/
         const soundBank = sprite.soundBank
-        if (!soundBank) return;
-
-        console.log(soundBank.soundPlayers[soundId].currentTime)
+        if (!soundBank) return 0;
 
         try {
-            return Cast.toNumber(soundBank.soundPlayers[soundId].currentTime);
+            return Cast.toNumber(soundBank.currentTime(target, soundId));
         } catch {
             return 0;
         }
