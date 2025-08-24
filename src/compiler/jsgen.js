@@ -619,9 +619,9 @@ class JSGenerator {
             return new TypedInput(`${this.referenceVariable(node.list)}.value.length`, TYPE_NUMBER);
 
         case 'list.filteritem':
-            return new TypedInput('runtime.ext_scratch3_data._listFilterItem', TYPE_UNKNOWN);
+            return new TypedInput('(runtime.ext_scratch3_data._listFilterItem ?? "")', TYPE_UNKNOWN);
         case 'list.filterindex':
-            return new TypedInput('runtime.ext_scratch3_data._listFilterIndex', TYPE_UNKNOWN);
+            return new TypedInput('(runtime.ext_scratch3_data._listFilterIndex ?? 0)', TYPE_NUMBER);
 
         case 'looks.size':
             return new TypedInput('target.size', TYPE_NUMBER);
@@ -1495,11 +1495,13 @@ class JSGenerator {
             break;
 
         case 'list.filter':
-            this.source += `${this.referenceVariable(node.list)}.value = ${this.referenceVariable(node.list)}.value.filter(function* (item, index) {`;
-            this.source += `    runtime.ext_scratch3_data._listFilterItem = item;\n`;
-            this.source += `    runtime.ext_scratch3_data._listFilterIndex = index + 1;\n`;
-            this.source += `    return ${this.descendInput(node.bool).asBoolean()};\n`;
-            this.source += `})`;
+            const filterOutput = this.localVariables.next();
+            this.source += `var ${filterOutput} = [];\n`
+            this.source += `for (runtime.ext_scratch3_data._listFilterIndex = 1; runtime.ext_scratch3_data._listFilterIndex <= ${this.referenceVariable(node.list)}.value.length; runtime.ext_scratch3_data._listFilterIndex++) {\n`
+            this.source += `    runtime.ext_scratch3_data._listFilterItem = ${this.referenceVariable(node.list)}.value[runtime.ext_scratch3_data._listFilterIndex - 1];\n`;
+            this.source += `    if (${this.descendInput(node.bool).asBoolean()}) ${filterOutput}.push(runtime.ext_scratch3_data._listFilterItem);\n`;
+            this.source += `};\n`;
+            this.source += `${this.referenceVariable(node.list)}.value = ${filterOutput};\n`;
             this.source += `runtime.ext_scratch3_data._listFilterItem = "";\n`;
             this.source += `runtime.ext_scratch3_data._listFilterIndex = 0;\n`;
             break;
