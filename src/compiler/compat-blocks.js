@@ -84,6 +84,7 @@ const statementBlocks = [
     'data_shufflelist',
     'sound_resume',
     'sound_resumeallsounds',
+    'sensing_settimer',
 ];
 
 const outputBlocks = [
@@ -179,7 +180,6 @@ const outputBlocks = [
     'sensing_istimerpaused',
     'sensing_pausetimer',
     'sensing_resumetimer',
-    'sensing_settimer',
     'operator_isUpperLowerCase',
 ];
 
