@@ -1497,14 +1497,16 @@ class JSGenerator {
         case 'list.filter':
             const filterOutput = this.localVariables.next();
             this.source += `var ${filterOutput} = [];\n`
+            const cloneList = this.localVariables.next();
+            this.source += `var ${cloneList} = [...${this.referenceVariable(node.list)}.value];\n`
             this.source += `thread._listFilterItem ??= [];\n`;
             this.source += `thread._listFilterIndex ??= [];\n`;
             this.source += `thread._listFilterItem.push("");\n`;
             this.source += `thread._listFilterIndex.push(0);\n`;
             let lastIndex = `thread._listFilterIndex[thread._listFilterIndex.length-1]`
             let lastItem = `thread._listFilterItem[thread._listFilterItem.length-1]`
-            this.source += `for (${lastIndex} = 1; ${lastIndex} <= ${this.referenceVariable(node.list)}.value.length; ${lastIndex}++) {\n`
-            this.source += `    ${lastItem} = ${this.referenceVariable(node.list)}.value[${lastIndex} - 1];\n`;
+            this.source += `for (${lastIndex} = 1; ${lastIndex} <= ${cloneList}.length; ${lastIndex}++) {\n`
+            this.source += `    ${lastItem} = ${cloneList}[${lastIndex} - 1];\n`;
             this.source += `    if (${this.descendInput(node.bool).asBoolean()}) ${filterOutput}.push(${lastItem});\n`;
             this.source += `};\n`;
             this.source += `${this.referenceVariable(node.list)}.value = ${filterOutput};\n`;
