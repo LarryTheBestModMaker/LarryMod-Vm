@@ -357,12 +357,8 @@ class Scratch3SoundBlocks {
         const soundBank = sprite.soundBank
         if (!soundBank) return 0;
 
-        console.log(soundBank)
-        window.testingTest = {};
-        window.testingTest.target = target;
-
         try {
-            return Cast.toNumber(soundBank.currentTime(target, soundId));
+            return Cast.toNumber(soundBank.soundPlayers[soundId].currentTime?.timeElapsed) / 1000;
         } catch {
             return 0;
         }
@@ -658,7 +654,7 @@ class Scratch3SoundBlocks {
 
             const { name, soundId } = sprite.sounds[index];
 
-            this.pausedSounds[soundId] = {
+            /*this.pausedSounds[soundId] = {
                 name: name,
                 timePosition: this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000 ?? 0
             }
@@ -671,7 +667,8 @@ class Scratch3SoundBlocks {
             const timer = this.soundTimers["sound_" + soundId + "_timePosition"];
             timer.start();
             timer.setTimer(this.pausedSounds[soundId].timePosition);
-            timer.pause();
+            timer.pause();*/
+            sprite.soundBank.pause(target, soundId);
         }
     }
 
@@ -703,7 +700,7 @@ class Scratch3SoundBlocks {
 
             const { soundId } = sprite.sounds[index];
 
-            if (!this.pausedSounds[soundId]) return;
+            /*if (!this.pausedSounds[soundId]) return;
 
             if (this.soundTimers["sound_" + soundId + "_timePosition"]) delete this.soundTimers["sound_" + soundId + "_timePosition"];
 
@@ -712,7 +709,8 @@ class Scratch3SoundBlocks {
                 seconds: this.pausedSounds[soundId].timePosition
             }, util, STORE_WAITING);
 
-            delete this.pausedSounds[soundId];
+            delete this.pausedSounds[soundId];*/
+            sprite.soundBank.resume(target, soundId);
         }
     }
 
