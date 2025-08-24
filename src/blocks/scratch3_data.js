@@ -320,8 +320,8 @@ class Scratch3DataBlocks {
         return false;
     }
 
-    _listFilterItem = ""
-    _listFilterIndex = 0
+    _listFilterItem = [""]
+    _listFilterIndex = [0]
 }
 
 module.exports = Scratch3DataBlocks;
