@@ -619,9 +619,9 @@ class JSGenerator {
             return new TypedInput(`${this.referenceVariable(node.list)}.value.length`, TYPE_NUMBER);
 
         case 'list.filteritem':
-            return new TypedInput('runtime.ext_scratch3_data._listFilterItem[runtime.ext_scratch3_data._listFilterItem.length - 1]', TYPE_UNKNOWN);
+            return new TypedInput('(thread._listFilterItem ?? [""])[(thread._listFilterItem ?? [""]).length - 1]', TYPE_UNKNOWN);
         case 'list.filterindex':
-            return new TypedInput('runtime.ext_scratch3_data._listFilterIndex[runtime.ext_scratch3_data._listFilterIndex.length - 1]', TYPE_NUMBER);
+            return new TypedInput('(thread._listFilterIndex ?? [0])[(thread._listFilterIndex ?? [0]).length - 1]', TYPE_NUMBER);
 
         case 'looks.size':
             return new TypedInput('target.size', TYPE_NUMBER);
@@ -1497,17 +1497,19 @@ class JSGenerator {
         case 'list.filter':
             const filterOutput = this.localVariables.next();
             this.source += `var ${filterOutput} = [];\n`
-            this.source += `runtime.ext_scratch3_data._listFilterItem.push("");\n`;
-            this.source += `runtime.ext_scratch3_data._listFilterIndex.push(0);\n`;
-            let lastIndex = `runtime.ext_scratch3_data._listFilterIndex[runtime.ext_scratch3_data._listFilterIndex.length-1]`
-            let lastItem = `runtime.ext_scratch3_data._listFilterItem[runtime.ext_scratch3_data._listFilterItem.length-1]`
+            this.source += `thread._listFilterItem ??= [];\n`;
+            this.source += `thread._listFilterIndex ??= [];\n`;
+            this.source += `thread._listFilterItem.push("");\n`;
+            this.source += `thread._listFilterIndex.push(0);\n`;
+            let lastIndex = `thread._listFilterIndex[thread._listFilterIndex.length-1]`
+            let lastItem = `thread._listFilterItem[thread._listFilterItem.length-1]`
             this.source += `for (${lastIndex} = 1; ${lastIndex} <= ${this.referenceVariable(node.list)}.value.length; ${lastIndex}++) {\n`
             this.source += `    ${lastItem} = ${this.referenceVariable(node.list)}.value[${lastIndex} - 1];\n`;
             this.source += `    if (${this.descendInput(node.bool).asBoolean()}) ${filterOutput}.push(${lastItem});\n`;
             this.source += `};\n`;
             this.source += `${this.referenceVariable(node.list)}.value = ${filterOutput};\n`;
-            this.source += `runtime.ext_scratch3_data._listFilterItem.pop();\n`;
-            this.source += `runtime.ext_scratch3_data._listFilterIndex.pop();\n`;
+            this.source += `thread._listFilterItem.pop();\n`;
+            this.source += `thread._listFilterIndex.pop();\n`;
             break;
 
         case 'looks.backwardLayers':
