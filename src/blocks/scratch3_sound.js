@@ -356,15 +356,9 @@ class Scratch3SoundBlocks {
         }*/
         const soundBank = sprite.soundBank
         if (!soundBank) return 0;
-
-        const currentPitch = this.getEffectValue({
-            EFFECT: 'PITCH'
-        }, util);
-
-        const speedMultiplier = 2 ** (currentPitch / 100);
-
+        
         try {
-            return (Cast.toNumber(soundBank.currentTime(target, soundId).timeElapsed()) / 1000) * speedMultiplier;
+            return (Cast.toNumber(soundBank.currentTime(target, soundId).timeElapsed()) / 1000);
         } catch {
             return 0;
         }

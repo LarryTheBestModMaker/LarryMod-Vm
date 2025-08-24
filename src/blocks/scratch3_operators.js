@@ -76,7 +76,8 @@ class Scratch3OperatorsBlocks {
             operator_javascript_boolean: this.javascriptBoolean,
 
             operator_percentage: this.percentage,
-            operator_clamp: this.clampReporter
+            operator_clamp: this.clampReporter,
+            operator_isUpperLowerCase: this.isCase
         };
     }
     
@@ -417,6 +418,11 @@ class Scratch3OperatorsBlocks {
 
     clampReporter (args) {
         return Math.min(Math.max(args.NUM, args.MIN), args.MAX)
+    }
+
+    isCase (args) {
+        const text = Cast.toString(args.TEXT);
+        return (Cast.toString(args.OPTION) == "upper" ? text === text.toUpperCase() : text === text.toLowerCase())
     }
 }
 

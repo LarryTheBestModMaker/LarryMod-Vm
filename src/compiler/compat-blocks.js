@@ -180,6 +180,7 @@ const outputBlocks = [
     'sensing_pausetimer',
     'sensing_resumetimer',
     'sensing_settimer',
+    'operator_isUpperLowerCase',
 ];
 
 module.exports = {
