@@ -357,6 +357,10 @@ class Scratch3SoundBlocks {
         const soundBank = sprite.soundBank
         if (!soundBank) return 0;
 
+        console.log(soundBank)
+        window.testingTest = {};
+        window.testingTest.target = target;
+
         try {
             return Cast.toNumber(soundBank.currentTime(target, soundId));
         } catch {
