@@ -358,7 +358,7 @@ class Scratch3SoundBlocks {
         if (!soundBank) return 0;
 
         try {
-            return Cast.toNumber(soundBank.soundPlayers[soundId].currentTime.timeElapsed) / 1000;
+            return Cast.toNumber(soundBank.currentTime(target, soundId).timeElapsed()) / 1000;
         } catch {
             return 0;
         }
