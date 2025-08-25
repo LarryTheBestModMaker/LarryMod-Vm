@@ -7,6 +7,100 @@ const TargetType = require('./target-type');
 const Cast = require('../util/cast');
 const Clone = require('../util/clone');
 const Color = require('../util/color');
+const TimerAPI = require('../util/timer');
+
+class Timer {
+    constructor() {
+        this.timers = {}
+    }
+
+    createTimer(id) {
+        if (this.timers.hasOwnProperty(id)) {
+            console.warn(`there's already an existing timer called: "${id}"`)
+            return;
+        }
+        this.timers[id] = {
+            timer: new TimerAPI({now: () => Date.now()})
+            paused: false,
+            started: false
+        };
+    }
+
+    setTimerTo(id, at = 0) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        this.timers[id].timer.start()
+        this.timers[id].timer.setTimer(at)
+        this.timers[id].started = true
+    }
+
+    restartTimer(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        this.timers[id].timer.start()
+        this.timers[id].started = true
+    }
+
+    pauseTimer(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        if (!this.timers[id].started) {
+            console.warn(`timer called: "${id}" needs to start first`)
+            return;
+        }
+        this.timers[id].timer.pause()
+        this.timers[id].paused = true
+    }
+
+    pauseTimer(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        if (!this.timers[id].paused) {
+            console.warn(`timer called: "${id}" needs to be paused first`)
+            return;
+        }
+        this.timers[id].timer.play()
+        this.timers[id].paused = false
+    }
+
+    stopTimer(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        this.timers[id].timer = new TimerAPI({now: () => Date.now()})
+        this.timers[id].paused = false
+        this.timers[id].started = false
+    }
+
+    getTimer(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        return this.timers[id].timer.timeElapsed() / 1000;
+    }
+
+    getTimerObject(id) {
+        if (!this.timers.hasOwnProperty(id)) {
+            console.warn(`there's no timer called: "${id}"`)
+            return;
+        }
+        return this.timers[id];
+    }
+
+    getTimers() {
+        return this.timers;
+    }
+}
 
 const Scratch = {
     ArgumentType,
@@ -17,7 +111,8 @@ const Scratch = {
     TargetType,
     Cast,
     Clone,
-    Color
+    Color,
+    Timer
 };
 
 module.exports = Scratch;
