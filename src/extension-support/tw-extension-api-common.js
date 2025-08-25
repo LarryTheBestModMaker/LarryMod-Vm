@@ -20,7 +20,7 @@ class Timer {
             return;
         }
         this.timers[id] = {
-            timer: new TimerAPI({now: () => Date.now()})
+            timer: new TimerAPI({now: () => Date.now()}),
             paused: false,
             started: false
         };
