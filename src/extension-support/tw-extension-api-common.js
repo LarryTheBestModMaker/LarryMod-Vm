@@ -9,7 +9,7 @@ const Clone = require('../util/clone');
 const Color = require('../util/color');
 const TimerAPI = require('../util/timer');
 
-class Timer {
+class Timers {
     constructor() {
         this.timers = {}
     }
@@ -112,7 +112,7 @@ const Scratch = {
     Cast,
     Clone,
     Color,
-    Timer
+    Timers: new Timers
 };
 
 module.exports = Scratch;
