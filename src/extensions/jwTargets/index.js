@@ -89,8 +89,7 @@ const Target = {
     },
     Argument: {
         check: ["Target"],
-        shape: BlockShape.OCTAGONAL,
-        fillInGlobal: "jwTargets_this" //global cause other extensions depend on it
+        shape: BlockShape.OCTAGONAL
     }
 }
 
@@ -150,7 +149,7 @@ class Extension {
             blocks: [
                 {
                     opcode: 'this',
-                    text: ' this ',
+                    text: 'this target',
                     hideFromPalette: true,
                     ...Target.Block
                 },
