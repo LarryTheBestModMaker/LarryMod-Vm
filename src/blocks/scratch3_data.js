@@ -71,6 +71,8 @@ class Scratch3DataBlocks {
     data_arraylist (args, util) {
         const list = util.target.lookupOrCreateList(
             args.LIST.id, args.LIST.name);
+        console.log(args.VALUE);
+        window.test = args.VALUE;
         const array = validateArray(args.VALUE).array
             .map(v => {
                 if (typeof v === 'object') return JSON.stringify(v);
