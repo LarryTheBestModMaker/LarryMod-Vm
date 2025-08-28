@@ -889,6 +889,16 @@ class JSGenerator {
             return new TypedInput(`tan(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER_NAN);
         case 'op.10^':
             return new TypedInput(`(10 ** ${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
+        case 'op.expandmath': {
+          const operations = node.operations;
+          let builder = '';
+          for (var i = 0; i < operations.length; i++) {
+            builder += this.descendInput(operations[i][0]).asNumber();
+            builder += operations[i][1];
+          }
+          console.log(builder);
+          return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
+        }
 
         case 'sensing.answer':
             return new TypedInput(`runtime.ext_scratch3_sensing._answer`, TYPE_STRING);
