@@ -150,7 +150,7 @@ class Extension {
             blocks: [
                 {
                     opcode: 'this',
-                    text: 'this',
+                    text: ' this ',
                     hideFromPalette: true,
                     ...Target.Block
                 },
