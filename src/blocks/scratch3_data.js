@@ -282,7 +282,7 @@ class Scratch3DataBlocks {
                 list.value = arrayArg;
                 return;
             } else {
-                if (value.constructor?.name !== "Object") {
+                if (arrayArg.constructor?.name !== "Object") {
                     // potential custom return API
                     if (typeof arrayArg.toJSON === 'function') {
                         array = arrayArg.toJSON();
