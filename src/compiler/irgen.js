@@ -435,6 +435,22 @@ class ScriptTreeGenerator {
                 left: this.descendInputOfBlock(block, 'NUM1'),
                 right: this.descendInputOfBlock(block, 'NUM2')
             };
+        case 'operator_expandableMath': {
+          const menuOperators = block.mutation.menuvalues;
+          const operations = [];
+          for (var i = 0; i < Object.values(block.inputs).length; i++) {
+            const input = inputs[i];
+            if (input.block == null) delete block.inputs[input.name];
+            else operations.push([
+              this.descendInputOfBlock(block, input.name),
+              menuOperators[i]
+            ]);
+          }
+          return {
+            kind: 'op.expandmath',
+            operations
+          };
+        }
         case 'operator_equals':
             return {
                 kind: 'op.equals',
