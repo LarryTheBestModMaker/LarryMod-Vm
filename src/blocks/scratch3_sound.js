@@ -173,6 +173,7 @@ class Scratch3SoundBlocks {
             sound_pauseallsounds: this.pauseAllSounds,
             sound_resume: this.resumeSound,
             sound_resumeallsounds: this.resumeAllSounds,
+            sound_isSoundPaused: this.isSoundPaused,
         };
     }
 
@@ -724,6 +725,28 @@ class Scratch3SoundBlocks {
                 SOUND_MENU: name
             }, util)
         }
+    }
+
+    isSoundPaused (args, util) {
+        const index = this._getSoundIndex(args.SOUND_MENU, util);
+        if (index < 0) return 0;
+
+        const target = util.target;
+        const sprite = target.sprite;
+        if (!sprite) return 0;
+
+        const { soundId } = sprite.sounds[index];
+        
+        /*if (!this.soundTimers["sound_" + soundId + "_timePosition"]) return 0;
+        try {
+            return this.soundTimers["sound_" + soundId + "_timePosition"].timeElapsed() / 1000
+        } catch {
+            return 0;
+        }*/
+        const soundBank = sprite.soundBank
+        if (!soundBank) return 0;
+        
+        return soundBank.isPaused(target, soundId) == true;
     }
 }
 

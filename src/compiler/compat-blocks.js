@@ -181,6 +181,7 @@ const outputBlocks = [
     'sensing_pausetimer',
     'sensing_resumetimer',
     'operator_isUpperLowerCase',
+    'sound_isSoundPaused',
 ];
 
 module.exports = {
