@@ -890,14 +890,25 @@ class JSGenerator {
         case 'op.10^':
             return new TypedInput(`(10 ** ${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
         case 'op.expandmath': {
-          const operations = node.operations;
-          let builder = '';
-          for (var i = 0; i < operations.length; i++) {
-            builder += this.descendInput(operations[i][0]).asNumber();
-            builder += operations[i][1];
-          }
-          console.log(builder);
-          return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
+            const operations = node.operations;
+            let builder = '';
+            for (var i = 0; i < operations.length; i++) {
+                const op = operations[i];
+                const prevOp = operations[i - 1];
+                const opType = op[1];
+
+                if (opType === "^") {
+                    builder += 'Math.pow(';
+                    builder += this.descendInput(op[0]).asNumber();
+                    builder += ',';
+                } else if (prevOp && prevOp[1] === "^") {
+                    builder += this.descendInput(op[0]).asNumber();
+                    builder += ')';
+                    if (opType) builder += opType;
+                }
+            }
+            console.log(builder);
+            return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
         }
 
         case 'sensing.answer':
