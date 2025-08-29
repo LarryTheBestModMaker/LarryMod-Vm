@@ -808,6 +808,12 @@ class JSGenerator {
         }
         case 'op.join':
             return new TypedInput(`(${this.descendInput(node.left).asString()} + ${this.descendInput(node.right).asString()})`, TYPE_STRING);
+        case "op.expandjoin": {
+            for (var i = 0; i < node.strings.length; i++) {
+                node.strings[i] = this.descendInput(node.strings[i]).asString();
+            }
+            return new TypedInput('(' + node.strings.join('+') + ')', TYPE_STRING);
+        }
         case 'op.length':
             return new TypedInput(`${this.descendInput(node.string).asString()}.length`, TYPE_NUMBER);
         case 'op.less': {
@@ -883,6 +889,26 @@ class JSGenerator {
             return new TypedInput(`tan(${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER_NAN);
         case 'op.10^':
             return new TypedInput(`(10 ** ${this.descendInput(node.value).asNumber()})`, TYPE_NUMBER);
+        case 'op.expandmath': {
+            const operations = node.operations;
+            let builder = '';
+            for (var i = 0; i < operations.length; i++) {
+                const op = operations[i];
+                const prevOp = operations[i - 1];
+                const opType = op[1];
+
+                if (opType === "^") {
+                    builder += 'Math.pow(';
+                    builder += this.descendInput(op[0]).asNumber();
+                    builder += ',';
+                } else {
+                    builder += this.descendInput(op[0]).asNumber();
+                    if (prevOp && prevOp[1] === "^") builder += ')';
+                    if (opType) builder += opType;
+                }
+            }
+            return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
+        }
 
         case 'sensing.answer':
             return new TypedInput(`runtime.ext_scratch3_sensing._answer`, TYPE_STRING);

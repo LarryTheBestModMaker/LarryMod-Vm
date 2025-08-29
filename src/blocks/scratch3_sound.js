@@ -729,11 +729,11 @@ class Scratch3SoundBlocks {
 
     isSoundPaused (args, util) {
         const index = this._getSoundIndex(args.SOUND_MENU, util);
-        if (index < 0) return 0;
+        if (index < 0) return false;
 
         const target = util.target;
         const sprite = target.sprite;
-        if (!sprite) return 0;
+        if (!sprite) return false;
 
         const { soundId } = sprite.sounds[index];
         
@@ -744,7 +744,7 @@ class Scratch3SoundBlocks {
             return 0;
         }*/
         const soundBank = sprite.soundBank
-        if (!soundBank) return 0;
+        if (!soundBank) return false;
         
         return soundBank.isPaused(target, soundId) == true;
     }
