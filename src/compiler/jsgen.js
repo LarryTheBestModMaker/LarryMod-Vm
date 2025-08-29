@@ -901,13 +901,12 @@ class JSGenerator {
                     builder += 'Math.pow(';
                     builder += this.descendInput(op[0]).asNumber();
                     builder += ',';
-                } else if (prevOp && prevOp[1] === "^") {
+                } else {
                     builder += this.descendInput(op[0]).asNumber();
-                    builder += ')';
+                    if (prevOp && prevOp[1] === "^") builder += ')';
                     if (opType) builder += opType;
                 }
             }
-            console.log(builder);
             return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
         }
 
