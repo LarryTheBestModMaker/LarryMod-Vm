@@ -1845,6 +1845,19 @@ class Runtime extends EventEmitter {
             blockJSON.output = blockInfo.forceOutputType;
         }
 
+        const mutationHandler = blockInfo.mutations;
+        if (
+            typeof mutationHandler === 'object' &&
+            typeof mutationHandler.serialize === 'function' &&
+            typeof mutationHandler.deserialize === 'function'
+        ) {
+            blockJSON.mutations = {
+                serialize: mutationHandler.serialize,
+                deserialize: mutationHandler.deserialize,
+                init: typeof mutationHandler.init === 'function' ? mutationHandler.init : undefined
+            };
+        }
+
         const mutation = blockInfo.isDynamic
             ? `<mutation blockInfo="${xmlEscape.escapeAttribute(JSON.stringify(blockInfo))}"/>`
             : '';
