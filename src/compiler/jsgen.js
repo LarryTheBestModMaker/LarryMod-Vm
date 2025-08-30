@@ -892,6 +892,7 @@ class JSGenerator {
         case 'op.expandmath': {
             const operations = node.operations;
             let builder = '';
+            let powWrap = 0;
             for (var i = 0; i < operations.length; i++) {
                 const op = operations[i];
                 const prevOp = operations[i - 1];
@@ -901,9 +902,13 @@ class JSGenerator {
                     builder += 'Math.pow(';
                     builder += this.descendInput(op[0]).asNumber();
                     builder += ',';
+                    powWrap++;
                 } else {
                     builder += this.descendInput(op[0]).asNumber();
-                    if (prevOp && prevOp[1] === "^") builder += ')';
+                    while (powWrap > 0) {
+                        builder += ')';
+                        powWrap--;
+                    }
                     if (opType) builder += opType;
                 }
             }
