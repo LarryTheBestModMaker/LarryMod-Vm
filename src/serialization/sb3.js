@@ -327,7 +327,6 @@ const serializeBlock = function (block) {
         obj.topLevel = false;
     }
     if (block.mutation) {
-        console.log(block.mutation);
         obj.mutation = block.mutation;
     }
     if (block.comment) {
