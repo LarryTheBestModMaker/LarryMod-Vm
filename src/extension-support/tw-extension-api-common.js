@@ -31,9 +31,7 @@ class Timers {
             console.warn(`there's no timer called: "${id}"`)
             return;
         }
-        this.timers[id].timer.start()
         this.timers[id].timer.setTimer(at)
-        this.timers[id].started = true
     }
 
     restartTimer(id) {
@@ -58,7 +56,7 @@ class Timers {
         this.timers[id].paused = true
     }
 
-    pauseTimer(id) {
+    resumeTimer(id) {
         if (!this.timers.hasOwnProperty(id)) {
             console.warn(`there's no timer called: "${id}"`)
             return;
