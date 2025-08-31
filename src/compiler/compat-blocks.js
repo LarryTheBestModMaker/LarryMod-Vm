@@ -182,6 +182,8 @@ const outputBlocks = [
     'sensing_resumetimer',
     'operator_isUpperLowerCase',
     'sound_isSoundPaused',
+    'operator_strictlyContains',
+    'operator_strictlyEquals',
 ];
 
 module.exports = {

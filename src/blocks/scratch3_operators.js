@@ -77,7 +77,9 @@ class Scratch3OperatorsBlocks {
 
             operator_percentage: this.percentage,
             operator_clamp: this.clampReporter,
-            operator_isUpperLowerCase: this.isCase
+            operator_isUpperLowerCase: this.isCase,
+            operator_strictlyContains: this.strictlyContains,
+            operator_strictlyEquals: this.strictlyEquals
         };
     }
     
@@ -424,6 +426,15 @@ class Scratch3OperatorsBlocks {
         const text = Cast.toString(args.TEXT);
         return (Cast.toString(args.OPTION) == "upper" ? text === text.toUpperCase() : text === text.toLowerCase())
     }
+
+    strictlyContains (args) {
+        const format = function (string) {
+            return Cast.toString(string);
+        };
+        return format(args.STRING1).includes(format(args.STRING2));
+    }
+
+    strictlyEquals (args) { return args.A === args.B}
 }
 
 module.exports = Scratch3OperatorsBlocks;
