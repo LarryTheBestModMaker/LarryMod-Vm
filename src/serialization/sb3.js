@@ -609,8 +609,12 @@ const makeSafeForJSON = (runtime, value) => {
         let copy = null;
         for (let i = 0; i < value.length; i++) {
             if (value[i].customId) {
-                const {serialize} = runtime.serializers[value[i].customId];
-                value[i] = serialize(value[i]);
+                if (!copy) {
+                    // Only copy the list when needed
+                    copy = value.slice();
+                }
+                const {serialize} = runtime.serializers[copy[i].customId];
+                copy[i] = serialize(copy[i]);
             }
             if (!isVariableValueSafeForJSON(value[i])) {
                 if (!copy) {
