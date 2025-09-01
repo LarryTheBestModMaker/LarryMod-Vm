@@ -178,6 +178,7 @@ class pmControlsExpansion {
                     opcode: 'asNewBroadcastArgBlock',
                     text: 'thread data',
                     blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
                     disableMonitor: true
                 },
             ]
