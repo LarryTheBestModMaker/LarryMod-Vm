@@ -96,7 +96,7 @@ class Timer {
      * pause the timer
      */
     pause() {
-        if (this._pausedTime) return;
+        if (this._pausedTime !== null) return;
         this._pausedTime = this.timeElapsed();
     }
 
@@ -104,7 +104,7 @@ class Timer {
      * unpause the timer
      */
     play() {
-        if (!this._pausedTime) return;
+        if (this._pausedTime === null) return;
         this.startTime = this.nowObj.now() - this._pausedTime;
         this._pausedTime = null;
     }
