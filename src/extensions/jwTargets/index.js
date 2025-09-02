@@ -32,7 +32,8 @@ class jwTargetType {
     jwArrayHandler() {
         try {
             return `Target<${this.target.sprite.name}>`
-        } catch {
+        } catch (e) {
+            console.debug(e, this)
             return `Target`
         }
     }
