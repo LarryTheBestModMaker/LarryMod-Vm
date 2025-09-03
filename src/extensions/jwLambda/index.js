@@ -86,7 +86,6 @@ class Extension {
             id: "jwLambda",
             name: "Lambda",
             color1: "#aa2233",
-            blockText: "#ffffff",
             blocks: [
                 {
                     opcode: 'arg',
@@ -159,10 +158,10 @@ class Extension {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
                     compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {';
-                    compiler.source += 'thread._ringStackData ??= [];\n';
-                    compiler.source += 'thread._ringStackData.push(arg);\n';
+                    compiler.source += 'thread._jwLambdaArgument ??= [];\n';
+                    compiler.source += 'thread._jwLambdaArgument.push(arg);\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += 'thread._ringStackData.pop();\n';
+                    compiler.source += 'thread._jwLambdaArgument.pop();\n';
                     compiler.source += '}))';
                     const returns = compiler.source;
                     compiler.source = temp;
