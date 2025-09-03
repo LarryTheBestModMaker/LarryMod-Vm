@@ -111,6 +111,9 @@ class Extension {
                     blockType: BlockType.XML,
                     xml: `
                     <block type="jwLambda_newLambda">
+                        <value name="ARG">
+                            <shadow type="jwLambda_arg" />
+                        </value>
                         <value name="SUBSTACK">
                             <block type="procedures_return">
                                 <value name="return">
