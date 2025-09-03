@@ -98,6 +98,7 @@ class Extension {
                 {
                     opcode: 'newLambda',
                     text: 'new lambda [ARG]',
+                    hideFromPalette: true,
                     arguments: {
                         ARG: {
                             fillIn: 'arg'
@@ -106,6 +107,22 @@ class Extension {
                     branches: [{}],
                     ...Lambda.Block
                 },
+                {
+                    blockType: BlockType.XML,
+                    xml: `
+                    <block type="jwLambda_newLambda">
+                        <value name="SUBSTACK">
+                            <block type="procedures_return">
+                                <value name="return">
+                                    <shadow type="text">
+                                        <field name="TEXT">1</field>
+                                    </shadow>
+                                </value>
+                            </block>
+                        </value>
+                    </block>
+                    `
+                }
                 {
                     opcode: 'execute',
                     text: 'execute [LAMBDA] with [ARG]',
