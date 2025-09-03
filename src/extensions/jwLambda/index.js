@@ -85,8 +85,8 @@ class Extension {
         return {
             id: "jwLambda",
             name: "Lambda",
-            color1: "#a23",
-            blockText: "#fff",
+            color1: "#aa2233",
+            blockText: "#ffffff",
             blocks: [
                 {
                     opcode: 'arg',
