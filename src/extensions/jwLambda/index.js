@@ -27,7 +27,7 @@ function span(text) {
 }
 
 function* runCode(x, ...args) {
-    return yield* Object.getPrototypeOf(function*() {}).constructor(`yield* ${x}`)(...args);
+    return yield* new Function(x)()(...args);
 }
 
 class LambdaType {
