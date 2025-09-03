@@ -27,7 +27,7 @@ function span(text) {
 }
 
 function* runCode(x, ...args) {
-    return yield* new Function(x)()(...args);
+    return yield* new Function(`return ${x}`)()(...args);
 }
 
 class LambdaType {
