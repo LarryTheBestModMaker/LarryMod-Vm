@@ -26,8 +26,8 @@ function span(text) {
     return el
 }
 
-async function runCode(x, ...args) {
-    return await Object.getPrototypeOf(function*() {}).constructor(`yield* ${x}`)(...args);
+function* runCode(x, ...args) {
+    return yield* Object.getPrototypeOf(function*() {}).constructor(`yield* ${x}`)(...args);
 }
 
 class LambdaType {
