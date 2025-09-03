@@ -50,11 +50,11 @@ class LambdaType {
         return this.func
     }
 
-    execute = function* (arg, thread, target, runtime, stage, executeInCompatabilityLayer) {
+    execute = function* (arg, thread, target, runtime, stage, executeInCompatibilityLayer) {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
-            let output = (yield* runCode(this.func, arg, thread, target, runtime, stage, executeInCompatabilityLayer) ?? "")
+            let output = (yield* runCode(this.func, arg, thread, target, runtime, stage, executeInCompatibilityLayer) ?? "")
             thread._jwLambdaArgument.pop()
             return output
         } catch (e) {
@@ -185,7 +185,7 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage, executeInCompatabilityLayer) {';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage, executeInCompatibilityLayer) {';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
                     compiler.source += '}))';
                     const returns = compiler.source;
@@ -193,10 +193,10 @@ class Extension {
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
                 },
                 execute: (node, compiler, imports) => {
-                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage, executeInCompatabilityLayer)`
+                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage, executeInCompatibilityLayer)`
                 },
                 executeR: (node, compiler, imports) => {
-                    return new imports.TypedInput(`yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage, executeInCompatabilityLayer)`)
+                    return new imports.TypedInput(`yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage, executeInCompatibilityLayer)`)
                 }
             }
         }
