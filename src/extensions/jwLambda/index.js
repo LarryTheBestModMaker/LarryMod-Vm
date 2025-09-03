@@ -112,7 +112,7 @@ class Extension {
                     arguments: {
                         LAMBDA: Lambda.Argument,
                         ARG: {
-                            type: ArgumentType.String,
+                            type: ArgumentType.STRING,
                             defaultValue: "foo",
                             exemptFromNormalization: true
                         }
@@ -126,7 +126,7 @@ class Extension {
                     arguments: {
                         LAMBDA: Lambda.Argument,
                         ARG: {
-                            type: ArgumentType.String,
+                            type: ArgumentType.STRING,
                             defaultValue: "foo",
                             exemptFromNormalization: true
                         }
