@@ -26,11 +26,15 @@ function span(text) {
     return el
 }
 
+async function runCode(x, ...args) {
+    return await Object.getPrototypeOf(function*() {}).constructor(`yield* ${x}`)(...args);
+}
+
 class LambdaType {
     customId = "jwLambda"
 
     constructor(func = function*() {}) {
-        this.func = func
+        this.func = String(func)
     }
 
     static toLambda(x) {
@@ -43,12 +47,16 @@ class LambdaType {
     }
 
     toString() {
-        return `${this.func}`
+        return this.func
     }
 
     execute = function* (arg, thread, target, runtime, stage) {
         try {
-            return (yield* this.func(arg, thread, target, runtime, stage) ?? "")
+            thread._jwLambdaArgument ??= []
+            thread._jwLambdaArgument.push(arg)
+            let output = (yield* runCode(this.func, arg, thread, target, runtime, stage) ?? "")
+            thread._jwLambdaArgument.pop()
+            return output
         } catch (e) {
             console.warn("Lambda failed", e)
             return ""
@@ -75,8 +83,8 @@ class Extension {
         vm.jwLambda = Lambda
         vm.runtime.registerSerializer(
             "jwLambda", 
-            v => null, 
-            v => new Lambda.Type("")
+            v => v.func, 
+            v => new Lambda.Type(v.func)
         );
         vm.runtime.registerCompiledExtensionBlocks('jwLambda', this.getCompileInfo());
     }
@@ -178,10 +186,7 @@ class Extension {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
                     compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {';
-                    compiler.source += 'thread._jwLambdaArgument ??= [];\n';
-                    compiler.source += 'thread._jwLambdaArgument.push(arg);\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += 'thread._jwLambdaArgument.pop();\n';
                     compiler.source += '}))';
                     const returns = compiler.source;
                     compiler.source = temp;
