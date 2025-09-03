@@ -122,7 +122,7 @@ class Extension {
                         </value>
                     </block>
                     `
-                }
+                },
                 {
                     opcode: 'execute',
                     text: 'execute [LAMBDA] with [ARG]',
