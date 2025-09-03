@@ -30,7 +30,7 @@ class LambdaType {
     customId = "jwLambda"
 
     constructor(func = function*() {}) {
-        this.func = String(func)
+        this.func = func
     }
 
     static toLambda(x) {
@@ -89,7 +89,8 @@ class Extension {
         return {
             id: "jwLambda",
             name: "Lambda",
-            color1: "#aa2233",
+            color1: "#e9b",
+            blockText: "#661122",
             blocks: [
                 {
                     opcode: 'arg',
