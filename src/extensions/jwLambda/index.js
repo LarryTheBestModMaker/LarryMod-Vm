@@ -146,12 +146,12 @@ class Extension {
                 execute: (generator, block) => ({
                     kind: 'stack',
                     lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    data: generator.descendInputOfBlock(block, 'DATA')
+                    arg: generator.descendInputOfBlock(block, 'ARG')
                 }),
                 executeR: (generator, block) => ({
                     kind: 'input',
                     lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    data: generator.descendInputOfBlock(block, 'DATA')
+                    arg: generator.descendInputOfBlock(block, 'ARG')
                 }),
             },
             js: {
@@ -168,10 +168,10 @@ class Extension {
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
                 },
                 execute: (node, compiler, imports) => {
-                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.data).asUnknown()}, thread, target, runtime, stage)`
+                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage)`
                 },
                 executeR: (node, compiler, imports) => {
-                    return new imports.TypedInput(`yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.data).asUnknown()}, thread, target, runtime, stage)`)
+                    return new imports.TypedInput(`yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage)`)
                 }
             }
         }
