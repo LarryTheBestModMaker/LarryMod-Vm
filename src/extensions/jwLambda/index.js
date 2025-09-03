@@ -43,7 +43,7 @@ class LambdaType {
     }
 
     toString() {
-        return this.func
+        return `${this.func}`
     }
 
     execute = function* (arg, thread, target, runtime, stage) {
@@ -89,8 +89,8 @@ class Extension {
         return {
             id: "jwLambda",
             name: "Lambda",
-            color1: "#ee99bb",
-            blockText: "#661122",
+            color1: "#ff6da7",
+            blockText: "#330000",
             blocks: [
                 {
                     opcode: 'arg',
