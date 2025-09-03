@@ -29,9 +29,8 @@ function span(text) {
 class LambdaType {
     customId = "jwLambda"
 
-    constructor(util) {
-        this.firstBlockId = util ? util.thread.blockContainer.getBranch(util.thread.peekStack(), 0) : ""
-        this.targetBlockLocation = util.target
+    constructor(func = function*() {}) {
+        this.func = func
     }
 
     static toLambda(x) {
@@ -44,15 +43,15 @@ class LambdaType {
     }
 
     toString() {
-        return `Lambda`
+        return `${this.func}`
     }
-    toMonitorContent = () => span(this.toString())
-    toReporterContent = () => span(this.toString())
 
-    execute(target, arg) {
-        if (this.firstBlockId) {
-            let thread = vm.runtime._pushThread(this.firstBlockId, target, {targetBlockLocation: this.targetBlockLocation})
-            util.thread.stackFrames[0].jwLambda = arg
+    execute = function* (arg, thread, target, runtime, stage) {
+        try {
+            return (yield* this.func(arg, thread, target, runtime, stage) ?? "")
+        } catch (e) {
+            console.warn("Lambda failed", e)
+            return ""
         }
     }
 }
@@ -79,13 +78,15 @@ class Extension {
             v => null, 
             v => new Lambda.Type("")
         );
+        vm.runtime.registerCompiledExtensionBlocks('jwLambda', this.getCompileInfo());
     }
 
     getInfo() {
         return {
             id: "jwLambda",
             name: "Lambda",
-            color1: "#555555",
+            color1: "#a23",
+            blockText: "#fff",
             blocks: [
                 {
                     opcode: 'arg',
@@ -98,12 +99,12 @@ class Extension {
                 {
                     opcode: 'newLambda',
                     text: 'new lambda [ARG]',
-                    branchCount: 1,
                     arguments: {
                         ARG: {
                             fillIn: 'arg'
                         }
                     },
+                    branches: [{}],
                     ...Lambda.Block
                 },
                 {
@@ -117,24 +118,79 @@ class Extension {
                             exemptFromNormalization: true
                         }
                     }
+                },
+                {
+                    opcode: 'executeR',
+                    text: 'execute [LAMBDA] with [ARG]',
+                    blockType: BlockType.REPORTER,
+                    allowDropAnywhere: true,
+                    arguments: {
+                        LAMBDA: Lambda.Argument,
+                        ARG: {
+                            type: ArgumentType.String,
+                            defaultValue: "foo",
+                            exemptFromNormalization: true
+                        }
+                    }
                 }
             ]
         };
     }
 
+    getCompileInfo() {
+        return {
+            ir: {
+                newLambda: (generator, block) => ({
+                    kind: 'input',
+                    substack: generator.descendSubstack(block, 'SUBSTACK')
+                }),
+                execute: (generator, block) => ({
+                    kind: 'stack',
+                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                    data: generator.descendInputOfBlock(block, 'DATA')
+                }),
+                executeR: (generator, block) => ({
+                    kind: 'input',
+                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                    data: generator.descendInputOfBlock(block, 'DATA')
+                }),
+            },
+            js: {
+                newLambda: (node, compiler, imports) => {
+                    const temp = compiler.source;
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {';
+                    compiler.source += 'thread._ringStackData ??= [];\n';
+                    compiler.source += 'thread._ringStackData.push(arg);\n';
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
+                    compiler.source += 'thread._ringStackData.pop();\n';
+                    compiler.source += '}))';
+                    const returns = compiler.source;
+                    compiler.source = temp;
+                    return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
+                },
+                execute: (node, compiler, imports) => {
+                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.data).asUnknown()}, thread, target, runtime, stage)`
+                },
+                executeR: (node, compiler, imports) => {
+                    return new imports.TypedInput(`yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.data).asUnknown()}, thread, target, runtime, stage)`)
+                }
+            }
+        }
+    }
+
     arg({}, util) {
-        let lambda = util.thread.stackFrames[0].jwLambda
-        return lambda ?? ""
+        return util.thread._jwLambdaArgument ? util.thread._jwLambdaArgument[util.thread._jwLambdaArgument.length-1] : ""
     }
 
-    newLambda({}, util) {
-        return new Lambda.Type(util)
+    newLambda() {
+        return 'noop'
     }
 
-    execute({LAMBDA, ARG}, util) {
-        LAMBDA = Lambda.Type.toLambda(LAMBDA)
-
-        LAMBDA.execute(util.target, ARG)
+    execute() {
+        return 'noop'
+    }
+    executeR() {
+        return 'noop'
     }
 }
 
