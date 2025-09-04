@@ -149,7 +149,7 @@ class Extension {
                     blockType: BlockType.REPORTER,
                     blockShape: BlockShape.SQUARE,
                     arguments: {
-                        FIELD: (!!vm.runtime.ext_SPjavascriptV2 && typeof ScratchBlocks === "object" && !(/^((?!chrome|android).)*safari/i.test(navigator.userAgent))) ? {
+                        FIELD: typeof ScratchBlocks === "object" ? {
                             type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
                             defaultValue: "function* (arg, thread, target, runtime, stage) {\n  return 1;\n}"
                         } : {
