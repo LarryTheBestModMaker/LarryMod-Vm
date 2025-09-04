@@ -168,8 +168,8 @@ class Extension {
                         }
                     },
                     ...Lambda.Block
-                }
-                "---"
+                },
+                "---",
                 {
                     opcode: 'execute',
                     text: 'execute [LAMBDA] with [ARG]',
