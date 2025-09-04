@@ -26,6 +26,13 @@ function span(text) {
     return el
 }
 
+function getFunction(x) {
+    try {
+        let func = (new Function(`return ${x}`))()
+        if (Object.getPrototypeOf(func) == Object.getPrototypeOf(function*() {})) return func
+    } catch {}
+}
+
 class LambdaType {
     customId = "jwLambda"
 
@@ -85,6 +92,10 @@ class Extension {
         vm.runtime.registerCompiledExtensionBlocks('jwLambda', this.getCompileInfo());
     }
 
+    get rawLambdaAvailable() {
+        return vm.runtime.ext_SPjavascriptV2?.isEditorUnsandboxed
+    }
+
     getInfo() {
         return {
             id: "jwLambda",
@@ -131,6 +142,34 @@ class Extension {
                     </block>
                     `
                 },
+                {
+                    opcode: 'rawLambdaInput',
+                    text: '[FIELD]',
+                    hideFromPalette: true,
+                    blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.SQUARE,
+                    arguments: {
+                        FIELD: (this.rawLambdaAvailable && typeof ScratchBlocks === "object" && !(/^((?!chrome|android).)*safari/i.test(navigator.userAgent))) ? {
+                            type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
+                            defaultValue: "function* (arg, thread, target, runtime, stage) {\n  return 1;\n}"
+                        } : {
+                            type: ArgumentType.STRING,
+                            defaultValue: "function* (arg, thread, target, runtime, stage) { return 1; }"
+                        }
+                    }
+                }
+                {
+                    opcode: 'rawLambda',
+                    text: 'new lambda [RAW]',
+                    hideFromPalette: !this.rawLambdaAvailable,
+                    arguments: {
+                        RAW: {
+                            fillIn: "rawLambdaInput"
+                        }
+                    },
+                    ...Lambda.Block
+                }
+                "---"
                 {
                     opcode: 'execute',
                     text: 'execute [LAMBDA] with [ARG]',
@@ -205,6 +244,15 @@ class Extension {
 
     newLambda() {
         return 'noop'
+    }
+
+    rawLambdaInput({FIELD}) {
+        return FIELD
+    }
+    rawLambda({RAW}) {
+        if (!this.rawLambdaAvailable) return new Lambda.Type()
+        let func = getFunction(Cast.toString(RAW))
+        return new Lambda.Type(func)
     }
 
     execute() {
