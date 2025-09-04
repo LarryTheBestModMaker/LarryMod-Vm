@@ -149,19 +149,16 @@ class Extension {
                     blockType: BlockType.REPORTER,
                     blockShape: BlockShape.SQUARE,
                     arguments: {
-                        FIELD: typeof ScratchBlocks === "object" ? {
+                        FIELD: {
                             type: ArgumentType.CUSTOM, id: "SPjavascriptV2-codeEditor",
                             defaultValue: "function* (arg, thread, target, runtime, stage) {\n  return 1;\n}"
-                        } : {
-                            type: ArgumentType.STRING,
-                            defaultValue: "function* (arg, thread, target, runtime, stage) { return 1; }"
                         }
                     }
                 },
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
-                    hideFromPalette: !this.rawLambdaAvailable,
+                    hideFromPalette: !this.rawLambdaAvailable || !(typeof ScratchBlocks === "object"),
                     arguments: {
                         RAW: {
                             fillIn: "rawLambdaInput"
