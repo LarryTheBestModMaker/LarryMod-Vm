@@ -157,7 +157,7 @@ class Extension {
                             defaultValue: "function* (arg, thread, target, runtime, stage) { return 1; }"
                         }
                     }
-                }
+                },
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
