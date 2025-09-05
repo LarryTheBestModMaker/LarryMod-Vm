@@ -50,7 +50,21 @@ class LambdaType {
     }
 
     toString() {
-        return `${this.func}`
+        return this.func.toString()
+    }
+
+    toReporterContent() {
+        let root = span(this.toString())
+        root.style.display = "block"
+        root.style.maxWidth = "600px"
+        root.style.textAlign = "left"
+        root.style.backgroundColor = "#222"
+        root.style.padding = "4px"
+        root.style.borderRadius = "4px"
+        root.style.fontFamily = "monospace"
+        root.style.fontSize = "14px"
+        root.style.color = "#fff"
+        return root
     }
 
     execute = function* (arg, thread, target, runtime, stage) {
@@ -100,8 +114,7 @@ class Extension {
         return {
             id: "jwLambda",
             name: "Lambda",
-            color1: "#ff6da7",
-            blockText: "#330000",
+            color1: "#c71a4b",
             blocks: [
                 {
                     opcode: 'arg',
@@ -218,7 +231,7 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
                     compiler.source += '}))';
                     const returns = compiler.source;
