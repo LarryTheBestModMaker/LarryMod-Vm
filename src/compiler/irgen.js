@@ -1141,6 +1141,27 @@ class ScriptTreeGenerator {
                 whenTrue: this.descendSubstack(block, 'SUBSTACK'),
                 whenFalse: this.descendSubstack(block, 'SUBSTACK2')
             };
+        case 'control_expandableIf': {
+            const hasElse = block.mutation['ends-in-else'] === 'true';
+            const inputs = Object.values(block.inputs);
+            const branches = [];
+
+            for (var i = 0; i < inputs.length; i++) {
+                branches.push([
+                    this.descendInputOfBlock(block, inputs[i].name),
+                    this.descendSubstack(block, 'SUBSTACK' + i)
+                ]);
+            }
+            if (hasElse) branches.push([
+                undefined,
+                this.descendSubstack(block, 'SUBSTACK' + inputs.length)
+            ]);
+
+            return {
+                kind: 'control.expandableIf',
+                branches
+            };
+        }
         case 'control_try_catch':
             return {
                 kind: 'control.trycatch',
