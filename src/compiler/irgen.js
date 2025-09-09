@@ -1143,21 +1143,17 @@ class ScriptTreeGenerator {
             };
         case 'control_expandableIf': {
             const branchCount = Number(block.mutation.branches);
-            const inputs = Object.values(block.inputs);
             const branches = Array(branchCount).fill(null);
 
-            let counter = 0;
-            for (var i = 0; i < inputs.length; i++) {
-                const name = inputs[i].name;
-                const prevName = inputs[i - 1]?.name ?? '';
-                if (name.startsWith('SUBSTACK')) {
-                    branches[counter] = [
-                      prevName.startsWith('SUBSTACK') ? null : this.descendInputOfBlock(block, prevName),
-                      this.descendSubstack(block, 'SUBSTACK' + i)
-                    ];
-                    counter++;
-                }
+            for (var i = 1; i < branchCount + 1; i++) {
+                const name = 'SUBSTACK' + i;
+                const boolName = 'BOOL' + i;
+                branches[i - 1] = [
+                  this.descendInputOfBlock(block, boolName),
+                  this.descendSubstack(block, name)
+                ];
             }
+
             return {
                 kind: 'control.expandableIf',
                 branches
