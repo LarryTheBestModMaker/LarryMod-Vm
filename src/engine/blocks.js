@@ -949,8 +949,6 @@ class Blocks {
      * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block
      */
     deleteBlock (blockId, preserveStack) {
-        // @todo In runtime, stop threads running on this script.
-
         // Get block
         const block = this._blocks[blockId];
         if (!block) {
