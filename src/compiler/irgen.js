@@ -1142,21 +1142,22 @@ class ScriptTreeGenerator {
                 whenFalse: this.descendSubstack(block, 'SUBSTACK2')
             };
         case 'control_expandableIf': {
-            const hasElse = block.mutation['ends-in-else'] === 'true';
+            const branchCount = Number(block.mutation.branches);
             const inputs = Object.values(block.inputs);
-            const branches = [];
+            const branches = Array(branchCount).fill(null);
 
+            let counter = 0;
             for (var i = 0; i < inputs.length; i++) {
-                branches.push([
-                    this.descendInputOfBlock(block, inputs[i].name),
-                    this.descendSubstack(block, 'SUBSTACK' + i)
-                ]);
+                const name = inputs[i].name;
+                const prevName = inputs[i - 1]?.name ?? '';
+                if (name.startsWith('SUBSTACK')) {
+                    branches[counter] = [
+                      prevName.startsWith('SUBSTACK') ? null : this.descendInputOfBlock(block, prevName),
+                      this.descendSubstack(block, 'SUBSTACK' + i)
+                    ];
+                    counter++;
+                }
             }
-            if (hasElse) branches.push([
-                undefined,
-                this.descendSubstack(block, 'SUBSTACK' + inputs.length)
-            ]);
-
             return {
                 kind: 'control.expandableIf',
                 branches
