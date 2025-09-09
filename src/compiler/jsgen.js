@@ -1263,7 +1263,7 @@ class JSGenerator {
             }
             this.source += `}\n`;
             break;
-        case 'control_expandableIf': {
+        case 'control.expandableIf': {
             const branches = node.branches;
             for (let i = 0; i < branches.length; i++) {
                 const branch = branches[i];
