@@ -1281,7 +1281,7 @@ class JSGenerator {
                     if (isElse) this.source += `{\n`;
                     else this.source += `(${this.descendInput(branch[0]).asBoolean()}) {\n`;
 
-                    if (branch[1][0]) this.descendStack(branch[1], new exp.Frame(false, 'control.if'));
+                    if (branch[1][0]) this.descendStack(branch[1], new Frame(false, 'control.if'));
                     this.source += `} `;
                 }
             }
