@@ -2459,7 +2459,7 @@ class IRGenerator {
         const result = generator.generate(topBlockId);
         this.addProcedureDependencies(result.dependedProcedures);
         if (this.debug) {
-            log.info(`IR: script tree compiled`, result);
+            log.info(`IR: ${this.target.getName()}: compiled`, result);
         }
         return result;
     }
