@@ -1047,7 +1047,7 @@ class ScriptTreeGenerator {
                 kind: 'your mom'
             };
         case 'argument_reporter_command': {
-            this.script.yields = true;
+            // see argument_reporter_string_number above
             const name = block.fields.VALUE.value;
             const index = this.script.arguments.lastIndexOf(name);
             return {
