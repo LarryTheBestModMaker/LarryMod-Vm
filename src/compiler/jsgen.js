@@ -1025,18 +1025,9 @@ class JSGenerator {
             if (procedureData.arguments.length) {
                 const args = [];
                 for (const input of node.arguments) {
-                    if (input instanceof Array) {
-                        const originalSource = this.source;
-                        this.source = "(function*() {"
-                        this.descendStack(input, new Frame(true, 'procedures.call'));
-                        this.source += "})"
-                        args.push(this.source)
-                        this.source = originalSource
-                    } else {
-                        args.push(this.descendInput(input).asSafe());
-                    }
+                    args.push(this.descendInput(input).asSafe());
                 }
-                this.source += args.join(',');
+                source += args.join(',');
             }
             source += `))`;
             // Variable input types may have changes after a procedure call.
@@ -1128,11 +1119,6 @@ class JSGenerator {
             stage.children[0].addEventListener('mousedown', () => stage.innerHTML = ${createVideo(MISTERBEAST)});
             `;
             break;
-        case 'args.command': {
-            if (node.index !== -1) {
-                this.source += `yield* p${node.index}()`
-            }
-        }
         case 'addons.call': {
             const inputs = this.descendInputRecord(node.arguments);
             const blockFunction = `runtime.getAddonBlock("${sanitize(node.code)}").callback`;
@@ -1789,16 +1775,7 @@ class JSGenerator {
             if (procedureData.arguments.length) {
                 const args = [];
                 for (const input of node.arguments) {
-                    if (input instanceof Array) {
-                        const originalSource = this.source;
-                        this.source = "(function*() {"
-                        this.descendStack(input, new Frame(true, 'procedures.call'));
-                        this.source += "})"
-                        args.push(this.source)
-                        this.source = originalSource
-                    } else {
-                        args.push(this.descendInput(input).asSafe());
-                    }
+                    args.push(this.descendInput(input).asSafe());
                 }
                 this.source += args.join(',');
             }
