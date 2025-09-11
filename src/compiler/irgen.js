@@ -2418,6 +2418,8 @@ class IRGenerator {
         this.procedures = {};
 
         this.analyzedProcedures = [];
+        
+        this.debug = this.blocks.runtime.debug;
     }
 
     static _extensionIRInfo = {};
@@ -2456,6 +2458,9 @@ class IRGenerator {
     generateScriptTree (generator, topBlockId) {
         const result = generator.generate(topBlockId);
         this.addProcedureDependencies(result.dependedProcedures);
+        if (this.debug) {
+            log.info(`IR: ${this.target.getName()}: compiled`, result);
+        }
         return result;
     }
 
