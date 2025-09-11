@@ -1132,7 +1132,6 @@ class JSGenerator {
             if (node.index !== -1) {
                 this.source += `yield* p${node.index}()`
             }
-            break;
         }
         case 'addons.call': {
             const inputs = this.descendInputRecord(node.arguments);
