@@ -1130,7 +1130,7 @@ class JSGenerator {
             break;
         case 'args.command': {
             if (node.index !== -1) {
-                this.source += `yield* p${node.index}()`
+                this.source += `yield* p${node.index}();\n`
             }
             break;
         }
