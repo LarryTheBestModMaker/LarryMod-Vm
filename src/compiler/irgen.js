@@ -90,8 +90,6 @@ class ScriptTreeGenerator {
         this.variableCache = {};
 
         this.usesTimer = false;
-
-        this.debug = this.runtime.debug;
     }
 
     setProcedureVariant (procedureVariant) {
@@ -2420,6 +2418,8 @@ class IRGenerator {
         this.procedures = {};
 
         this.analyzedProcedures = [];
+        
+        this.debug = this.blocks.runtime.debug;
     }
 
     static _extensionIRInfo = {};
@@ -2458,6 +2458,9 @@ class IRGenerator {
     generateScriptTree (generator, topBlockId) {
         const result = generator.generate(topBlockId);
         this.addProcedureDependencies(result.dependedProcedures);
+        if (this.debug) {
+            log.info(`IR: script tree compiled`, result);
+        }
         return result;
     }
 
@@ -2524,10 +2527,6 @@ class IRGenerator {
         const ir = new IntermediateRepresentation();
         ir.entry = entry;
         ir.procedures = this.procedures;
-
-        if (this.debug) {
-            log.info(`IR: script tree compiled`, ir);
-        }
         return ir;
     }
     
