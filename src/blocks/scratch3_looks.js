@@ -53,6 +53,8 @@ class Scratch3LooksBlocks {
             }
         };
 
+        this.currentBubbleProps = {}
+
         // Reset all bubbles on start/stop
         this.runtime.on('PROJECT_STOP_ALL', this._onResetBubbles);
         this.runtime.on('targetWasRemoved', this._onTargetWillExit);
@@ -145,15 +147,37 @@ class Scratch3LooksBlocks {
     _setBubbleProperty (target, props, value) {
         const object = this._getBubbleState(target);
         if (!object.props) object.props = this.defaultBubble;
+        if (!this.currentBubbleProps[target]) this.currentBubbleProps[target] = {};
+        if (!this.currentBubbleProps[target].props) this.currentBubbleProps[target].props = this.defaultBubble;
         props.forEach((prop, index) => {
             if (prop.startsWith('COLORS')) {
                 object.props.COLORS[prop.split('.')[1]] = value[index];
+                this.currentBubbleProps[target].props.COLORS[prop.split('.')[1]] = value[index];
             } else {
                 object.props[prop] = value[index];
+                this.currentBubbleProps[target].props[prop] = value[index];
             }
         });
 
         target.setCustomState(Scratch3LooksBlocks.STATE_KEY, object);
+    }
+
+    _getBubbleProperty (target, prop) {
+        let currentBubblePropsObject;
+        if (this.currentBubbleProps[target]) {
+            if (this.currentBubbleProps[target].props) {
+                currentBubblePropsObject = this.currentBubbleProps[target].props;
+            } else {
+                currentBubblePropsObject = this.defaultBubble;
+            }
+        } else {
+            currentBubblePropsObject = this.defaultBubble;
+        }
+        if (prop == 'COLORS') {
+            return currentBubblePropsObject.COLORS;
+        } else {
+            return currentBubblePropsObject[prop];
+        }
     }
 
     /**
@@ -393,8 +417,8 @@ class Scratch3LooksBlocks {
             looks_getAllSpritesVisible: this.getAllSpritesVisible,
             looks_getcostumelength: this.getCostumeLength,
             looks_getbackdroplength: this.getBackdropLength,
-            looks_sayColor: (_, util) => {console.log(this._getBubbleState(util.target))},
-            looks_sayOther: () => {},
+            looks_sayColor: this.getColor,
+            looks_sayOther: this.getShape,
         };
     }
 
@@ -1049,6 +1073,20 @@ class Scratch3LooksBlocks {
     getBackdropLength () {
         const Stage = this.runtime._stageTarget
         return Stage.getCostumes().length
+    }
+
+    getColor (args, util) {
+        return this._getBubbleProperty(
+            util.target,
+            'COLORS'
+        )[args.prop];
+    }
+    getShape (args, util) {
+        if (args.prop == "texlim") return this.SAY_BUBBLE_LIMIT;
+        return this._getBubbleProperty(
+            util.target,
+            [args.prop]
+        );
     }
 }
 
