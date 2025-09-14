@@ -393,6 +393,8 @@ class Scratch3LooksBlocks {
             looks_getAllSpritesVisible: this.getAllSpritesVisible,
             looks_getcostumelength: this.getCostumeLength,
             looks_getbackdroplength: this.getBackdropLength,
+            looks_sayColor: (_, util) => {console.log(this._getBubbleState(util.target))},
+            looks_sayOther: () => {},
         };
     }
 

@@ -184,6 +184,8 @@ const outputBlocks = [
     'sound_isSoundPaused',
     'operator_strictlyContains',
     'operator_strictlyEquals',
+    'looks_sayColor',
+    'looks_sayOther',
 ];
 
 module.exports = {
