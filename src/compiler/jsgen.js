@@ -1265,6 +1265,30 @@ class JSGenerator {
             }
             this.source += `}\n`;
             break;
+        case 'control.expandableIf': {
+            const branches = node.branches;
+            for (let i = 0; i < branches.length; i++) {
+                const branch = branches[i];
+                const isFirst = i === 0, isLast = i + 1 === branches.length;
+                const isElse = branch[0].value === null;
+
+                if (isFirst) this.source += `if `;
+                else if (isLast && isElse) this.source += `else `;
+                else this.source += `else if `;
+
+                if (branch === null) {
+                    if (isLast && isElse) this.source += `{}\n`;
+                    else this.source += `(false) {}\n`;
+                } else {
+                    if (isElse) this.source += `{\n`;
+                    else this.source += `(${this.descendInput(branch[0]).asBoolean()}) {\n`;
+
+                    if (branch[1][0]) this.descendStack(branch[1], new Frame(false, 'control.if'));
+                    this.source += `} `;
+                }
+            }
+            break;
+        }
         case 'control.trycatch':
             this.source += `try {\n`;
             this.descendStack(node.try, new Frame(false, 'control.trycatch'));

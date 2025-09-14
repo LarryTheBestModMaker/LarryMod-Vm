@@ -14,6 +14,16 @@ function span(text) {
     return el
 }
 
+const escapeHTML = unsafe => {
+    return unsafe
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;")
+};
+
+
 class jwTargetType {
     customId = "jwTargets"
 
@@ -31,7 +41,7 @@ class jwTargetType {
 
     jwArrayHandler() {
         try {
-            return `Target<${this.target.sprite.name}>`
+            return escapeHTML(`Target<${this.target.sprite.name}>`)
         } catch {
             return `Target`
         }

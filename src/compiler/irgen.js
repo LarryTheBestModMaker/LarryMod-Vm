@@ -146,7 +146,7 @@ class ScriptTreeGenerator {
             log.warn(`IR: ${parentBlock.opcode}: missing input ${inputName}`, parentBlock);
             return {
                 kind: 'constant',
-                value: 0
+                value: null
             };
         }
         const inputId = input.block;
@@ -155,7 +155,7 @@ class ScriptTreeGenerator {
             log.warn(`IR: ${parentBlock.opcode}: could not find input ${inputName} with ID ${inputId}`);
             return {
                 kind: 'constant',
-                value: 0
+                value: null
             };
         }
 
@@ -1150,6 +1150,24 @@ class ScriptTreeGenerator {
                 whenTrue: this.descendSubstack(block, 'SUBSTACK'),
                 whenFalse: this.descendSubstack(block, 'SUBSTACK2')
             };
+        case 'control_expandableIf': {
+            const branchCount = Number(block.mutation.branches);
+            const branches = Array(branchCount).fill(null);
+
+            for (var i = 1; i < branchCount + 1; i++) {
+                const name = 'SUBSTACK' + i;
+                const boolName = 'BOOL' + i;
+                branches[i - 1] = [
+                  this.descendInputOfBlock(block, boolName),
+                  this.descendSubstack(block, name)
+                ];
+            }
+
+            return {
+                kind: 'control.expandableIf',
+                branches
+            };
+        }
         case 'control_try_catch':
             return {
                 kind: 'control.trycatch',

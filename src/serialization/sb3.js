@@ -131,6 +131,22 @@ const uniteReplacments = {
 const ExtensionPatches = {
     "griffpatch": {id: 'griffpatch', url: 'https://extensions.turbowarp.org/box2d.js'},
     // "cloudlink": {id: 'cloudlink', url: 'https://extensions.turbowarp.org/cloudlink.js'},
+    // maybe this patch should be moved outside of something called **Extension**Patches but i dont know
+    "operators": (_, object) => { // fix expandable join using the wrong prefix
+        let blocks = object.blocks;
+        const blockIDs = Object.keys(blocks);
+
+        for (let block, idx = 0; idx < blockIDs.length; idx++) {
+            block = blocks[blockIDs[idx]];
+            if (typeof block !== 'object' || Array.isArray(block)) continue;
+
+            if (block.opcode === "operators_expandablejoininputs") {
+                block.opcode = "operator_expandablejoininputs";
+            }
+            blocks[blockIDs[idx]] = block;
+        }
+        object.blocks = blocks;
+    },
     "jwUnite": (extensions, object, runtime) => {
         extensions.extensionIDs.delete("jwUnite");
         let blocks = object.blocks;
@@ -609,8 +625,12 @@ const makeSafeForJSON = (runtime, value) => {
         let copy = null;
         for (let i = 0; i < value.length; i++) {
             if (value[i].customId) {
-                const {serialize} = runtime.serializers[value[i].customId];
-                value[i] = serialize(value[i]);
+                if (!copy) {
+                    // Only copy the list when needed
+                    copy = value.slice();
+                }
+                const {serialize} = runtime.serializers[copy[i].customId];
+                copy[i] = serialize(copy[i]);
             }
             if (!isVariableValueSafeForJSON(value[i])) {
                 if (!copy) {
