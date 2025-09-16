@@ -210,10 +210,10 @@ class Extension {
             const descendInput = vm.exports.JSGenerator.prototype.descendInput
             vm.exports.JSGenerator.prototype.descendInput = function(node, visualReport) {
                 const TypedInput = vm.exports.JSGenerator.getExtensionImports().TypedInput
-                const nodeArg = node.filter(v => v instanceof TypedInput)
+                const nodeArg = "{" + Object.entries(node).filter(x => x[1] instanceof TypedInput).map(x => `${JSON.stringify(x[0])}: ${x[1].source}`).join(", ") + "}"
                 if (node.kind !== "visualReport") node = Object.fromEntries(Object.entries(node).map(x => [x[0], !(x[1] instanceof TypedInput) ? x[1] : new TypedInput(`node.${x[0]}`, x[1].type)]))
                 let output = descendInput.call(this, node, visualReport)
-                return new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}))`, output.type)
+                return new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg}))`, output.type)
             }
         }
     }
