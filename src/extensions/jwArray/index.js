@@ -167,6 +167,7 @@ const jwArray = {
         check: ["Array"]
     },
     compilerModification: function* (func, node) {
+        console.debug(func, node)
         for (let [i, input] of Object.entries(node)) {
             if (input instanceof jwArray.Type) {
                 const array = input.array
