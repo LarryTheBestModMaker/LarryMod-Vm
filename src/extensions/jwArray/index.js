@@ -213,7 +213,7 @@ class Extension {
                 const descendInput = vm.exports.JSGenerator.prototype.descendInput
 
                 const goodThing = x => typeof x == 'object' && x !== null && x.kind
-                const nodeArg = "{" + Object.entries(node).filter(x => goodThing(x[1])).map(x => `${JSON.stringify(x[0])}: ${descendInput(x[1]).asUnknown()}`).join(", ") + "}"
+                const nodeArg = "{" + Object.entries(node).filter(x => goodThing(x[1])).map(x => `${JSON.stringify(x[0])}: ${descendInput.call(this, x[1]).asUnknown()}`).join(", ") + "}"
                 if (node.kind !== "visualReport") node = Object.fromEntries(Object.entries(node).map(x => [x[0], goodThing(x[1]) ? {kind: 'constant', value: `node.${x[0]}`} : x[1]]))
                 
                 let output = oldDescendInput.call(this, node, visualReport)
