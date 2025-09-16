@@ -2398,7 +2398,7 @@ class ScriptTreeGenerator {
         }
 
         if (this.debug) {
-            log.info(`IR: ${this.target.getName()}: compiled ${this.script.procedureCode || 'script'}`, factory);
+            log.info(`IR: ${this.target.getName()}: compiled ${this.script.procedureCode || 'script'}`, this.script);
         }
 
         return this.script;
