@@ -90,6 +90,8 @@ class ScriptTreeGenerator {
         this.variableCache = {};
 
         this.usesTimer = false;
+
+        this.debug = this.runtime.debug;
     }
 
     setProcedureVariant (procedureVariant) {
@@ -2393,6 +2395,10 @@ class ScriptTreeGenerator {
             if (entryBlock) {
                 this.script.stack = this.walkStack(entryBlock);
             }
+        }
+
+        if (this.debug) {
+            log.info(`IR: ${this.target.getName()}: compiled ${this.script.procedureCode || 'script'}`, factory);
         }
 
         return this.script;
