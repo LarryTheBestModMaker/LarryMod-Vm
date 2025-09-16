@@ -165,6 +165,20 @@ const jwArray = {
     Argument: {
         shape: BlockShape.SQUARE,
         check: ["Array"]
+    },
+    compilerModification: function* (func, node) {
+        for (let [i, input] of Object.entries(node)) {
+            if (input instanceof jwArray.Type) {
+                const array = input.array
+                let output = []
+                for (let v of array) {
+                    node[i] = v
+                    output.push(yield* jwArray.compilerModification(func, node))
+                }
+                return jwArray.Type.toArray(output)
+            }
+        }
+        return yield* func(node)
     }
 }
 
@@ -191,6 +205,17 @@ class Extension {
             }))
         );
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
+
+        if (vm.flags && vm.flags.jwArrayCompilerModifications == true) {
+            const descendInput = vm.exports.JSGenerator.prototype.descendInput
+            vm.exports.JSGenerator.prototype.descendInput = function(node, visualReport) {
+                const TypedInput = vm.exports.JSGenerator.getExtensionImports().TypedInput
+                const nodeArg = node.filter(v => v instanceof TypedInput)
+                if (node.kind !== "visualReport") node = Object.entries(node).map([i, v] => [i, !(v instanceof TypedInput) ? v : new TypedInput(`node.${i}`, v.type)])
+                let output = descendInput.call(this, node, visualReport)
+                return new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}))`, output.type)
+            }
+        }
     }
 
     getInfo() {
