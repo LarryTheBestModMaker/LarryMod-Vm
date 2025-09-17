@@ -2031,13 +2031,14 @@ class Runtime extends EventEmitter {
                 // shaped like a hexagon
                 argJSON.check = argInfo.check || argTypeInfo.check;
             }
-            const argShape = argTypeInfo.shape || argInfo.shape;
+            const argShape = argInfo.shape;
             if (argShape) {
                 if (typeof argShape === 'number') argJSON.shape = argShape;
                 else {
                     // assume we are handling a custom shape...
                     // if it doesnt exist it will default to a null input
-                    if (!argShape.startsWith('custom-')) argJSON.shape = 'custom-' + argShape;
+                    if (argShape.startsWith('native-')) argJSON.shape = argShape;
+                    else if (!argShape.startsWith('custom-')) argJSON.shape = 'custom-' + argShape;
                     else argJSON.shape = argShape;
                 }
             }

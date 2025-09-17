@@ -47,8 +47,8 @@ class Scratch3LooksBlocks {
             LINE_HEIGHT: 16, // Spacing between each line of text
 
             COLORS: {
-                BUBBLE_FILL: 'white',
-                BUBBLE_STROKE: 'rgba(0, 0, 0, 0.15)',
+                BUBBLE_FILL: '#FFFFFF', //white
+                BUBBLE_STROKE: '#00000026',//#72aefc50 rgba(0, 0, 0, 0.15)
                 TEXT_FILL: '#575E75'
             }
         };
