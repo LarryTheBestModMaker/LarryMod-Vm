@@ -229,6 +229,24 @@ class Extension {
                 let output = oldDescendInput.call(this, node, visualReport)
                 return (output instanceof TypedInput) ? new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg}))`, output.type) : output
             }
+
+            const oldDescendStackedBlock = vm.exports.JSGenerator.prototype.descendStackedBlock
+            vm.exports.JSGenerator.prototype.descendStackedBlock = function(node) {
+                const oldSource = this.source
+                this.source = ""
+
+                const descendInput = vm.exports.JSGenerator.prototype.descendInput
+
+                const isCompat = node.kind === "compat"
+
+                const goodThing = x => typeof x == 'object' && x !== null && x.kind && !(x.compilerInfo && x.compilerInfo.jwArrayUnmodified === true)
+                const nodeArg = "{" + Object.entries(isCompat ? node.inputs : node).filter(x => goodThing(x[1])).map(x => `${JSON.stringify(x[0])}: ${descendInput.call(this, x[1]).asUnknown()}`).join(", ") + "}"
+                if (node.kind !== "visualReport") node = Object.fromEntries(Object.entries(node).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
+                if (isCompat) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
+                
+                let output = oldDescendStackedBlock.call(this, node)
+                this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg});\n`
+            }
         }
     }
 
@@ -273,7 +291,10 @@ class Extension {
                         INPUT: {
                             type: ArgumentType.STRING,
                             defaultValue: '["a", "b", "c"]',
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -309,7 +330,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     //notchAccepts: 'jwArrayBuilder'
@@ -337,7 +361,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     }
                 },
@@ -349,7 +376,10 @@ class Extension {
                         ARRAY: jwArray.Argument,
                         VALUE: {
                             type: ArgumentType.STRING,
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     }
                 },
@@ -374,7 +404,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -387,7 +420,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -409,7 +445,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
