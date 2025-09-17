@@ -244,8 +244,8 @@ class Extension {
                 if (node.kind !== "visualReport") node = Object.fromEntries(Object.entries(node).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
                 if (isCompat) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
                 
-                let output = oldDescendStackedBlock.call(this, node)
-                this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){return ${output}}, ${nodeArg});\n`
+                oldDescendStackedBlock.call(this, node)
+                this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){${this.source}}, ${nodeArg});\n`
             }
         }
     }
