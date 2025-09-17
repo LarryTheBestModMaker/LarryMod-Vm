@@ -160,11 +160,11 @@ const jwArray = {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.SQUARE,
         forceOutputType: "Array",
+        allowDropAnywhere: true,
         disableMonitor: true
     },
     Argument: {
-        shape: BlockShape.SQUARE,
-        check: ["Array"]
+        shape: BlockShape.SQUARE
     },
     compilerModification: function* (func, node) {
         node = {...node}
