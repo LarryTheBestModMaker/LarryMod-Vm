@@ -2231,6 +2231,7 @@ class ScriptTreeGenerator {
         for (const name of Object.keys(block.inputs)) {
             if (!name.startsWith('SUBSTACK')) {
                 inputs[name] = this.descendInputOfBlock(block, name);
+                if (blockInfo && blockInfo.arguments[name]) inputs[name].compilerInfo = {...(inputs[name].compilerInfo ?? {}), ...(blockInfo.arguments[name].compilerInfo ?? {})}
             }
         }
 
@@ -2259,7 +2260,8 @@ class ScriptTreeGenerator {
             blockType,
             inputs,
             fields,
-            substacks
+            substacks,
+            compilerInfo: (blockInfo && blockInfo.compilerInfo) || {}
         };
     }
 
