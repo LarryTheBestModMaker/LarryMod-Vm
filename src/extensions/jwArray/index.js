@@ -255,9 +255,8 @@ class Extension {
 
                 if (typeof node == 'string' && node.startsWith("node.")) return new TypedInput(node, vm.exports.JSGenerator.getExtensionImports().TYPE_UNKNOWN)
                 if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendInput.call(this, node, visualReport)
-                const isCompat = node.kind === "compat"
 
-                let out = recurse(node, this)
+                let out = recurse(structuredClone(node), this)
                 console.debug(out)
                 let nodeArg = out[0]
 
@@ -272,7 +271,7 @@ class Extension {
                 const oldSource = this.source
                 this.source = ""
 
-                let out = recurse(node, this)
+                let out = recurse(structuredClone(node), this)
                 let nodeArg = recurse[0]
                 node = recurse[1]
 
