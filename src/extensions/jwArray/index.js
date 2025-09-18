@@ -253,6 +253,7 @@ class Extension {
                 const isCompat = node.kind === "compat"
 
                 let out = recurse(node, this)
+                console.debug(out)
                 let nodeArg = recurse[0]
                 node = recurse[1]
 
