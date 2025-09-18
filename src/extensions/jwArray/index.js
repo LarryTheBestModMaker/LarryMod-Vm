@@ -212,19 +212,48 @@ class Extension {
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
 
         if (vm.flags && vm.flags.jwArrayCompilerModifications == true) {
+            function recurse(v, t, path = []) {
+                if (v instanceof Array) return recurseArray(v, t, path)
+                return recurseObject(v, t, path)
+            }
+            function recurseObject(v, t, path) {
+                const descendInput = vm.exports.JSGenerator.prototype.descendInput
+                return [
+                    "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
+                        let insideValue
+                        if (goodThing(x)) {
+                            insideValue = descendInput.call(t, x[1]).asUnknown()
+                        } else {
+                            let out = recurse(x[1], [...path, x[0]])
+                            insideValue = out[0]
+                            v[x[0]] = out[1]
+                        }
+                        return `${JSON.stringify(x[0])}: ${insideValue}`
+                    }).join(", ") + "}",
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path, x[0]].join(".") : x[1]]))
+                ]
+            }
+            function recurseArray(v, t, path) {
+                const descendInput = vm.exports.JSGenerator.prototype.descendInput
+                //im not gonna make this recurse because i cant be bothered and nothing does this yet
+                return [
+                    "[" + v.filter(x => goodThing(x)).map(v => descendInput.call(t, x[1]).asUnknown()).join(", ") + "]",
+                    v.map((x, i) => goodThing(x) ? ["node", ...path, `[${i}]`].join("."))
+                ]
+            }
+
             const oldDescendInput = vm.exports.JSGenerator.prototype.descendInput
             vm.exports.JSGenerator.prototype.descendInput = function(node, visualReport) {
                 const TypedInput = vm.exports.JSGenerator.getExtensionImports().TypedInput
-                const descendInput = vm.exports.JSGenerator.prototype.descendInput
 
-                if (typeof node == 'string') return new TypedInput(node, vm.exports.JSGenerator.getExtensionImports().TYPE_UNKNOWN)
+                if (typeof node == 'string' && node.startsWith("node.")) return new TypedInput(node, vm.exports.JSGenerator.getExtensionImports().TYPE_UNKNOWN)
                 if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendInput.call(this, node, visualReport)
                 const isCompat = node.kind === "compat"
 
-                const goodThing = x => typeof x == 'object' && x !== null && x.kind && !(x.compilerInfo && x.compilerInfo.jwArrayUnmodified === true)
-                const nodeArg = "{" + Object.entries(isCompat ? node.inputs : node).filter(x => goodThing(x[1])).map(x => `${JSON.stringify(x[0])}: ${descendInput.call(this, x[1]).asUnknown()}`).join(", ") + "}"
-                if (isCompat) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
-                
+                let out = recurse(node, this)
+                let nodeArg = recurse[0]
+                node = recurse[1]
+
                 let output = oldDescendInput.call(this, node, visualReport)
                 return (output instanceof TypedInput) ? new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg}))`, output.type) : output
             }
@@ -233,16 +262,13 @@ class Extension {
             vm.exports.JSGenerator.prototype.descendStackedBlock = function(node) {
                 if (node.kind === "visualReport") return oldDescendStackedBlock.call(this, node)
 
-                const descendInput = vm.exports.JSGenerator.prototype.descendInput
-                const isCompat = node.kind === "compat"
                 const oldSource = this.source
                 this.source = ""
 
-                const goodThing = x => typeof x == 'object' && x !== null && x.kind && !(x.compilerInfo && x.compilerInfo.jwArrayUnmodified === true)
-                const nodeArg = "{" + Object.entries(isCompat ? node.inputs : node).filter(x => goodThing(x[1])).map(x => `${JSON.stringify(x[0])}: ${descendInput.call(this, x[1]).asUnknown()}`).join(", ") + "}"
-                if (node.kind !== "visualReport") node = Object.fromEntries(Object.entries(node).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
-                if (isCompat) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(x => [x[0], goodThing(x[1]) ? `node.${x[0]}` : x[1]]))
-                
+                let out = recurse(node, this)
+                let nodeArg = recurse[0]
+                node = recurse[1]
+
                 oldDescendStackedBlock.call(this, node)
                 this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){${this.source}}, ${nodeArg});\n`
             }
