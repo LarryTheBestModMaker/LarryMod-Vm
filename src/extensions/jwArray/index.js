@@ -171,7 +171,6 @@ const jwArray = {
     },
     compilerModification: function* (func, node) {
         node = {...node}
-        console.debug(func, node)
         function* recurse(x) {
             for (let [i, v] of Object.entries(x)) {
                 if (v instanceof jwArray.Type) {
@@ -257,7 +256,6 @@ class Extension {
                 if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendInput.call(this, node, visualReport)
 
                 let out = recurse(structuredClone(node), this)
-                console.debug(out)
                 let nodeArg = out[0]
 
                 let output = oldDescendInput.call(this, out[1], visualReport)
@@ -272,10 +270,9 @@ class Extension {
                 this.source = ""
 
                 let out = recurse(structuredClone(node), this)
-                let nodeArg = recurse[0]
-                node = recurse[1]
+                let nodeArg = out[0]
 
-                oldDescendStackedBlock.call(this, node)
+                oldDescendStackedBlock.call(this, out[1])
                 this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){${this.source}}, ${nodeArg});\n`
             }
         }
