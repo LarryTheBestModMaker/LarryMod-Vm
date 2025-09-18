@@ -183,7 +183,7 @@ const jwArray = {
                     }
                     return jwArray.Type.toArray(output)
                 } else if (v instanceof Array) {
-                    return yield* recurse(x)
+                    return yield* recurse(v)
                 }
             }
             return yield* func(node)
