@@ -172,18 +172,23 @@ const jwArray = {
     compilerModification: function* (func, node) {
         node = {...node}
         console.debug(func, node)
-        for (let [i, input] of Object.entries(node)) {
-            if (input instanceof jwArray.Type) {
-                const array = input.array
-                let output = []
-                for (let v of array) {
-                    node[i] = v
-                    output.push(yield* jwArray.compilerModification(func, node))
+        function* recurse(x) {
+            for (let [i, v] of Object.entries(x)) {
+                if (v instanceof jwArray.Type) {
+                    const array = v.array
+                    let output = []
+                    for (let v of array) {
+                        x[i] = v
+                        output.push(yield* jwArray.compilerModification(func, node))
+                    }
+                    return jwArray.Type.toArray(output)
+                } else if (v instanceof Array) {
+                    return yield* recurse(x)
                 }
-                return jwArray.Type.toArray(output)
             }
+            return yield* func(node)
         }
-        return yield* func(node)
+        return yield* recurse(node)
     }
 }
 
