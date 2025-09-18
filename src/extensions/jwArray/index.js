@@ -228,7 +228,7 @@ class Extension {
                 return [
                     "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
                         let insideValue
-                        if (goodThing(x)) {
+                        if (goodThing(x[1])) {
                             insideValue = descendInput.call(t, x[1]).asUnknown()
                         } else {
                             let out = recurse(x[1], t, [...path, x[0]])
