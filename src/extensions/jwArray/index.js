@@ -232,9 +232,7 @@ class Extension {
                     "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
                         let insideValue
                         if (goodThing(x[1])) {
-                            try {
-                                insideValue = descendInput(x[1])
-                            }
+                            insideValue = descendInput(x[1])
                         }
                         if (!insideValue) {
                             let out = recurse(x[1], t, [...path, x[0]])
@@ -254,7 +252,7 @@ class Extension {
                 }
                 //im not gonna make this recurse because i cant be bothered and nothing does this yet
                 return [
-                    "[" + v.filter(x => goodThing(x)).map(x => descendInput(x).asUnknown()).join(", ") + "]",
+                    "[" + v.filter(x => goodThing(x)).map(x => descendInput(x)).join(", ") + "]",
                     v.map((x, i) => goodThing(x) ? ["node", ...path].join(".") + `[${i}]` : x)
                 ]
             }
