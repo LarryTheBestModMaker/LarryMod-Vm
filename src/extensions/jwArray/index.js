@@ -232,7 +232,7 @@ class Extension {
                         }
                         return `${JSON.stringify(x[0])}: ${insideValue}`
                     }).join(", ") + "}",
-                    Object.fromEntries(Object.entries(v).map(x => [x[0], (typeof x[1] === "object" && x[1] !== null) ? ["node", ...path, x[0]].join(".") : x[1]]))
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path, x[0]].join(".") : x[1]]))
                 ]
             }
             function recurseArray(v, t, path) {
@@ -254,10 +254,9 @@ class Extension {
 
                 let out = recurse(node, this)
                 console.debug(out)
-                let nodeArg = recurse[0]
-                node = recurse[1]
+                let nodeArg = out[0]
 
-                let output = oldDescendInput.call(this, node, visualReport)
+                let output = oldDescendInput.call(this, out[1], visualReport)
                 return (output instanceof TypedInput) ? new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg}))`, output.type) : output
             }
 
