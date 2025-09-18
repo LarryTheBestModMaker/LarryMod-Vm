@@ -223,13 +223,20 @@ class Extension {
                 return recurseObject(v, t, path)
             }
             function recurseObject(v, t, path) {
-                const descendInput = vm.exports.JSGenerator.prototype.descendInput
+                const descendInput = (...x) => {
+                    try {
+                        return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
+                    } catch (e) {}
+                }
                 return [
                     "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
                         let insideValue
                         if (goodThing(x[1])) {
-                            insideValue = descendInput.call(t, x[1]).asUnknown()
-                        } else {
+                            try {
+                                insideValue = descendInput(x[1])
+                            }
+                        }
+                        if (!insideValue) {
                             let out = recurse(x[1], t, [...path, x[0]])
                             insideValue = out[0]
                             v[x[0]] = out[1]
@@ -240,10 +247,14 @@ class Extension {
                 ]
             }
             function recurseArray(v, t, path) {
-                const descendInput = vm.exports.JSGenerator.prototype.descendInput
+                const descendInput = (...x) => {
+                    try {
+                        return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
+                    } catch (e) {}
+                }
                 //im not gonna make this recurse because i cant be bothered and nothing does this yet
                 return [
-                    "[" + v.filter(x => goodThing(x)).map(x => descendInput.call(t, x).asUnknown()).join(", ") + "]",
+                    "[" + v.filter(x => goodThing(x)).map(x => descendInput(x).asUnknown()).join(", ") + "]",
                     v.map((x, i) => goodThing(x) ? ["node", ...path].join(".") + `[${i}]` : x)
                 ]
             }
