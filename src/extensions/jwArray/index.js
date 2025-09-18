@@ -212,6 +212,8 @@ class Extension {
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
 
         if (vm.flags && vm.flags.jwArrayCompilerModifications == true) {
+            const goodThing = v => typeof v == "object" && v !== null && !(v instanceof Array) && v.kind && typeof v.kind == "string"
+
             function recurse(v, t, path = []) {
                 if (v instanceof Array) return recurseArray(v, t, path)
                 return recurseObject(v, t, path)
@@ -230,7 +232,7 @@ class Extension {
                         }
                         return `${JSON.stringify(x[0])}: ${insideValue}`
                     }).join(", ") + "}",
-                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path, x[0]].join(".") : x[1]]))
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], (typeof x[1] === "object" && x[1] !== null) ? ["node", ...path, x[0]].join(".") : x[1]]))
                 ]
             }
             function recurseArray(v, t, path) {
