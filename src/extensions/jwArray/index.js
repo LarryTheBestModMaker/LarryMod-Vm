@@ -228,20 +228,21 @@ class Extension {
                         return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
                     } catch (e) {}
                 }
+                
+                const descends = Object.fromEntries(Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => [x[0], goodThing(x[1]) && descendInput(x[1])]))
                 return [
                     "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
                         let insideValue
-                        if (goodThing(x[1])) {
-                            insideValue = descendInput(x[1])
-                        }
-                        if (!insideValue) {
+                        if (descends[x[0]]) {
+                            insideValue = descends[x[0]]
+                        } else if (!goodThing(x[1])) {
                             let out = recurse(x[1], t, [...path, x[0]])
                             insideValue = out[0]
                             v[x[0]] = out[1]
                         }
                         return `${JSON.stringify(x[0])}: ${insideValue}`
                     }).join(", ") + "}",
-                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path, x[0]].join(".") : x[1]]))
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], descends[x[0]] ? ["node", ...path, x[0]].join(".") : x[1]]))
                 ]
             }
             function recurseArray(v, t, path) {
@@ -250,10 +251,12 @@ class Extension {
                         return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
                     } catch (e) {}
                 }
+                const goods = v.filter(x => goodThing(x))
+                const descends = Object.fromEntries(goods.map((x, i) => [i, descendInput(x)]))
                 //im not gonna make this recurse because i cant be bothered and nothing does this yet
                 return [
-                    "[" + v.filter(x => goodThing(x)).map(x => descendInput(x)).join(", ") + "]",
-                    v.map((x, i) => goodThing(x) ? ["node", ...path].join(".") + `[${i}]` : x)
+                    "[" + goods.map((x, i) => descends[i] ?? "null").join(", ") + "]",
+                    goods.map((x, i) => descends[i] ? ["node", ...path].join(".") + `[${i}]` : x)
                 ]
             }
 
