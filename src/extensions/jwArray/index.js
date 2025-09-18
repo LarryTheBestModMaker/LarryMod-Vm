@@ -232,7 +232,7 @@ class Extension {
                         }
                         return `${JSON.stringify(x[0])}: ${insideValue}`
                     }).join(", ") + "}",
-                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path, x[0]].join(".") : x[1]]))
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], goodThing(x[1]) ? ["node", ...path].join(".") + `[${x[0]}]` : x[1]]))
                 ]
             }
             function recurseArray(v, t, path) {
