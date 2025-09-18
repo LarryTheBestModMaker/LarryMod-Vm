@@ -239,7 +239,7 @@ class Extension {
                 const descendInput = vm.exports.JSGenerator.prototype.descendInput
                 //im not gonna make this recurse because i cant be bothered and nothing does this yet
                 return [
-                    "[" + v.filter(x => goodThing(x)).map(v => descendInput.call(t, x[1]).asUnknown()).join(", ") + "]",
+                    "[" + v.filter(x => goodThing(x)).map(v => descendInput.call(t, v).asUnknown()).join(", ") + "]",
                     v.map((x, i) => goodThing(x) ? ["node", ...path, `[${i}]`].join(".") : x)
                 ]
             }
