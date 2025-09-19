@@ -321,7 +321,15 @@ class Extension {
                     },
                     extensions: ["colours_looks"],
                     filter: [TargetType.SPRITE]
-                }
+                },
+                "---",
+                {
+                    opcode: 'getMouse',
+                    text: 'mouse position',
+                    extensions: ["colours_sensing"],
+                    filter: [TargetType.SPRITE],
+                    ...Vector.Block
+                },
             ],
             menus: {
                 roundingFunctions: {
@@ -473,6 +481,10 @@ class Extension {
         VECTOR = Vector.Type.toVector(VECTOR)
 
         util.target.setStretch(VECTOR.x, VECTOR.y)
+    }
+
+    getMouse({}, util) {
+        return new Vector.Type(vm.runtime.ioDevices.mouse.getScratchX(), vm.runtime.ioDevices.mouse.getScratchY())
     }
 }
 
