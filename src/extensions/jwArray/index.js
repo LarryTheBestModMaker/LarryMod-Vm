@@ -216,7 +216,7 @@ class Extension {
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
 
         if (vm.flags && vm.flags.jwArrayCompilerModifications == true) {
-            const goodThing = v => typeof v == "object" && v !== null && !(v instanceof Array) && v.kind && typeof v.kind == "string"
+            const goodThing = v => typeof v == "object" && v !== null && !(v instanceof Array) && v.kind && typeof v.kind == "string" && !(v.compilerInfo && v.compilerInfo.jwArrayUnmodified)
 
             function recurse(v, t, path = []) {
                 if (v instanceof Array) return recurseArray(v, t, path)
