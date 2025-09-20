@@ -1660,7 +1660,7 @@ class ScriptTreeGenerator {
             const topBlock = this.getBlockById(this.thread.topBlock);
             return {
                 kind: 'procedures.return',
-                return: this.descendInputOfBlock(block, 'return'),
+                return: ScriptTreeGenerator.addCompilerInfo(this.descendInputOfBlock(block, 'return'), {jwArrayUnmodified: true}),
                 isDefineClicked: topBlock ? topBlock.opcode === "procedures_return" || topBlock.opcode.startsWith("procedures_definition") : false
             };
         }
