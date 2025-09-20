@@ -277,7 +277,7 @@ class Extension {
             const oldDescendStackedBlock = vm.exports.JSGenerator.prototype.descendStackedBlock
             vm.exports.JSGenerator.prototype.descendStackedBlock = function(node) {
                 if (node.kind === "visualReport") return oldDescendStackedBlock.call(this, node)
-                if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendInput.call(this, node)
+                if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendStackedBlock.call(this, node)
 
                 const oldSource = this.source
                 this.source = ""
