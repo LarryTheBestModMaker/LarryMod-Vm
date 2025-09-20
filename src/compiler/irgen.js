@@ -94,6 +94,16 @@ class ScriptTreeGenerator {
         this.debug = this.runtime.debug;
     }
 
+    static addCompilerInfo(ir = {}, compilerInfo = {}) {
+        ir = {...ir} //clone
+        if (ir.compilerInfo) {
+            ir.compilerInfo = {...ir.compilerInfo, ...compilerInfo}
+        } else {
+            ir.compilerInfo = compilerInfo
+        }
+        return ir
+    }
+
     setProcedureVariant (procedureVariant) {
         const procedureCode = parseProcedureCode(procedureVariant);
 
@@ -2231,7 +2241,7 @@ class ScriptTreeGenerator {
         for (const name of Object.keys(block.inputs)) {
             if (!name.startsWith('SUBSTACK')) {
                 inputs[name] = this.descendInputOfBlock(block, name);
-                if (blockInfo && blockInfo.arguments[name]) inputs[name].compilerInfo = {...(inputs[name].compilerInfo ?? {}), ...(blockInfo.arguments[name].compilerInfo ?? {})}
+                if (blockInfo && blockInfo.arguments[name]) inputs[name].compilerInfo = ScriptTreeGenerator.addCompilerInfo(inputs[name], blockInfo.arguments[name].compilerInfo)
             }
         }
 
