@@ -174,6 +174,7 @@ class Scratch3SoundBlocks {
             sound_resume: this.resumeSound,
             sound_resumeallsounds: this.resumeAllSounds,
             sound_isSoundPaused: this.isSoundPaused,
+            sound_getsoundlength: this.getSoundLength,
         };
     }
 
@@ -747,6 +748,10 @@ class Scratch3SoundBlocks {
         if (!soundBank) return false;
         
         return soundBank.isPaused(target, soundId) == true;
+    }
+
+    getSoundLength (_, util) {
+        return util.target.getSounds().length
     }
 }
 

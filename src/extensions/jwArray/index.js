@@ -160,11 +160,34 @@ const jwArray = {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.SQUARE,
         forceOutputType: "Array",
+        allowDropAnywhere: true,
         disableMonitor: true
     },
     Argument: {
         shape: BlockShape.SQUARE,
-        check: ["Array"]
+        compilerInfo: {
+            jwArrayUnmodified: true
+        }
+    },
+    compilerModification: function* (func, node) {
+        node = {...node}
+        function* recurse(x) {
+            for (let [i, v] of Object.entries(x)) {
+                if (v instanceof jwArray.Type) {
+                    const array = v.array
+                    let output = []
+                    for (let v of array) {
+                        x[i] = v
+                        output.push(yield* jwArray.compilerModification(func, node))
+                    }
+                    return jwArray.Type.toArray(output)
+                } else if (v instanceof Array) {
+                    return yield* recurse(v)
+                }
+            }
+            return yield* func(node)
+        }
+        return yield* recurse(node)
     }
 }
 
@@ -191,6 +214,81 @@ class Extension {
             }))
         );
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
+
+        if (vm.flags && vm.flags.jwArrayCompilerModifications == true) {
+            const goodThing = v => typeof v == "object" && v !== null && !(v instanceof Array) && v.kind && typeof v.kind == "string" && !(v.compilerInfo && v.compilerInfo.jwArrayUnmodified)
+
+            function recurse(v, t, path = []) {
+                if (v instanceof Array) return recurseArray(v, t, path)
+                return recurseObject(v, t, path)
+            }
+            function recurseObject(v, t, path) {
+                const descendInput = (...x) => {
+                    try {
+                        return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
+                    } catch (e) {}
+                }
+                
+                const descends = Object.fromEntries(Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => [x[0], goodThing(x[1]) && descendInput(x[1])]))
+                return [
+                    "{" + Object.entries(v).filter(x => typeof x[1] === "object" && x[1] !== null).map(x => {
+                        let insideValue
+                        if (descends[x[0]]) {
+                            insideValue = descends[x[0]]
+                        } else if (!goodThing(x[1])) {
+                            let out = recurse(x[1], t, [...path, x[0]])
+                            insideValue = out[0]
+                            v[x[0]] = out[1]
+                        }
+                        return `${JSON.stringify(x[0])}: ${insideValue}`
+                    }).join(", ") + "}",
+                    Object.fromEntries(Object.entries(v).map(x => [x[0], descends[x[0]] ? ["node", ...path, x[0]].join(".") : x[1]]))
+                ]
+            }
+            function recurseArray(v, t, path) {
+                const descendInput = (...x) => {
+                    try {
+                        return vm.exports.JSGenerator.prototype.descendInput.call(t, ...x).asUnknown()
+                    } catch (e) {}
+                }
+                const goods = v.filter(x => goodThing(x))
+                const descends = Object.fromEntries(goods.map((x, i) => [i, descendInput(x)]))
+                //im not gonna make this recurse because i cant be bothered and nothing does this yet
+                return [
+                    "[" + goods.map((x, i) => descends[i] ?? "null").join(", ") + "]",
+                    goods.map((x, i) => descends[i] ? ["node", ...path].join(".") + `[${i}]` : x)
+                ]
+            }
+
+            const oldDescendInput = vm.exports.JSGenerator.prototype.descendInput
+            vm.exports.JSGenerator.prototype.descendInput = function(node, visualReport) {
+                const TypedInput = vm.exports.JSGenerator.getExtensionImports().TypedInput
+
+                if (typeof node == 'string' && node.startsWith("node.")) return new TypedInput(node, vm.exports.JSGenerator.getExtensionImports().TYPE_UNKNOWN)
+                if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendInput.call(this, node, visualReport)
+
+                let out = recurse(structuredClone(node), this)
+                let nodeArg = out[0]
+
+                let output = oldDescendInput.call(this, out[1], visualReport)
+                return (output instanceof TypedInput) ? new TypedInput(`(yield* vm.jwArray.compilerModification(function*(node){return ${output.source}}, ${nodeArg}))`, output.type) : output
+            }
+
+            const oldDescendStackedBlock = vm.exports.JSGenerator.prototype.descendStackedBlock
+            vm.exports.JSGenerator.prototype.descendStackedBlock = function(node) {
+                if (node.kind === "visualReport") return oldDescendStackedBlock.call(this, node)
+                if (node.compilerInfo && node.compilerInfo.jwArrayUnmodified === true) return oldDescendStackedBlock.call(this, node)
+
+                const oldSource = this.source
+                this.source = ""
+
+                let out = recurse(structuredClone(node), this)
+                let nodeArg = out[0]
+
+                oldDescendStackedBlock.call(this, out[1])
+                this.source = oldSource + `yield* vm.jwArray.compilerModification(function*(node){${this.source}}, ${nodeArg});\n`
+            }
+        }
     }
 
     getInfo() {
@@ -234,7 +332,10 @@ class Extension {
                         INPUT: {
                             type: ArgumentType.STRING,
                             defaultValue: '["a", "b", "c"]',
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -270,7 +371,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     //notchAccepts: 'jwArrayBuilder'
@@ -298,7 +402,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     }
                 },
@@ -310,7 +417,10 @@ class Extension {
                         ARRAY: jwArray.Argument,
                         VALUE: {
                             type: ArgumentType.STRING,
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     }
                 },
@@ -335,7 +445,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -348,7 +461,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -370,7 +486,10 @@ class Extension {
                         VALUE: {
                             type: ArgumentType.STRING,
                             defaultValue: "foo",
-                            exemptFromNormalization: true
+                            exemptFromNormalization: true,
+                            compilerInfo: {
+                                jwArrayUnmodified: true
+                            }
                         }
                     },
                     ...jwArray.Block
@@ -532,7 +651,7 @@ class Extension {
     get({ARRAY, INDEX}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array[Cast.toNumber(INDEX)-1] || ""
+        return ARRAY.array[Cast.toNumber(INDEX)-1] ?? ""
     }
 
     index({ARRAY, VALUE}) {

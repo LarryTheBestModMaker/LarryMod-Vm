@@ -186,6 +186,7 @@ const outputBlocks = [
     'operator_strictlyEquals',
     'looks_sayColor',
     'looks_sayOther',
+    'sound_getsoundlength'
 ];
 
 module.exports = {
