@@ -15,8 +15,6 @@ const blocks = `
         </shadow>
     </value>
 </block>
-%block0>
-%block1>
 <block type="control_inline_stack_output">
     <value name="SUBSTACK">
         <block type="procedures_return">
@@ -46,6 +44,19 @@ ${blockSeparator}
     </value>
 </block>
 <block type="control_clear_counter"/>
+${blockSeparator}
+<block type="control_if">
+    <value name="CONDITION">
+        <shadow type="checkbox" />
+    </value>
+</block>
+<block type="control_if_else">
+    <value name="CONDITION">
+        <shadow type="checkbox" />
+    </value>
+</block>
+%block0>
+%block1>
 `;
 
 /**
