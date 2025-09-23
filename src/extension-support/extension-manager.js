@@ -232,8 +232,7 @@ const defaultBuiltinExtensions = {
     iygPerlin: () => require('../extensions/iyg_perlin_noise'),
     // fr: waw 3d physics!!
     // fr3d:
-    fr3d: () => require('../extensions/fr_3d'),
-    frLambda2: () => require("../extensions/frLambda2")
+    fr3d: () => require('../extensions/fr_3d')
 };
 const CORE_EXTENSIONS = [
     'argument',
