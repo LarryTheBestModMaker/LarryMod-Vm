@@ -1156,15 +1156,17 @@ class ScriptTreeGenerator {
             };
         case 'control_expandableIf': {
             const branchCount = Number(block.mutation.branches);
+            const hasElse = block.mutation["ends-in-else"] === "true";
             const branches = Array(branchCount).fill(null);
 
             for (var i = 1; i < branchCount + 1; i++) {
                 const name = 'SUBSTACK' + i;
                 const boolName = 'BOOL' + i;
-                branches[i - 1] = [
-                  this.descendInputOfBlock(block, boolName),
-                  this.descendSubstack(block, name)
-                ];
+                const boolValue = this.descendInputOfBlock(block, boolName);
+                if (boolValue.value === null) {
+                    boolValue.value = i === branchCount && hasElse ? null : false;
+                }
+                branches[i - 1] = [boolValue, this.descendSubstack(block, name)];
             }
 
             return {
