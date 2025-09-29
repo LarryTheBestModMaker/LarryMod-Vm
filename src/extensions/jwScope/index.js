@@ -58,7 +58,7 @@ const jwScope = {
     },
 
     all(array) {
-        return new jwArray.Type(array.map(obj => Object.keys(v)).flat())
+        return new jwArray.Type(array.map(v => Object.keys(v)).flat())
     }
 }
 
