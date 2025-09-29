@@ -657,13 +657,13 @@ class Extension {
     index({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array.indexOf(VALUE) + 1
+        return ARRAY.array.map(v => Cast.toString(v)).indexOf(Cast.toString(VALUE)) + 1
     }
 
     has({ARRAY, VALUE}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array.includes(VALUE)
+        return ARRAY.array.map(v => Cast.toString(v)).includes(Cast.toString(VALUE))
     }
 
     length({ARRAY}) {
