@@ -36,6 +36,12 @@ const jwScope = {
         }
         return ""
     }
+
+    reset(array) {
+        for (let i = array.length-1; i >= 0; i--) {
+            array[i] = {}
+        }
+    }
 }
 
 class Extension {
@@ -67,29 +73,6 @@ class Extension {
             color1: "#4f85f3",
             blocks: [
                 {
-                    opcode: "create",
-                    blockType: BlockType.COMMAND,
-                    text: "init [NAME]",
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "var",
-                        }
-                    },
-                },
-                {
-                    opcode: "delete",
-                    blockType: BlockType.COMMAND,
-                    text: "remove [NAME]",
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "var",
-                        }
-                    },
-                },
-                "---",
-                {
                     opcode: "set",
                     blockType: BlockType.COMMAND,
                     text: "set [NAME] to [VALUE]",
@@ -116,6 +99,35 @@ class Extension {
                         }
                     },
                 },
+                "---",
+                {
+                    opcode: "create",
+                    blockType: BlockType.COMMAND,
+                    text: "init [NAME]",
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "var",
+                        }
+                    },
+                },
+                {
+                    opcode: "delete",
+                    blockType: BlockType.COMMAND,
+                    text: "remove [NAME]",
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "var",
+                        }
+                    },
+                },
+                "---",
+                {
+                    opcode: "reset",
+                    blockType: BlockType.COMMAND,
+                    text: "reset scope"
+                }
             ]
         };
     }
@@ -139,6 +151,9 @@ class Extension {
                 get: (generator, block) => ({
                     kind: 'input',
                     name: generator.descendInputOfBlock(block, 'NAME')
+                }),
+                reset: (generator, block) => ({
+                    kind: 'stack'
                 })
             },
             js: {
@@ -153,6 +168,9 @@ class Extension {
                 },
                 get: (node, compiler, imports) => {
                     return new imports.TypedInput(`vm.jwScope.get(jwScope, ${compiler.descendInput(node.name).asString()})`, imports.TYPE_UNKNOWN)
+                },
+                reset: (node, compiler, imports) => {
+                    compiler.source += `vm.jwScope.reset(jwScope);\n`
                 }
             }
         }
