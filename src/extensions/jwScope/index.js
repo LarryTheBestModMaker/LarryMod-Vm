@@ -44,7 +44,7 @@ class Extension {
             const oldCompile = vm.exports.JSGenerator.prototype.compile
             vm.exports.JSGenerator.prototype.compile = function() {
                 this.source += "const jwScope = [];\n"
-                oldCompile.call(this)
+                return oldCompile.call(this)
             }
 
             const oldDescendStack = vm.exports.JSGenerator.prototype.descendStack
