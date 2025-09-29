@@ -64,6 +64,7 @@ class Extension {
         return {
             id: "jwScope",
             name: "Scope",
+            color1: "#87ed68",
             blocks: [
                 {
                     opcode: "create",
