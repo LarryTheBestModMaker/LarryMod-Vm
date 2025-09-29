@@ -58,7 +58,7 @@ const jwScope = {
     },
 
     all(array) {
-        return new jwArray.Type(array.map(v => new jwArray.Type(Object.keys(v))))
+        return new jwArray.Type(array.map(v => new jwArray.Type(Object.keys(v)).filter(v => v.array.length > 0)))
     }
 }
 
@@ -218,6 +218,34 @@ class Extension {
                 }
             }
         }
+    }
+
+    create() {
+        return 'noop'
+    }
+
+    delete() {
+        return 'noop'
+    }
+
+    set() {
+        return 'noop'
+    }
+
+    get() {
+        return 'noop'
+    }
+
+    reset() {
+        return 'noop'
+    }
+
+    current() {
+        return 'noop'
+    }
+
+    all() {
+        return 'noop'
     }
 }
 
