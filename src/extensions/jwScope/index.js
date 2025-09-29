@@ -7,7 +7,7 @@ const Cast = require('../../util/cast')
 const jwScope = {
     create(array, name) {
         array[array.length-1][name] ??= null
-    }
+    },
 
     delete(array, name) {
         for (let i = array.length-1; i >= 0; i--) {
@@ -16,7 +16,7 @@ const jwScope = {
                 return
             }
         }
-    }
+    },
 
     set(array, name, value) {
         for (let i = array.length-1; i >= 0; i--) {
@@ -26,7 +26,7 @@ const jwScope = {
             }
         }
         array[array.length-1][name] = value
-    }
+    },
 
     get(array, name) {
         for (let i = array.length-1; i >= 0; i--) {
