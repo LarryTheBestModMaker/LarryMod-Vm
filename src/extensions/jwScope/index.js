@@ -4,6 +4,12 @@ const ArgumentType = require('../../extension-support/argument-type')
 const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
+let jwArray = {
+    Type: class {},
+    Block: {},
+    Argument: {}
+}
+
 const jwScope = {
     create(array, name) {
         array[array.length-1][name] ??= null
@@ -42,10 +48,25 @@ const jwScope = {
             array[i] = {}
         }
     }
+
+    current(array) {
+        let set = new Set()
+        for (let i = array.length-1; i >= 0; i--) {
+            Object.keys(array[i]).forEach(v => set.add(v))
+        }
+        return new jwArray.Type(Array.from(set))
+    }
+
+    all(array) {
+        return new jwArray.Type(array.map(obj => Object.keys(v)).flat())
+    }
 }
 
 class Extension {
     constructor() {
+        if (!vm.jwArray) vm.extensionManager.loadExtensionIdSync('jwArray')
+        jwArray = vm.jwArray
+
         if (!vm.jwScope) {
             const oldCompile = vm.exports.JSGenerator.prototype.compile
             vm.exports.JSGenerator.prototype.compile = function() {
@@ -127,6 +148,17 @@ class Extension {
                     opcode: "reset",
                     blockType: BlockType.COMMAND,
                     text: "reset scope"
+                },
+                "---",
+                {
+                    opcode: "current",
+                    text: "current scope",
+                    ...jwArray.Block
+                },
+                {
+                    opcode: "all",
+                    text: "all scopes",
+                    ...jwArray.Block
                 }
             ]
         };
@@ -154,6 +186,12 @@ class Extension {
                 }),
                 reset: (generator, block) => ({
                     kind: 'stack'
+                }),
+                current: (generator, block) => ({
+                    kind: 'input'
+                }),
+                all: (generator, block) => ({
+                    kind: 'input'
                 })
             },
             js: {
@@ -171,6 +209,12 @@ class Extension {
                 },
                 reset: (node, compiler, imports) => {
                     compiler.source += `vm.jwScope.reset(jwScope);\n`
+                },
+                current: (node, compiler, imports) => {
+                    return new imports.TypedInput('vm.jwScope.current(jwScope)', imports.TYPE_UNKNOWN)
+                },
+                all: (node, compiler, imports) => {
+                    return new imports.TypedInput('vm.jwScope.all(jwScope)', imports.TYPE_UNKNOWN)
                 }
             }
         }
