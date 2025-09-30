@@ -147,12 +147,14 @@ class Extension {
                     opcode: "current",
                     text: "current scope",
                     hideFromPalette: !vm.runtime.ext_jwArray,
+                    blockType: BlockType.REPORTER,
                     ...(vm.jwArray ? vm.jwArray.Block : {})
                 },
                 {
                     opcode: "all",
                     text: "all scopes",
                     hideFromPalette: !vm.runtime.ext_jwArray,
+                    blockType: BlockType.REPORTER,
                     ...(vm.jwArray ? vm.jwArray.Block : {})
                 }
             ]
