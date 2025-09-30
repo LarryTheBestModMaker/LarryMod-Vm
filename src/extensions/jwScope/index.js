@@ -45,7 +45,7 @@ const jwScope = {
 
     current(array) {
         let set = new Set()
-        for (let i = array.length-1; i >= 0; i--) {
+        for (let i = 0; i < array.length; i++) {
             Object.keys(array[i]).forEach(v => set.add(v))
         }
         return new vm.jwArray.Type(Array.from(set))
