@@ -62,11 +62,11 @@ class LambdaType {
         return root
     }
 
-    execute = function* (arg, thread, target, runtime, stage) {
+    execute = function* (arg, thread, target, runtime, stage, ...stuff) {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
-            let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
+            let output = (yield* this.func(arg, thread, target, runtime, stage, ...stuff) ?? "")
             thread._jwLambdaArgument.pop()
             return output
         } catch (e) {
@@ -167,7 +167,7 @@ class Extension {
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
-                    hideFromPalette: !this.rawLambdaAvailable || !(typeof ScratchBlocks === "object"),
+                    hideFromPalette: true /*!this.rawLambdaAvailable || !(typeof ScratchBlocks === "object")*/,
                     arguments: {
                         RAW: {
                             fillIn: "rawLambdaInput"
@@ -227,7 +227,7 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage, jwScope) {\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
                     compiler.source += '}))';
                     const returns = compiler.source;
@@ -235,10 +235,10 @@ class Extension {
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
                 },
                 execute: (node, compiler, imports) => {
-                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage);\n`
+                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage${vm.jwScope ? ", {...jwScope.map(v => [...v])}" : ""});\n`
                 },
                 executeR: (node, compiler, imports) => {
-                    return new imports.TypedInput(`(yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage))`)
+                    return new imports.TypedInput(`(yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage${vm.jwScope ? ", {...jwScope.map(v => [...v])}" : ""}))`)
                 }
             }
         }
