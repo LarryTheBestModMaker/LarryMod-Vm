@@ -4,12 +4,6 @@ const ArgumentType = require('../../extension-support/argument-type')
 const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
-let jwArray = {
-    Type: class {},
-    Block: {},
-    Argument: {}
-}
-
 const jwScope = {
     create(array, name) {
         array[array.length-1][name] ??= null
@@ -54,19 +48,16 @@ const jwScope = {
         for (let i = array.length-1; i >= 0; i--) {
             Object.keys(array[i]).forEach(v => set.add(v))
         }
-        return new jwArray.Type(Array.from(set))
+        return new vm.jwArray.Type(Array.from(set))
     },
 
     all(array) {
-        return new jwArray.Type(array.map(v => new jwArray.Type(Object.keys(v)).filter(v => v.array.length > 0)))
+        return new vm.jwArray.Type(array.map(v => new vm.jwArray.Type(Object.keys(v)).filter(v => v.array.length > 0)))
     }
 }
 
 class Extension {
     constructor() {
-        if (!vm.jwArray) vm.extensionManager.loadExtensionIdSync('jwArray')
-        jwArray = vm.jwArray
-
         if (!vm.jwScope) {
             const oldCompile = vm.exports.JSGenerator.prototype.compile
             vm.exports.JSGenerator.prototype.compile = function() {
@@ -153,12 +144,14 @@ class Extension {
                 {
                     opcode: "current",
                     text: "current scope",
-                    ...jwArray.Block
+                    hideFromPalette: !vm.runtime.ext_jwArray,
+                    ...(vm.jwArray ? vm.jwArray.Block : {})
                 },
                 {
                     opcode: "all",
                     text: "all scopes",
-                    ...jwArray.Block
+                    hideFromPalette: !vm.runtime.ext_jwArray,
+                    ...(vm.jwArray ? vm.jwArray.Block : {})
                 }
             ]
         };
@@ -211,10 +204,10 @@ class Extension {
                     compiler.source += `vm.jwScope.reset(jwScope);\n`
                 },
                 current: (node, compiler, imports) => {
-                    return new imports.TypedInput('vm.jwScope.current(jwScope)', imports.TYPE_UNKNOWN)
+                    return new imports.TypedInput(!!vm.jwArray ? 'vm.jwScope.current(jwScope)' : '0', imports.TYPE_UNKNOWN)
                 },
                 all: (node, compiler, imports) => {
-                    return new imports.TypedInput('vm.jwScope.all(jwScope)', imports.TYPE_UNKNOWN)
+                    return new imports.TypedInput(!!vm.jwArray ? 'vm.jwScope.all(jwScope)': '0', imports.TYPE_UNKNOWN)
                 }
             }
         }
