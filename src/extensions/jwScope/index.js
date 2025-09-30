@@ -148,6 +148,7 @@ class Extension {
                     text: "current scope",
                     hideFromPalette: !vm.runtime.ext_jwArray,
                     blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.SQUARE,
                     ...(vm.jwArray ? vm.jwArray.Block : {})
                 },
                 {
@@ -155,6 +156,7 @@ class Extension {
                     text: "all scopes",
                     hideFromPalette: !vm.runtime.ext_jwArray,
                     blockType: BlockType.REPORTER,
+                    blockShape: BlockShape.SQUARE,
                     ...(vm.jwArray ? vm.jwArray.Block : {})
                 }
             ]
