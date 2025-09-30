@@ -52,7 +52,7 @@ const jwScope = {
     },
 
     all(array) {
-        return new vm.jwArray.Type(array.map(v => new vm.jwArray.Type(Object.keys(v)).filter(v => v.array.length > 0)))
+        return new vm.jwArray.Type(array.filter(v => v.length > 0).map(v => new vm.jwArray.Type(Object.keys(v))))
     }
 }
 
