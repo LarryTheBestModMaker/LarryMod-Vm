@@ -235,10 +235,10 @@ class Extension {
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
                 },
                 execute: (node, compiler, imports) => {
-                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage${vm.jwScope ? ", {...jwScope.map(v => [...v])}" : ""});\n`
+                    compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage);\n`
                 },
                 executeR: (node, compiler, imports) => {
-                    return new imports.TypedInput(`(yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage${vm.jwScope ? ", {...jwScope.map(v => [...v])}" : ""}))`)
+                    return new imports.TypedInput(`(yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage))`)
                 }
             }
         }
