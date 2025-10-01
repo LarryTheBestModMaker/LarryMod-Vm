@@ -67,6 +67,7 @@ class LambdaType {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
+            console.debug(this.thread)
             if (this.thread) thread.procedures = {...this.thread.procedures, ...thread.procedures}
             let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
             thread._jwLambdaArgument.pop()
