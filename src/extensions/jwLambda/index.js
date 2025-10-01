@@ -233,7 +233,9 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, threadNEW, target, runtime, stage) {\n';
+                    compiler.source += `threadNEW.procedures = {...threadNEW.procedures, ...thread.procedures};\n`
+                    compiler.source += `let thread = threadNEW;\n`;
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
                     compiler.source += '}))';
                     const returns = compiler.source;
