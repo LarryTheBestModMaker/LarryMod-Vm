@@ -36,8 +36,9 @@ function getFunction(x) {
 class LambdaType {
     customId = "jwLambda"
 
-    constructor(func = function*() {}) {
+    constructor(func = function*() {}, thread) {
         this.func = func
+        this.thread = thread
     }
 
     static toLambda(x) {
@@ -66,6 +67,7 @@ class LambdaType {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
+            if (this.thread) thread.procedures = {...this.thread.procedures, ...thread.procedures}
             let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
             thread._jwLambdaArgument.pop()
             return output
@@ -233,11 +235,9 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, threadNEW, target, runtime, stage) {\n';
-                    compiler.source += `threadNEW.procedures = {...threadNEW.procedures, ...thread.procedures};\n`
-                    compiler.source += `let thread = threadNEW;\n`;
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += '}))';
+                    compiler.source += '}, thread))';
                     const returns = compiler.source;
                     compiler.source = temp;
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
