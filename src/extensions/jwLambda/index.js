@@ -213,16 +213,22 @@ class Extension {
                     kind: 'input',
                     substack: generator.descendSubstack(block, 'SUBSTACK')
                 }),
-                execute: (generator, block) => ({
-                    kind: 'stack',
-                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    arg: generator.descendInputOfBlock(block, 'ARG')
-                }),
-                executeR: (generator, block) => ({
-                    kind: 'input',
-                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    arg: generator.descendInputOfBlock(block, 'ARG')
-                }),
+                execute: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'stack',
+                        lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                        arg: generator.descendInputOfBlock(block, 'ARG')
+                    }
+                },
+                executeR: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'input',
+                        lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                        arg: generator.descendInputOfBlock(block, 'ARG')
+                    }
+                },
             },
             js: {
                 newLambda: (node, compiler, imports) => {
