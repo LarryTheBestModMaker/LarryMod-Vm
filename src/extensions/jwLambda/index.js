@@ -38,7 +38,7 @@ class LambdaType {
 
     constructor(func = function*() {}, thread) {
         this.func = func
-        this.thread = thread
+        this.proc = thread ? thread.procedures : {}
     }
 
     static toLambda(x) {
@@ -67,8 +67,8 @@ class LambdaType {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
-            console.debug(this.thread)
-            if (this.thread) thread.procedures = {...this.thread.procedures, ...thread.procedures}
+            console.debug(this.proc)
+            if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
             let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
             thread._jwLambdaArgument.pop()
             return output
