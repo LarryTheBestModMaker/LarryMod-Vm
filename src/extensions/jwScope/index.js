@@ -61,15 +61,16 @@ class Extension {
         if (!vm.jwScope) {
             const oldCompile = vm.exports.JSGenerator.prototype.compile
             vm.exports.JSGenerator.prototype.compile = function() {
-                this.source += "const jwScope = [];\n"
+                this.source += "let jwScope = [];\n"
                 return oldCompile.call(this)
             }
 
             const oldDescendStack = vm.exports.JSGenerator.prototype.descendStack
             vm.exports.JSGenerator.prototype.descendStack = function(...args) {
-                this.source += "jwScope.push({});\n"
+                this.source += "{\n" //create scope
+                this.source += "let jwScope = [...jwScope, {}];\n"
                 const result = oldDescendStack.call(this, ...args)
-                this.source += "jwScope.pop();\n"
+                this.source += "};\n"
                 return result
             }
         }
