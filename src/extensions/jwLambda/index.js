@@ -95,6 +95,16 @@ const Lambda = {
 
 class Extension {
     constructor() {
+        if (!vm.jwLambda) {
+            const oldRetireThread = Object.getPrototypeOf(vm.runtime.sequencer).retireThread
+            Object.getPrototypeOf(vm.runtime.sequencer).retireThread = function(thread) {
+                const old = thread.isCompiled
+                thread.isCompiled = false
+                oldRetireThread.call(this, thread)
+                thread.isCompiled = old
+            }
+        }
+
         vm.jwLambda = Lambda
         vm.runtime.registerSerializer(
             "jwLambda", 
