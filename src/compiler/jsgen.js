@@ -549,8 +549,6 @@ class JSGenerator {
 
         case 'constant':
             return this.safeConstantInput(node.value);
-        case 'unsafeConstant':
-            return new TypedInput(`(${node.value})`, TYPE_UNKNOWN);
         case 'counter.get':
             return new TypedInput('runtime.ext_scratch3_control._counter', TYPE_NUMBER);
         case 'control.error':
