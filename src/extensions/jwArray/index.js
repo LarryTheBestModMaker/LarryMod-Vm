@@ -168,6 +168,7 @@ const jwArray = {
     },
     Argument: {
         shape: BlockShape.SQUARE,
+        exemptFromNormalization: true,
         compilerInfo: {
             jwArrayUnmodified: true
         }
