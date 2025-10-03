@@ -57,8 +57,8 @@ class ArrayType {
 
     array = []
 
-    constructor(array = []) {
-        this.array = array.map(v => {
+    constructor(array = [], safe = false) {
+        this.array = safe ? array : array.map(v => {
             if (v instanceof Array) return new ArrayType([...v])
             return v
         })
@@ -77,6 +77,7 @@ class ArrayType {
 
     static forArray(x) {
         if (x instanceof ArrayType) return new ArrayType([...x.array])
+        if (x instanceof Array) return new ArrayType([...x])
         return x
     }
 
@@ -146,7 +147,7 @@ class ArrayType {
         return new ArrayType(this.array.reduce((o, v) => {
             if (v instanceof ArrayType) return [...o, ...v.flat(depth - 1).array]
             return [...o, v]
-        }, []))
+        }, []), true)
     }
 
     get length() {
@@ -213,7 +214,7 @@ class Extension {
                     return vm.runtime.serializers[w.typeId].deserialize(w.serialized)
                 }
                 return w
-            }))
+            }), true)
         );
         vm.runtime.registerCompiledExtensionBlocks('jwArray', this.getCompileInfo());
 
@@ -622,7 +623,7 @@ class Extension {
     blankLength({LENGTH}) {
         LENGTH = clampIndex(Cast.toNumber(LENGTH))
 
-        return new jwArray.Type(Array(LENGTH).fill(null))
+        return new jwArray.Type(Array(LENGTH).fill(null), true)
     }
 
     fromList({LIST}) {
@@ -637,7 +638,7 @@ class Extension {
         STRING = Cast.toString(STRING)
         DIVIDER = Cast.toString(DIVIDER)
 
-        return new jwArray.Type(STRING.split(DIVIDER))
+        return new jwArray.Type(STRING.split(DIVIDER), true)
     }
 
     builder() {
@@ -693,7 +694,7 @@ class Extension {
         ONE = jwArray.Type.toArray(ONE)
         TWO = jwArray.Type.toArray(TWO)
 
-        return new jwArray.Type(ONE.array.concat(TWO.array))
+        return new jwArray.Type(ONE.array.concat(TWO.array), true)
     }
 
     fill({ARRAY, VALUE}) {
