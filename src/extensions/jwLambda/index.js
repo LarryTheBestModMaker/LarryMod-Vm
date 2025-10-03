@@ -39,6 +39,7 @@ class LambdaType {
     constructor(func = function*() {}, thread) {
         this.func = func
         this.proc = thread ? thread.procedures : {}
+        this.timesExecuted = 0
     }
 
     static toLambda(x) {
@@ -68,6 +69,7 @@ class LambdaType {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
             if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
+            this.timesExecuted++
             let output = (yield* this.func(arg, thread, target, runtime, stage, this) ?? "")
             thread._jwLambdaArgument.pop()
             return output
@@ -187,11 +189,6 @@ class Extension {
                     },
                     ...Lambda.Block
                 },
-                {
-                    opcode: 'this',
-                    text: 'this lambda',
-                    ...Lambda.Block
-                },
                 "---",
                 {
                     opcode: 'execute',
@@ -217,6 +214,20 @@ class Extension {
                             defaultValue: "foo",
                             exemptFromNormalization: true
                         }
+                    }
+                },
+                "---",
+                {
+                    opcode: 'this',
+                    text: 'this lambda',
+                    ...Lambda.Block
+                },
+                {
+                    opcode: 'timesExecuted',
+                    text: 'times [LAMBDA] executed',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        LAMBDA: Lambda.Argument
                     }
                 }
             ]
@@ -299,6 +310,11 @@ class Extension {
     }
     executeR() {
         return 'noop'
+    }
+
+    timesExecuted({LAMBDA}) {
+        LAMBDA = Lambda.Type.toLambda(LAMBDA)
+        return LAMBDA.timesExecuted
     }
 }
 
