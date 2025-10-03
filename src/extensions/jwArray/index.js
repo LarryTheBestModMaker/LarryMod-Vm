@@ -111,7 +111,7 @@ class ArrayType {
     }
     toJSON() {
         return this.array.map(v => {
-            if (typeof v == "object") {
+            if (typeof v == "object" && v !== null) {
                 if (v.toJSON && typeof v.toJSON == "function") return v.toJSON()
                 if (v.toString && typeof v.toString == "function") return v.toString()
                 return JSON.stringify(v)
@@ -620,7 +620,7 @@ class Extension {
     blankLength({LENGTH}) {
         LENGTH = clampIndex(Cast.toNumber(LENGTH))
 
-        return new jwArray.Type(Array(LENGTH).fill(undefined))
+        return new jwArray.Type(Array(LENGTH).fill(null))
     }
 
     fromList({LIST}) {
