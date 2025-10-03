@@ -191,7 +191,7 @@ class Extension {
                     opcode: 'this',
                     text: 'this lambda',
                     ...Lambda.Block
-                }
+                },
                 "---",
                 {
                     opcode: 'execute',
