@@ -179,7 +179,7 @@ class Extension {
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
-                    hideFromPalette: false/*!this.rawLambdaAvailable || !(typeof ScratchBlocks === "object")*/,
+                    hideFromPalette: true/*!this.rawLambdaAvailable || !(typeof ScratchBlocks === "object")*/,
                     arguments: {
                         RAW: {
                             fillIn: "rawLambdaInput"
