@@ -157,8 +157,8 @@ class ScriptTreeGenerator {
         if (!input) {
             log.warn(`IR: ${parentBlock.opcode}: missing input ${inputName}`, parentBlock);
             return {
-                kind: 'constant',
-                value: null
+                kind: 'unsafeConstant',
+                value: 'null'
             };
         }
         const inputId = input.block;
@@ -166,8 +166,8 @@ class ScriptTreeGenerator {
         if (!block) {
             log.warn(`IR: ${parentBlock.opcode}: could not find input ${inputName} with ID ${inputId}`);
             return {
-                kind: 'constant',
-                value: null
+                kind: 'unsafeConstant',
+                value: 'null'
             };
         }
 
