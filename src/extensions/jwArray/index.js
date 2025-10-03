@@ -738,14 +738,13 @@ class Extension {
     }
 
     forEach({ARRAY}, util) {
-        ARRAY = jwArray.Type.toArray(ARRAY)
-
         if (util.stackFrame.execute) {
             util.stackFrame.index++;
             const { index, entry } = util.stackFrame;
             if (index > entry.length - 1) return;
             util.thread.stackFrames[0].jwArray = entry[index];
         } else {
+            ARRAY = jwArray.Type.toArray(ARRAY)
             const entry = Object.entries(ARRAY.array);
             if (entry.length === 0) return;
             util.stackFrame.entry = entry;
