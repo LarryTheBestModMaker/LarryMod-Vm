@@ -67,9 +67,8 @@ class LambdaType {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
-            console.debug(this.proc)
             if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
-            let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
+            let output = (yield* this.func(arg, thread, target, runtime, stage, this) ?? "")
             thread._jwLambdaArgument.pop()
             return output
         } catch (e) {
@@ -180,7 +179,7 @@ class Extension {
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
-                    hideFromPalette: !this.rawLambdaAvailable || !(typeof ScratchBlocks === "object"),
+                    hideFromPalette: false/*!this.rawLambdaAvailable || !(typeof ScratchBlocks === "object")*/,
                     arguments: {
                         RAW: {
                             fillIn: "rawLambdaInput"
@@ -188,6 +187,11 @@ class Extension {
                     },
                     ...Lambda.Block
                 },
+                {
+                    opcode: 'this',
+                    text: 'this lambda',
+                    ...Lambda.Block
+                }
                 "---",
                 {
                     opcode: 'execute',
@@ -226,6 +230,9 @@ class Extension {
                     kind: 'input',
                     substack: generator.descendSubstack(block, 'SUBSTACK')
                 }),
+                this: (generator, block) => ({
+                    kind: 'input'
+                }),
                 execute: (generator, block) => {
                     generator.script.yields = true
                     return {
@@ -246,12 +253,15 @@ class Extension {
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage, lambda) {\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
                     compiler.source += '}, thread))';
                     const returns = compiler.source;
                     compiler.source = temp;
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
+                },
+                this: (node, compiler, imports) => {
+                    return new imports.TypedInput('(typeof lambda === "undefined" ? new runtime.vm.jwLambda.Type() : lambda)', imports.TYPE_UNKNOWN)
                 },
                 execute: (node, compiler, imports) => {
                     compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage);\n`
@@ -278,6 +288,10 @@ class Extension {
         if (!this.rawLambdaAvailable) return new Lambda.Type()
         let func = getFunction(Cast.toString(RAW))
         return new Lambda.Type(func)
+    }
+
+    this() {
+        return 'noop'
     }
 
     execute() {
