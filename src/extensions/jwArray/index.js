@@ -67,7 +67,7 @@ class ArrayType {
     static toArray(x) {
         if (x instanceof ArrayType) return new ArrayType([...x.array])
         if (x instanceof Array) return new ArrayType([...x])
-        if (x === "" || x === null || x === undefined) return ArrayType.blank
+        if (x === "" || x === null || x === undefined) return new ArrayType([], true)
         try {
             let parsed = JSON.parse(x)
             if (parsed instanceof Array) return new ArrayType(parsed)
@@ -153,8 +153,6 @@ class ArrayType {
     get length() {
         return this.array.length
     }
-
-    static blank = new ArrayType([])
 }
 
 const jwArray = {
@@ -618,7 +616,7 @@ class Extension {
     }
 
     blank() {
-        return jwArray.Type.blank
+        return new jwArray.Type([], true)
     }
 
     blankLength({LENGTH}) {
