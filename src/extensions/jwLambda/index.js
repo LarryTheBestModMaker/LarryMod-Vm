@@ -36,8 +36,10 @@ function getFunction(x) {
 class LambdaType {
     customId = "jwLambda"
 
-    constructor(func = function*() {}) {
+    constructor(func = function*() {}, thread) {
         this.func = func
+        this.proc = thread ? thread.procedures : {}
+        this.timesExecuted = 0
     }
 
     static toLambda(x) {
@@ -66,7 +68,9 @@ class LambdaType {
         try {
             thread._jwLambdaArgument ??= []
             thread._jwLambdaArgument.push(arg)
-            let output = (yield* this.func(arg, thread, target, runtime, stage) ?? "")
+            if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
+            this.timesExecuted++
+            let output = (yield* this.func(arg, thread, target, runtime, stage, this) ?? "")
             thread._jwLambdaArgument.pop()
             return output
         } catch (e) {
@@ -92,6 +96,16 @@ const Lambda = {
 
 class Extension {
     constructor() {
+        if (!vm.jwLambda) {
+            const oldRetireThread = Object.getPrototypeOf(vm.runtime.sequencer).retireThread
+            Object.getPrototypeOf(vm.runtime.sequencer).retireThread = function(thread) {
+                const old = thread.isCompiled
+                thread.isCompiled = false
+                oldRetireThread.call(this, thread)
+                thread.isCompiled = old
+            }
+        }
+
         vm.jwLambda = Lambda
         vm.runtime.registerSerializer(
             "jwLambda", 
@@ -167,7 +181,7 @@ class Extension {
                 {
                     opcode: 'rawLambda',
                     text: 'new lambda [RAW]',
-                    hideFromPalette: !this.rawLambdaAvailable || !(typeof ScratchBlocks === "object"),
+                    hideFromPalette: true/*!this.rawLambdaAvailable || !(typeof ScratchBlocks === "object")*/,
                     arguments: {
                         RAW: {
                             fillIn: "rawLambdaInput"
@@ -201,6 +215,20 @@ class Extension {
                             exemptFromNormalization: true
                         }
                     }
+                },
+                "---",
+                {
+                    opcode: 'this',
+                    text: 'this lambda',
+                    ...Lambda.Block
+                },
+                {
+                    opcode: 'timesExecuted',
+                    text: 'times [LAMBDA] executed',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        LAMBDA: Lambda.Argument
+                    }
                 }
             ]
         };
@@ -213,26 +241,38 @@ class Extension {
                     kind: 'input',
                     substack: generator.descendSubstack(block, 'SUBSTACK')
                 }),
-                execute: (generator, block) => ({
-                    kind: 'stack',
-                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    arg: generator.descendInputOfBlock(block, 'ARG')
+                this: (generator, block) => ({
+                    kind: 'input'
                 }),
-                executeR: (generator, block) => ({
-                    kind: 'input',
-                    lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
-                    arg: generator.descendInputOfBlock(block, 'ARG')
-                }),
+                execute: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'stack',
+                        lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                        arg: generator.descendInputOfBlock(block, 'ARG')
+                    }
+                },
+                executeR: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'input',
+                        lambda: generator.descendInputOfBlock(block, 'LAMBDA'),
+                        arg: generator.descendInputOfBlock(block, 'ARG')
+                    }
+                },
             },
             js: {
                 newLambda: (node, compiler, imports) => {
                     const temp = compiler.source;
-                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage) {\n';
+                    compiler.source = '(new runtime.vm.jwLambda.Type(function*(arg, thread, target, runtime, stage, lambda) {\n';
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += '}))';
+                    compiler.source += '}, thread))';
                     const returns = compiler.source;
                     compiler.source = temp;
                     return new imports.TypedInput(returns, imports.TYPE_UNKNOWN);
+                },
+                this: (node, compiler, imports) => {
+                    return new imports.TypedInput('(typeof lambda === "undefined" ? new runtime.vm.jwLambda.Type() : lambda)', imports.TYPE_UNKNOWN)
                 },
                 execute: (node, compiler, imports) => {
                     compiler.source += `yield* runtime.vm.jwLambda.Type.toLambda(${compiler.descendInput(node.lambda).asUnknown()}).execute(${compiler.descendInput(node.arg).asUnknown()}, thread, target, runtime, stage);\n`
@@ -261,11 +301,20 @@ class Extension {
         return new Lambda.Type(func)
     }
 
+    this() {
+        return 'noop'
+    }
+
     execute() {
         return 'noop'
     }
     executeR() {
         return 'noop'
+    }
+
+    timesExecuted({LAMBDA}) {
+        LAMBDA = Lambda.Type.toLambda(LAMBDA)
+        return LAMBDA.timesExecuted
     }
 }
 
