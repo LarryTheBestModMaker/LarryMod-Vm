@@ -651,7 +651,7 @@ class Extension {
     get({ARRAY, INDEX}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array[Cast.toNumber(INDEX)-1] ?? ""
+        return ARRAY.array[Cast.toNumber(INDEX)-1] === undefined ? "" : ARRAY.array[Cast.toNumber(INDEX)-1]
     }
 
     index({ARRAY, VALUE}) {
