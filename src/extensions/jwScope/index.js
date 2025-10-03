@@ -108,6 +108,7 @@ class Extension {
                     opcode: "get",
                     blockType: BlockType.REPORTER,
                     text: "get [NAME]",
+                    allowDropAnywhere: true,
                     arguments: {
                         NAME: {
                             type: ArgumentType.STRING,
