@@ -179,6 +179,10 @@ class ConstantInput {
             // todo: handle NaN?
             return this.constantValue;
         }
+        // handle bad nulls
+        if (this.constantValue == null) {
+            return 'null';
+        }
         const numberValue = +this.constantValue;
         if (numberValue.toString() === this.constantValue) {
             return this.constantValue;
