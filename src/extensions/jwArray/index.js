@@ -52,6 +52,19 @@ function span(text) {
     return el
 }
 
+function isObject(x) {
+    const fnToString = Function.prototype.toString
+    const classRegex = /^class\s/
+    if (typeof x === "function") {
+        return !classRegex.test(fnToString.call(x))
+    }
+    if (x !== null && typeof x === "object") {
+        const ctor = x.constructor
+        return !(typeof ctor === "function" && classRegex.test(fnToString.call(ctor)))
+    }
+    return false
+}
+
 class ArrayType {
     customId = "jwArray"
 
@@ -68,6 +81,12 @@ class ArrayType {
         if (x instanceof ArrayType) return new ArrayType([...x.array])
         if (x instanceof Array) return new ArrayType([...x])
         if (x === "" || x === null || x === undefined) return new ArrayType([], true)
+        if (typeof x == "object" && typeof x.toJSON == "function") {
+            let parsed = x.toJSON()
+            if (parsed instanceof Array) return new ArrayType(parsed)
+            if (isObject(parsed)) return new ArrayType(Object.values(parsed))
+            return new ArrayType([parsed])
+        }
         try {
             let parsed = JSON.parse(x)
             if (parsed instanceof Array) return new ArrayType(parsed)
