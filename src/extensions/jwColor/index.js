@@ -150,9 +150,9 @@ class ColorType {
 
     toJSON() {
         return {
-            h: this.h,
-            s: this.s,
-            v: this.v
+            hue: this.h,
+            saturation: this.s,
+            value: this.v
         }
     }
 }

@@ -91,6 +91,13 @@ class VectorType {
 
     /** @returns {number} */
     get angle() {return Math.atan2(this.x, this.y) * (180 / Math.PI)}
+
+    toJSON() {
+        return {
+            x: this.x,
+            y: this.y
+        }
+    }
 }
 
 const Vector = {
