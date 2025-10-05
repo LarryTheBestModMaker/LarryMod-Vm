@@ -97,6 +97,7 @@ class ArrayType {
     static forArray(x) {
         if (x instanceof ArrayType) return new ArrayType([...x.array])
         if (x instanceof Array) return new ArrayType([...x])
+        if (vm.dogeiscutObject && isObject(x)) return new vm.dogeiscutObject.Type({...x})
         return x
     }
 
@@ -700,7 +701,7 @@ class Extension {
     get({ARRAY, INDEX}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
 
-        return ARRAY.array[Cast.toNumber(INDEX)-1] === undefined ? "" : ARRAY.array[Cast.toNumber(INDEX)-1]
+        return jwArray.Type.forArray(ARRAY.array[Cast.toNumber(INDEX)-1] === undefined ? "" : ARRAY.array[Cast.toNumber(INDEX)-1])
     }
 
     index({ARRAY, VALUE}) {
