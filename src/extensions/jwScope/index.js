@@ -66,11 +66,12 @@ class Extension {
             }
 
             const oldDescendStack = vm.exports.JSGenerator.prototype.descendStack
-            vm.exports.JSGenerator.prototype.descendStack = function(...args) {
+            vm.exports.JSGenerator.prototype.descendStack = function(nodes, frame) {
+                if (frame.parent == 'control.switch') return oldDescendStack.call(this, nodes, frame)
                 this.source += "var jwScopeT = [...jwScope, {}];\n"
                 this.source += "{\n" //create scope
                 this.source += "let jwScope = jwScopeT;\n"
-                const result = oldDescendStack.call(this, ...args)
+                const result = oldDescendStack.call(this, nodes, frame)
                 this.source += "};\n"
                 return result
             }
