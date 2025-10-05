@@ -516,6 +516,22 @@ class Extension {
                     ...jwArray.Block
                 },
                 {
+                    opcode: 'items',
+                    text: 'items [X] to [Y] in [ARRAY]',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 3
+                        }
+                    },
+                    ...jwArray.Block
+                },
+                {
                     opcode: 'splice',
                     text: 'splice [ARRAY] at [INDEX] with [ITEMS] items',
                     arguments: {
@@ -732,6 +748,14 @@ class Extension {
 
         ARRAY.array.fill(jwArray.Type.forArray(VALUE))
         return ARRAY
+    }
+
+    items({ARRAY, X, Y}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        X = clampIndex(Cast.toNumber(X))
+        Y = clampIndex(Cast.toNumber(Y))
+
+        return new jwArray.Type(ARRAY.array.slice(X - 1, Y), true)
     }
 
     splice({ARRAY, INDEX, ITEMS}) {
