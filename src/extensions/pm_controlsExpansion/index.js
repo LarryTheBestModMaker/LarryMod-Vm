@@ -178,6 +178,7 @@ class pmControlsExpansion {
                         DATA: {
                             type: ArgumentType.STRING,
                             defaultValue: "abc",
+                            exemptFromNormalization: true
                         },
                         ICON: {
                             type: ArgumentType.IMAGE,
@@ -286,7 +287,7 @@ class pmControlsExpansion {
         }
     }
     asNewBroadcastArgs(args, util) {
-        const data = Cast.toString(args.DATA);
+        const data = args.DATA;
         if (util.thread.target.blocks.getBranch(util.thread.peekStack(), 0)) {
             const thread = util.sequencer.runtime._pushThread(
                 util.thread.target.blocks.getBranch(util.thread.peekStack(), 0),
