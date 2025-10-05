@@ -542,7 +542,7 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
-                }
+                },
                 "---",
                 {
                     opcode: 'reverse',
