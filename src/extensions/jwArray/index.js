@@ -39,7 +39,7 @@ const escapeHTML = unsafe => {
 };
 
 function clampIndex(x) {
-    return Math.min(Math.max(x, 0), arrayLimit)
+    return Math.min(Math.max(Math.floor(x), 0), arrayLimit)
 }
 
 function span(text) {
@@ -78,7 +78,7 @@ class ArrayType {
     }
 
     static toArray(x) {
-        if (x instanceof ArrayType) return new ArrayType([...x.array])
+        if (x instanceof ArrayType) return new ArrayType([...x.array], true)
         if (x instanceof Array) return new ArrayType([...x])
         if (x === "" || x === null || x === undefined) return new ArrayType([], true)
         if (typeof x == "object" && typeof x.toJSON == "function") {
@@ -531,6 +531,18 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'repeat',
+                    text: 'repeat [ARRAY] [TIMES] times',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        TIMES: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2
+                        }
+                    },
+                    ...jwArray.Block
+                }
                 "---",
                 {
                     opcode: 'reverse',
@@ -729,6 +741,14 @@ class Extension {
 
         ARRAY.array.splice(INDEX - 1, ITEMS)
         return ARRAY
+    }
+
+    repeat({ARRAY, TIMES}) {
+        TIMES = clampIndex(Cast.toNumber(TIMES))
+        if (TIMES === 0) return new jwArray.Type([], true)
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        if (TIMES === 1 || ARRAY.array.length == 0) return ARRAY
+        return new jwArray.Type(Array(TIMES).fill(ARRAY.array).flat(), true)
     }
 
     reverse({ARRAY}) {
