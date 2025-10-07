@@ -700,7 +700,7 @@ class Extension {
                     compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1;\n`
                     const og = compiler.localVariables.next();
                     const out = compiler.localVariables.next();
-                    compiler.source += `let ${og} = ${compiler.descendInput(node.array).asUnknown()}.array;\n`
+                    compiler.source += `let ${og} = vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array;\n`
                     compiler.source += `let ${out} = [];\n`
                     const i = compiler.localVariables.next();
                     compiler.source += `for (let ${i} = 0; ${i} < ${og}.length; ${i}++) {\n`
