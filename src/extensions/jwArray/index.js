@@ -637,11 +637,14 @@ class Extension {
                         substack: generator.descendSubstack(block, 'SUBSTACK')
                     }
                 },
-                forEach: (generator, block) => ({
-                    kind: 'stack',
-                    substack: generator.descendSubstack(block, 'SUBSTACK'),
-                    array: generator.descendInputOfBlock(block, 'ARRAY'),
-                })
+                forEach: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'stack',
+                        substack: generator.descendSubstack(block, 'SUBSTACK'),
+                        array: generator.descendInputOfBlock(block, 'ARRAY'),
+                    }
+                }
             },
             js: {
                 builder: (node, compiler, imports) => {
@@ -663,10 +666,10 @@ class Extension {
                     compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1;\n`
                     const index = compiler.localVariables.next();
                     const value = compiler.localVariables.next();
-                    compiler.source += `for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
+                    compiler.source += `yield* (function* () {for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
-                    compiler.source += '};\n'
+                    compiler.source += '}})();\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                 }
             }
