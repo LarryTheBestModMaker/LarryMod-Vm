@@ -630,10 +630,13 @@ class Extension {
     getCompileInfo() {
         return {
             ir: {
-                builder: (generator, block) => ({
-                    kind: 'input',
-                    substack: generator.descendSubstack(block, 'SUBSTACK')
-                }),
+                builder: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'input',
+                        substack: generator.descendSubstack(block, 'SUBSTACK')
+                    }
+                },
                 forEach: (generator, block) => ({
                     kind: 'stack',
                     substack: generator.descendSubstack(block, 'SUBSTACK'),
