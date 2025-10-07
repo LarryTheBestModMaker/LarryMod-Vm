@@ -727,6 +727,7 @@ class Extension {
         INDEX = Cast.toNumber(INDEX)
 
         ARRAY.array[clampIndex(Cast.toNumber(INDEX)-1)] = jwArray.Type.forArray(VALUE)
+        ARRAY.array = [...ARRAY.array] // no sparse arrays
         return ARRAY
     }
 
