@@ -611,12 +611,23 @@ class Extension {
                         }
                     }
                 },
-                /*{
-                    opcode: 'forEachBreak',
-                    text: 'break',
-                    blockType: BlockType.COMMAND,
-                    isTerminal: true
-                }*/
+                {
+                    opcode: 'basicSort',
+                    text: 'sort [ARRAY] [I] [V] [VALUE]',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        I: {
+                            fillIn: 'forEachI'
+                        },
+                        V: {
+                            fillIn: 'forEachV'
+                        },
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    }
+                }
             ],
             menus: {
                 list: {
@@ -643,6 +654,14 @@ class Extension {
                         kind: 'stack',
                         substack: generator.descendSubstack(block, 'SUBSTACK'),
                         array: generator.descendInputOfBlock(block, 'ARRAY'),
+                    }
+                },
+                basicSort: (generator, block) => {
+                    generator.script.yields = true
+                    return {
+                        kind: 'input',
+                        array: generator.descendInputOfBlock(block, 'ARRAY'),
+                        value: generator.descendInputOfBlock(block, 'VALUE'),
                     }
                 }
             },
@@ -671,6 +690,30 @@ class Extension {
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
                     compiler.source += '}})();\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
+                },
+                basicSort: (node, compiler, imports) => {
+                    const originalSource = compiler.source;
+                    compiler.source = '(yield* (function*() {';
+                    compiler.source += `thread._jwArrayForEach ??= [];\n`
+                    const forIndex = compiler.localVariables.next();
+                    compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1;\n`
+                    const og = compiler.localVariables.next();
+                    const out = compiler.localVariables.next();
+                    compiler.source += `let ${og} = ${compiler.descendInput(node.array).asUnknown()}.array;\n`
+                    compiler.source += `let ${out} = [];\n`
+                    const i = compiler.localVariables.next();
+                    compiler.source += `for (let ${i} = 0; ${i} < ${og}.length; ${i}++) {\n`
+                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${i}, ${og}[${i}]];\n`
+                    compiler.source += `${out}.push([${i}, ${compiler.descendInput(node.value).asNumber()}]);\n`
+                    compiler.source += `};\n`
+                    compiler.source += `thread._jwArrayForEach.pop();\n`
+                    compiler.source += `${out}.sort((a, b) => a[1] - b[1]);\n`
+                    compiler.source += `return new vm.jwArray.Type(${out}.map(v => ${og}[v[0]]));\n`
+                    compiler.source += '})())';
+                    // save edited
+                    const stackSource = compiler.source;
+                    compiler.source = originalSource;
+                    return new imports.TypedInput(stackSource, imports.TYPE_UNKNOWN);
                 }
             }
         };
