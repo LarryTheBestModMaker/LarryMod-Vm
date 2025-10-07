@@ -662,7 +662,7 @@ class Extension {
                     const value = compiler.localVariables.next();
                     compiler.source += `for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
+                    compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
                     compiler.source += '};\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                 }
