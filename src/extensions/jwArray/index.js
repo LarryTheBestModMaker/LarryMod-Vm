@@ -613,7 +613,7 @@ class Extension {
                 },
                 {
                     opcode: 'basicSort',
-                    text: 'sort [ARRAY] [I] [V] [VALUE]',
+                    text: 'sort [ARRAY] [I] [V] > [VALUE]',
                     arguments: {
                         ARRAY: jwArray.Argument,
                         I: {
