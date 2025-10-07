@@ -687,7 +687,7 @@ class Extension {
                     const index = compiler.localVariables.next();
                     const value = compiler.localVariables.next();
                     compiler.source += `yield* (function* () {for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
-                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
+                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index} + 1, ${value}];\n`
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
                     compiler.source += '}})();\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
@@ -704,7 +704,7 @@ class Extension {
                     compiler.source += `let ${out} = [];\n`
                     const i = compiler.localVariables.next();
                     compiler.source += `for (let ${i} = 0; ${i} < ${og}.length; ${i}++) {\n`
-                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${i}, ${og}[${i}]];\n`
+                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${i} + 1, ${og}[${i}]];\n`
                     compiler.source += `${out}.push([${i}, ${compiler.descendInput(node.value).asNumber()}]);\n`
                     compiler.source += `};\n`
                     compiler.source += `thread._jwArrayForEach.pop();\n`
