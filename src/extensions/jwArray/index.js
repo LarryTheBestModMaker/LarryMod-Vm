@@ -656,10 +656,10 @@ class Extension {
                 },
                 forEach: (node, compiler, imports) => {
                     compiler.source += `thread._jwArrayForEach ??= []`
-                    const forIndex = this.localVariables.next();
+                    const forIndex = compiler.localVariables.next();
                     compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1`
-                    const index = this.localVariables.next();
-                    const value = this.localVariables.next();
+                    const index = compiler.localVariables.next();
+                    const value = compiler.localVariables.next();
                     compiler.source += `for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}))) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
