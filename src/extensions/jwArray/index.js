@@ -655,16 +655,16 @@ class Extension {
                     return new imports.TypedInput(stackSource, imports.TYPE_UNKNOWN);
                 },
                 forEach: (node, compiler, imports) => {
-                    compiler.source += `thread._jwArrayForEach ??= []`
+                    compiler.source += `thread._jwArrayForEach ??= [];\n`
                     const forIndex = compiler.localVariables.next();
-                    compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1`
+                    compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1;\n`
                     const index = compiler.localVariables.next();
                     const value = compiler.localVariables.next();
                     compiler.source += `for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}))) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += '}\n'
-                    compiler.source += `thread._jwArrayForEach.pop()\n`
+                    compiler.source += '};\n'
+                    compiler.source += `thread._jwArrayForEach.pop();\n`
                 }
             }
         };
