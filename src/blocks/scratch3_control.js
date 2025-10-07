@@ -374,7 +374,7 @@ class Scratch3ControlBlocks {
 
         const frameData = this._getLoopBlock(thread);
         if (!frameData) {
-            throw new Error(`All "${type} loop" blocks must be inside of a looping block.`);
+            throw `All "${type} loop" blocks must be inside of a looping block.`;
             return;
         }
 
