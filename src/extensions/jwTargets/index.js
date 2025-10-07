@@ -550,8 +550,8 @@ class Extension {
         if (!TARGET.target) return
         if (TARGET.target.isOriginal) return
 
-        vm.runtime.disposeTarget(TARGET.target)
         vm.runtime.stopForTarget(TARGET.target)
+        vm.runtime.disposeTarget(TARGET.target)
     }
 
     all() {
