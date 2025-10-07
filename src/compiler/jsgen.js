@@ -1243,18 +1243,20 @@ class JSGenerator {
             this.source += `break;\n`;
             break;
         case 'control.exitLoop':
-            if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "escape loop" blocks must be inside of a looping block.';\n`;
-                break;
+            const inLoop = this.currentFrame.importantData.containedByLoop;
+            if (inLoop) this.source += `break;\n`;
+            else {
+                // this could be an uncompiled loop block
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
             }
-            this.source += `break;\n`;
             break;
         case 'control.continueLoop':
-            if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "continue loop" blocks must be inside of a looping block.';\n`;
-                break;
+            const inLoop = this.currentFrame.importantData.containedByLoop;
+            if (inLoop) this.source += `continue;\n`;
+            else {
+                // this could be an uncompiled loop block
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_continueLoop"), false, false, "${node.id}", null);\n`;
             }
-            this.source += `continue;\n`;
             break;
         case 'control.if':
             this.source += `if (${this.descendInput(node.condition).asBoolean()}) {\n`;
