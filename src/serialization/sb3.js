@@ -1404,10 +1404,10 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets, f
                 const stage = runtime._stageTarget;
 
                 if (blockJSON.opcode === 'event_broadcast_menu') {
-                    // add missing messages
+                    // add missing broadcasts
                     const msgInfo = blockJSON.fields.BROADCAST_OPTION;
                     if (!stage.lookupBroadcastMsg('', msgInfo.value)) {
-                        stage.createVariable(msgInfo.id, msgInfo.name, 'broadcast_msg', false);
+                        stage.createVariable(msgInfo.id, msgInfo.value, 'broadcast_msg', false);
                     } 
                 }
             }
