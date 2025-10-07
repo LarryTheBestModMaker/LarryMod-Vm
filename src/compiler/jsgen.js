@@ -1930,6 +1930,7 @@ class JSGenerator {
             this.source += `while (${index} < ${loops.asNumber()}) { `;
             this.source += `${index}++;\n`;
             this.descendStack(node.do, new Frame(true, 'tempVars.forEach'));
+            console.log(this.yields);
             this.yieldLoop();
             this.source += '}\n';
             break;
