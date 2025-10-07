@@ -634,6 +634,11 @@ class Extension {
                     kind: 'input',
                     substack: generator.descendSubstack(block, 'SUBSTACK')
                 }),
+                forEach: (generator, block) => ({
+                    kind: 'stack',
+                    substack: generator.descendSubstack(block, 'SUBSTACK'),
+                    array: generator.descendInputOfBlock(block, 'ARRAY'),
+                })
             },
             js: {
                 builder: (node, compiler, imports) => {
@@ -648,6 +653,18 @@ class Extension {
                     const stackSource = compiler.source;
                     compiler.source = originalSource;
                     return new imports.TypedInput(stackSource, imports.TYPE_UNKNOWN);
+                },
+                forEach: (node, compiler, imports) => {
+                    compiler.source += `thread._jwArrayForEach ??= []`
+                    const forIndex = this.localVariables.next();
+                    compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1`
+                    const index = this.localVariables.next();
+                    const value = this.localVariables.next();
+                    compiler.source += `for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}))) {\n`
+                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [${index}, ${value}];\n`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
+                    compiler.source += '}\n'
+                    compiler.source += `thread._jwArrayForEach.pop()\n`
                 }
             }
         };
@@ -792,31 +809,15 @@ class Extension {
     }
 
     forEachI({}, util) {
-        let arr = util.thread.stackFrames[0].jwArray
-        return arr ? Cast.toNumber(arr[0]) + 1 : 0
+        return util.thread._jwArrayForEach ? util.thread._jwArrayForEach[util.thread._jwArrayForEach.length-1][0] : 0
     }
 
     forEachV({}, util) {
-        let arr = util.thread.stackFrames[0].jwArray
-        return arr ? arr[1] : ""
+        return util.thread._jwArrayForEach ? util.thread._jwArrayForEach[util.thread._jwArrayForEach.length-1][1] : ""
     }
 
     forEach({ARRAY}, util) {
-        if (util.stackFrame.execute) {
-            util.stackFrame.index++;
-            const { index, entry } = util.stackFrame;
-            if (index > entry.length - 1) return;
-            util.thread.stackFrames[0].jwArray = entry[index];
-        } else {
-            ARRAY = jwArray.Type.toArray(ARRAY)
-            const entry = Object.entries(ARRAY.array);
-            if (entry.length === 0) return;
-            util.stackFrame.entry = entry;
-            util.stackFrame.execute = true;
-            util.stackFrame.index = 0;
-            util.thread.stackFrames[0].jwArray = entry[0];
-        }
-        util.startBranch(1, true);
+        return 'noop'
     }
 
     forEachBreak({}, util) {
