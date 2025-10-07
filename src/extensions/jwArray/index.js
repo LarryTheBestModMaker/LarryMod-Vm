@@ -626,7 +626,8 @@ class Extension {
                             type: ArgumentType.NUMBER,
                             defaultValue: 1
                         }
-                    }
+                    },
+                    ...jwArray.Block
                 }
             ],
             menus: {
