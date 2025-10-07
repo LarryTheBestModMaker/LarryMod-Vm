@@ -1242,7 +1242,7 @@ class JSGenerator {
             }
             this.source += `break;\n`;
             break;
-        case 'control.exitLoop':
+        case 'control.exitLoop': {
             const inLoop = this.currentFrame.importantData.containedByLoop;
             if (inLoop) this.source += `break;\n`;
             else {
@@ -1250,7 +1250,8 @@ class JSGenerator {
                 this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
             }
             break;
-        case 'control.continueLoop':
+        }
+        case 'control.continueLoop': {
             const inLoop = this.currentFrame.importantData.containedByLoop;
             if (inLoop) this.source += `continue;\n`;
             else {
@@ -1258,6 +1259,7 @@ class JSGenerator {
                 this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_continueLoop"), false, false, "${node.id}", null);\n`;
             }
             break;
+        }
         case 'control.if':
             this.source += `if (${this.descendInput(node.condition).asBoolean()}) {\n`;
             this.descendStack(node.whenTrue, new Frame(false, 'control.if'));
