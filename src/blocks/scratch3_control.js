@@ -345,10 +345,10 @@ class Scratch3ControlBlocks {
 
     // used by compiler
     exitLoop(_, util) {
-        this._editOuterLoop("break", util);
+        this._editOuterLoop('escape', util);
     }
     continueLoop(_, util) {
-        this._editOuterLoop("continue", util)
+        this._editOuterLoop('continue', util);
     }
     _getLoopBlock(thread) {
         // climp up stack to get outer loop
@@ -373,11 +373,14 @@ class Scratch3ControlBlocks {
         thread.isCompiled = false; // Failsafe
 
         const frameData = this._getLoopBlock(thread);
-        if (!frameData) return;
+        if (!frameData) {
+            throw new Error(`All "${type} loop" blocks must be inside of a looping block.`);
+            return;
+        }
 
         const block = frameData.block;
         const afterLoop = thread.blockContainer.getBlock(block).next;
-        if (type === "break") {
+        if (type === 'escape') {
             while(thread.stack.at(-1) !== block) thread.popStack();
             thread.popStack();
             if (afterLoop) thread.pushStack(afterLoop);
