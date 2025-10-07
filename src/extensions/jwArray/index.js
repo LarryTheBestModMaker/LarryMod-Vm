@@ -3,7 +3,7 @@ const BlockShape = require('../../extension-support/block-shape')
 const ArgumentType = require('../../extension-support/argument-type')
 const Cast = require('../../util/cast')
 
-let arrayLimit = 2 ** 32
+let arrayLimit = 2 ** 32 - 1
 
 // credit to sharpool because i stole the for each code from his extension haha im soo evil
 
