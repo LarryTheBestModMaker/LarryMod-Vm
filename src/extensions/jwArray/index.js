@@ -706,6 +706,7 @@ class Extension {
                     compiler.source += `for (let ${i} = 0; ${i} < ${og}.length; ${i}++) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${i} + 1, ${og}[${i}]];\n`
                     compiler.source += `${out}.push([${i}, ${compiler.descendInput(node.value).asNumber()}]);\n`
+                    compiler.yieldLoop()
                     compiler.source += `};\n`
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                     compiler.source += `${out}.sort((a, b) => a[1] - b[1]);\n`
