@@ -597,6 +597,7 @@ class Scratch3LooksBlocks {
                 // Clear say bubble if it hasn't been changed and proceed.
                 if (this._getBubbleState(target).usageId === usageId) {
                     this._updateBubble(target, 'say', '');
+                    delete(this.currentlyDisplayingInBubble[util.target]);
                 }
                 resolve();
             }, 1000 * args.SECS);
@@ -618,6 +619,7 @@ class Scratch3LooksBlocks {
                 // Clear think bubble if it hasn't been changed and proceed.
                 if (this._getBubbleState(target).usageId === usageId) {
                     this._updateBubble(target, 'think', '');
+                    delete(this.currentlyDisplayingInBubble[util.target]);
                 }
                 resolve();
             }, 1000 * args.SECS);
@@ -1103,7 +1105,7 @@ class Scratch3LooksBlocks {
     }
 
     shoutforsecs (args, util) {
-        this.say(args, util);
+        this.shout(args, util);
         const target = util.target;
         const usageId = this._getBubbleState(target).usageId;
         return new Promise(resolve => {
@@ -1112,6 +1114,7 @@ class Scratch3LooksBlocks {
                 // Clear say bubble if it hasn't been changed and proceed.
                 if (this._getBubbleState(target).usageId === usageId) {
                     this._updateBubble(target, 'say', '');
+                    delete(this.currentlyDisplayingInBubble[util.target]);
                 }
                 resolve();
             }, 1000 * args.SECS);
