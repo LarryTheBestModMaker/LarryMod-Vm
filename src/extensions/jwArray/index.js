@@ -689,6 +689,7 @@ class Extension {
                     compiler.source += `yield* (function* () {for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [Number(${index}) + 1, ${value}];\n`
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
+                    compiler.yieldLoop()
                     compiler.source += '}})();\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                 },
@@ -706,7 +707,6 @@ class Extension {
                     compiler.source += `for (let ${i} = 0; ${i} < ${og}.length; ${i}++) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [${i} + 1, ${og}[${i}]];\n`
                     compiler.source += `${out}.push([${i}, ${compiler.descendInput(node.value).asNumber()}]);\n`
-                    compiler.yieldLoop()
                     compiler.source += `};\n`
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                     compiler.source += `${out}.sort((a, b) => a[1] - b[1]);\n`
