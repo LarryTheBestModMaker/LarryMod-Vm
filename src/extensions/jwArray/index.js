@@ -685,9 +685,10 @@ class Extension {
                     const forIndex = compiler.localVariables.next();
                     compiler.source += `let ${forIndex} = thread._jwArrayForEach.push([]) - 1;\n`
                     const index = compiler.localVariables.next();
-                    const value = compiler.localVariables.next();
-                    compiler.source += `yield* (function* () {for (let [${index}, ${value}] of Object.entries(vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array)) {\n`
-                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [Number(${index}) + 1, ${value}];\n`
+                    const array = compiler.localVariables.next();
+                    compiler.source += `let ${array} = vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array;\n`
+                    compiler.source += `yield* (function* () {for (let ${index} in ${array}) {\n`
+                    compiler.source += `thread._jwArrayForEach[${forIndex}] = [Number(${index}) + 1, ${array}[${index}]];\n`
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
                     compiler.yieldLoop()
                     compiler.source += '}})();\n'
