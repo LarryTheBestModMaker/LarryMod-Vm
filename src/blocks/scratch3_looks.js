@@ -55,7 +55,7 @@ class Scratch3LooksBlocks {
 
         this.currentBubbleProps = {}
 
-        this.currentlyDisplayingInBubble = "";
+        this.currentlyDisplayingInBubble = {};
 
         // Reset all bubbles on start/stop
         this.runtime.on('PROJECT_STOP_ALL', this._onResetBubbles);
@@ -580,7 +580,7 @@ class Scratch3LooksBlocks {
     }
     _say (message, target) { // used by compiler
         this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, target, 'say', message);
-        this.currentlyDisplayingInBubble = message;
+        this.currentlyDisplayingInBubble[target] = message;
     }
 
     stopTalking (_, util) {
@@ -605,7 +605,7 @@ class Scratch3LooksBlocks {
 
     think (args, util) {
         this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, util.target, 'think', args.MESSAGE);
-        this.currentlyDisplayingInBubble = args.MESSAGE;
+        this.currentlyDisplayingInBubble[util.target] = args.MESSAGE;
     }
 
     thinkforsecs (args, util) {
@@ -1116,6 +1116,10 @@ class Scratch3LooksBlocks {
                 resolve();
             }, 1000 * args.SECS);
         });
+    }
+
+    getWhatBubbleIsDisplaying (_, util) {
+        return this.currentlyDisplayingInBubble[util.target] ?? ''
     }
 }
 
