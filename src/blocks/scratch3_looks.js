@@ -423,7 +423,7 @@ class Scratch3LooksBlocks {
             looks_sayOther: this.getShape,
             looks_shout: this.shout,
             looks_shoutforsecs: this.shoutforsecs,
-            looks_getWhatBubbleIsDisplaying: () => this.currentlyDisplayingInBubble,
+            looks_getWhatBubbleIsDisplaying: this.getWhatBubbleIsDisplaying,
         };
     }
 
