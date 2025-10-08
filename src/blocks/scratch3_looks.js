@@ -55,6 +55,8 @@ class Scratch3LooksBlocks {
 
         this.currentBubbleProps = {}
 
+        this.currentlyDisplayingInBubble = "";
+
         // Reset all bubbles on start/stop
         this.runtime.on('PROJECT_STOP_ALL', this._onResetBubbles);
         this.runtime.on('targetWasRemoved', this._onTargetWillExit);
@@ -419,6 +421,9 @@ class Scratch3LooksBlocks {
             looks_getbackdroplength: this.getBackdropLength,
             looks_sayColor: this.getColor,
             looks_sayOther: this.getShape,
+            looks_shout: this.shout,
+            looks_shoutforsecs: this.shoutforsecs,
+            looks_getWhatBubbleIsDisplaying: () => this.currentlyDisplayingInBubble,
         };
     }
 
@@ -575,6 +580,7 @@ class Scratch3LooksBlocks {
     }
     _say (message, target) { // used by compiler
         this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, target, 'say', message);
+        this.currentlyDisplayingInBubble = message;
     }
 
     stopTalking (_, util) {
@@ -599,6 +605,7 @@ class Scratch3LooksBlocks {
 
     think (args, util) {
         this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, util.target, 'think', args.MESSAGE);
+        this.currentlyDisplayingInBubble = args.MESSAGE;
     }
 
     thinkforsecs (args, util) {
@@ -1087,6 +1094,28 @@ class Scratch3LooksBlocks {
             util.target,
             [args.prop]
         );
+    }
+
+    shout (args, util) {
+        // @TODO in 2.0 calling say/think resets the right/left bias of the bubble
+        const message = args.MESSAGE;
+        this._say(Cast.toString(message).toUpperCase(), util.target); // right now all this is, is just the say block but the message is always uppercase
+    }
+
+    shoutforsecs (args, util) {
+        this.say(args, util);
+        const target = util.target;
+        const usageId = this._getBubbleState(target).usageId;
+        return new Promise(resolve => {
+            this._bubbleTimeout = setTimeout(() => {
+                this._bubbleTimeout = null;
+                // Clear say bubble if it hasn't been changed and proceed.
+                if (this._getBubbleState(target).usageId === usageId) {
+                    this._updateBubble(target, 'say', '');
+                }
+                resolve();
+            }, 1000 * args.SECS);
+        });
     }
 }
 

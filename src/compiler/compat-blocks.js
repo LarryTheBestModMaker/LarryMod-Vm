@@ -85,6 +85,8 @@ const statementBlocks = [
     'sound_resume',
     'sound_resumeallsounds',
     'sensing_settimer',
+    'looks_shout',
+    'looks_shoutforsecs',
 ];
 
 const outputBlocks = [
@@ -186,7 +188,8 @@ const outputBlocks = [
     'operator_strictlyEquals',
     'looks_sayColor',
     'looks_sayOther',
-    'sound_getsoundlength'
+    'sound_getsoundlength',
+    'looks_getWhatBubbleIsDisplaying'
 ];
 
 module.exports = {
