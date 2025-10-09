@@ -3784,14 +3784,14 @@ class Runtime extends EventEmitter {
                         const item = variable.value[idx];
                         if (item.customType) {
                             const {deserialize} = this.serializers[item.typeId];
-                            variable.value[idx] = deserialize(item.serialized, target);
+                            variable.value[idx] = deserialize(item.serialized, target, variable);
                         }
                     }
                 }
                 if (variable.value?.customType) {
                     const customData = variable.value;
                     const {deserialize} = this.serializers[customData.typeId];
-                    variable.value = deserialize(customData.serialized, target);
+                    variable.value = deserialize(customData.serialized, target, variable);
                 }
             }
         }
