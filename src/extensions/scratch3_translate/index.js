@@ -111,7 +111,7 @@ class Scratch3TranslateBlocks {
             Math.floor(Math.random() * this._supportedLanguages.length)].value;
         this._newSupportedLanguages = (this._supportedLanguages.concat(this._availableLanguagesInGoogle)).map(obj => {
             return {name: obj.name + ` (${obj.code})`, value: obj.code}
-        })*/
+        })
         console.log(this._supportedLanguages, ' new: ', this._newSupportedLanguages)
 
         return {
