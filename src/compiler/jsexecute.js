@@ -638,7 +638,7 @@ runtimeFunctions.set = `const set = (obj, keyPath, val) => {
     const [root, key] = _resolveKeyPath(obj, keyPath);
     return typeof root === 'undefined' 
         ? '' 
-        : root.set?.(key) ?? (root[key] = val);
+        : root.set?.(key, val) ?? (root[key] = val);
 }`;
 
 runtimeFunctions.remove = `const remove = (obj, keyPath) => {
