@@ -82,6 +82,8 @@ class Scratch3TranslateBlocks {
          * @private
          */
         this._lastTextTranslated = '';
+
+        this._availableLanguagesInGoogle = null;
     }
 
     /**
@@ -96,9 +98,20 @@ class Scratch3TranslateBlocks {
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
-        this._supportedLanguages = this._getSupportedLanguages(this.getViewerLanguageCode());
+        this._availableLanguagesInGoogle = [
+            {name: "Armenian", code: "hy"},
+            {name: "Haitian Creole", code: "ht"},
+            {name: "Hindi", code: "hi"},
+            {name: "Macedonian", code: "mk"},
+            {name: "Malay", code: "ms"},
+            {name: "Mongolian", code: "mn"}
+        ];
+        this._supportedLanguages = this._getSupportedLanguages(this.getViewerLanguageCode().concat(this._availableLanguagesInGoogle));
         this._randomLanguageCode = this._supportedLanguages[
             Math.floor(Math.random() * this._supportedLanguages.length)].value;
+        this._newSupportedLanguages = this._supportedLanguages.map(obj => {
+            return {name: obj.name + ` (${obj.code})`, value: obj.code}
+        })
 
         return {
             id: 'translate',
@@ -148,7 +161,7 @@ class Scratch3TranslateBlocks {
             menus: {
                 languages: {
                     acceptReporters: true,
-                    items: this._supportedLanguages
+                    items: this._newSupportedLanguages
                 }
             }
         };
