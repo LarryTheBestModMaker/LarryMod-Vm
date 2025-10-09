@@ -6,7 +6,7 @@ let defaults = {
     // compatible with the original version due to fields vs inputs.
 
     // Scratch Lab Animated Text - https://lab.scratch.mit.edu/text/
-    text: 'https://extensions.turbowarp.org/lab/text.js',
+    // text: 'https://extensions.turbowarp.org/lab/text.js',
 
     // Turboloader's AudioStream
     audiostr: 'https://extensions.turbowarp.org/turboloader/audiostream.js',
