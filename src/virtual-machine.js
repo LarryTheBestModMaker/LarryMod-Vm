@@ -801,7 +801,7 @@ class VirtualMachine extends EventEmitter {
         const defaultExtensionURLs = require('./extension-support/tw-default-extension-urls');
         const extensionPromises = [];
         for (const extensionID of extensionIDs) {
-            const url = extensionURLs.get(extensionID);
+            let url = extensionURLs.get(extensionID);
             if (!url && Object.prototype.hasOwnProperty.call(defaultExtensionURLs, extensionID)) {
                 url = defaultExtensionURLs[extensionID];
             }
