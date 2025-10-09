@@ -99,17 +99,17 @@ class Scratch3TranslateBlocks {
      */
     getInfo () {
         this._availableLanguagesInGoogle = [
-            {name: "Armenian", code: "hy"},
-            {name: "Haitian Creole", code: "ht"},
-            {name: "Hindi", code: "hi"},
-            {name: "Macedonian", code: "mk"},
-            {name: "Malay", code: "ms"},
-            {name: "Mongolian", code: "mn"}
+            {text: "Armenian", code: "hy"},
+            {text: "Haitian Creole", code: "ht"},
+            {text: "Hindi", code: "hi"},
+            {text: "Macedonian", code: "mk"},
+            {text: "Malay", code: "ms"},
+            {text: "Mongolian", code: "mn"}
         ];
         this._supportedLanguages = this._getSupportedLanguages(this.getViewerLanguageCode());
         this._randomLanguageCode = this._supportedLanguages[
             Math.floor(Math.random() * this._supportedLanguages.length)].value;
-        this._newSupportedLanguages = (this._supportedLanguages.concat(this._availableLanguagesInGoogle))/*.map(obj => {
+        this._newSupportedLanguages = (this._supportedLanguages.concat(this._availableLanguagesInGoogle)).map(obj => {
             return {name: obj.name + ` (${obj.code})`, value: obj.code}
         })*/
         console.log(this._supportedLanguages, ' new: ', this._newSupportedLanguages)
