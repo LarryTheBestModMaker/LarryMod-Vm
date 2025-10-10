@@ -1162,7 +1162,7 @@ class ScriptTreeGenerator {
             const branches = Array(branchCount).fill(null);
 
             // run normally if no extra branches
-            if (branchCount < 3 && (branchCount === 1 ? true : hasElse) {
+            if (branchCount < 3 && (branchCount === 1 ? true : hasElse)) {
                 return {
                     kind: 'control.if',
                     condition: this.descendInputOfBlock(block, 'BOOL1'),
