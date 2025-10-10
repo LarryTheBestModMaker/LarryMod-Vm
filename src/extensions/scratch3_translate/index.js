@@ -99,12 +99,19 @@ class Scratch3TranslateBlocks {
      */
     getInfo () {
         this._availableLanguagesInGoogle = [
+            {text: "Albanian", value: "sq"},
             {text: "Armenian", value: "hy"},
             {text: "Haitian Creole", value: "ht"},
             {text: "Hindi", value: "hi"},
+            {text: "Kannada", value: "kn"},
             {text: "Macedonian", value: "mk"},
             {text: "Malay", value: "ms"},
-            {text: "Mongolian", value: "mn"}
+            {text: "Malayalam", value: "ml"},
+            {text: "Maltese", value: "mt"},
+            {text: "Marathi", value: "mr"},
+            {text: "Mongolian", value: "mn"},
+            {text: "Telugu", value: "te"},
+            {text: "Uzbek", value: "uz"},
         ];
         this._supportedLanguages = this._getSupportedLanguages(this.getViewerLanguageCode());
         this._randomLanguageCode = this._supportedLanguages[
