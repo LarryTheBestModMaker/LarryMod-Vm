@@ -1161,6 +1161,16 @@ class ScriptTreeGenerator {
             const hasElse = block.mutation["ends-in-else"] === "true";
             const branches = Array(branchCount).fill(null);
 
+            // run normally if no extra branches
+            if (branchCount < 3 && (branchCount === 1 ? true : hasElse) {
+                return {
+                    kind: 'control.if',
+                    condition: this.descendInputOfBlock(block, 'BOOL1'),
+                    whenTrue: this.descendSubstack(block, 'SUBSTACK1'),
+                    whenFalse: hasElse ? this.descendSubstack(block, 'SUBSTACK2') : []
+                };
+            }
+
             for (var i = 1; i < branchCount + 1; i++) {
                 const name = 'SUBSTACK' + i;
                 const boolName = 'BOOL' + i;
