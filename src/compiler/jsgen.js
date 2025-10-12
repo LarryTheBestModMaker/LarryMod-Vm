@@ -179,6 +179,10 @@ class ConstantInput {
             // todo: handle NaN?
             return this.constantValue;
         }
+        // handle bad nulls
+        if (this.constantValue == null) {
+            return 'null';
+        }
         const numberValue = +this.constantValue;
         if (numberValue.toString() === this.constantValue) {
             return this.constantValue;
@@ -1238,20 +1242,24 @@ class JSGenerator {
             }
             this.source += `break;\n`;
             break;
-        case 'control.exitLoop':
-            if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "escape loop" blocks must be inside of a looping block.';\n`;
-                break;
+        case 'control.exitLoop': {
+            const inLoop = this.currentFrame.importantData.containedByLoop;
+            if (inLoop) this.source += `break;\n`;
+            else {
+                // this could be an uncompiled loop block
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
             }
-            this.source += `break;\n`;
             break;
-        case 'control.continueLoop':
-            if (!this.currentFrame.importantData.containedByLoop) {
-                this.source += `throw 'All "continue loop" blocks must be inside of a looping block.';\n`;
-                break;
+        }
+        case 'control.continueLoop': {
+            const inLoop = this.currentFrame.importantData.containedByLoop;
+            if (inLoop) this.source += `continue;\n`;
+            else {
+                // this could be an uncompiled loop block
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_continueLoop"), false, false, "${node.id}", null);\n`;
             }
-            this.source += `continue;\n`;
             break;
+        }
         case 'control.if':
             this.source += `if (${this.descendInput(node.condition).asBoolean()}) {\n`;
             this.descendStack(node.whenTrue, new Frame(false, 'control.if'));
@@ -1922,7 +1930,7 @@ class JSGenerator {
             this.source += `while (${index} < ${loops.asNumber()}) { `;
             this.source += `${index}++;\n`;
             this.descendStack(node.do, new Frame(true, 'tempVars.forEach'));
-            this.yieldLoop();
+            if (this.script.yields) this.yieldLoop();
             this.source += '}\n';
             break;
         }

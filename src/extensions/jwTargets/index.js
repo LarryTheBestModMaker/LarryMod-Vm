@@ -290,6 +290,14 @@ class Extension {
                     },
                     ...Target.Block
                 },
+                {
+                    opcode: 'deleteClone',
+                    text: 'delete clone [TARGET]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        TARGET: Target.Argument
+                    }
+                },
                 '---',
                 {
                     opcode: 'all',
@@ -535,6 +543,15 @@ class Extension {
         }
 
         return new Target.Type(clone ? clone.id : "")
+    }
+
+    deleteClone({TARGET}) {
+        TARGET = Target.Type.toTarget(TARGET)
+        if (!TARGET.target) return
+        if (TARGET.target.isOriginal) return
+
+        vm.runtime.stopForTarget(TARGET.target)
+        vm.runtime.disposeTarget(TARGET.target)
     }
 
     all() {

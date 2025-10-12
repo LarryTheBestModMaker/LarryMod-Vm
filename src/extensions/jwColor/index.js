@@ -147,6 +147,14 @@ class ColorType {
     toHex() {
         return this.toDecimal().toString(16).padStart(6, "0")
     }
+
+    toJSON() {
+        return {
+            hue: this.h,
+            saturation: this.s,
+            value: this.v
+        }
+    }
 }
 
 const Color = {

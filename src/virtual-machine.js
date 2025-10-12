@@ -798,9 +798,13 @@ class VirtualMachine extends EventEmitter {
      * @param {Map<string, string>} extensionURLs A map of extension ID to URL
      */
     async _loadExtensions (extensionIDs, extensionURLs = new Map()) {
+        const defaultExtensionURLs = require('./extension-support/tw-default-extension-urls');
         const extensionPromises = [];
         for (const extensionID of extensionIDs) {
-            const url = extensionURLs.get(extensionID);
+            let url = extensionURLs.get(extensionID);
+            if (!url && Object.prototype.hasOwnProperty.call(defaultExtensionURLs, extensionID)) {
+                url = defaultExtensionURLs[extensionID];
+            }
             if (this.extensionManager.isExtensionLoaded(extensionID)) {
                 // Already loaded
             } else if (url) {

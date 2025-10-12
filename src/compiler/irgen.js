@@ -1091,11 +1091,13 @@ class ScriptTreeGenerator {
             };
         case 'control_exitLoop':
             return {
-                kind: 'control.exitLoop'
+                kind: 'control.exitLoop',
+                id: block.id
             };
         case 'control_continueLoop':
             return {
-                kind: 'control.continueLoop'
+                kind: 'control.continueLoop',
+                id: block.id
             };
         case 'control_all_at_once':
             // In Scratch 3, this block behaves like "if 1 = 1"
@@ -1156,15 +1158,27 @@ class ScriptTreeGenerator {
             };
         case 'control_expandableIf': {
             const branchCount = Number(block.mutation.branches);
+            const hasElse = block.mutation["ends-in-else"] === "true";
             const branches = Array(branchCount).fill(null);
+
+            // run normally if no extra branches
+            if (branchCount < 3 && (branchCount === 1 ? true : hasElse)) {
+                return {
+                    kind: 'control.if',
+                    condition: this.descendInputOfBlock(block, 'BOOL1'),
+                    whenTrue: this.descendSubstack(block, 'SUBSTACK1'),
+                    whenFalse: hasElse ? this.descendSubstack(block, 'SUBSTACK2') : []
+                };
+            }
 
             for (var i = 1; i < branchCount + 1; i++) {
                 const name = 'SUBSTACK' + i;
                 const boolName = 'BOOL' + i;
-                branches[i - 1] = [
-                  this.descendInputOfBlock(block, boolName),
-                  this.descendSubstack(block, name)
-                ];
+                const boolValue = this.descendInputOfBlock(block, boolName);
+                if (boolValue.value === null) {
+                    boolValue.value = i === branchCount && hasElse ? null : false;
+                }
+                branches[i - 1] = [boolValue, this.descendSubstack(block, name)];
             }
 
             return {
