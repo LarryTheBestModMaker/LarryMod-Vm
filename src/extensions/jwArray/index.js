@@ -687,11 +687,11 @@ class Extension {
                     const index = compiler.localVariables.next();
                     const array = compiler.localVariables.next();
                     compiler.source += `let ${array} = vm.jwArray.Type.toArray(${compiler.descendInput(node.array).asUnknown()}).array;\n`
-                    compiler.source += `yield* (function* () {for (let ${index} in ${array}) {\n`
+                    compiler.source += `for (let ${index} in ${array}) {\n`
                     compiler.source += `thread._jwArrayForEach[${forIndex}] = [Number(${index}) + 1, ${array}[${index}]];\n`
                     compiler.descendStack(node.substack, new imports.Frame(true, undefined, true));
                     compiler.yieldLoop()
-                    compiler.source += '}})();\n'
+                    compiler.source += '};\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                 },
                 basicSort: (node, compiler, imports) => {
