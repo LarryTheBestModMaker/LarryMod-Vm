@@ -777,15 +777,18 @@ class Blocks {
 
             // Variable blocks may be sprite specific depending on the owner of the variable
             let isSpriteLocalVariable = false;
-            if (block.opcode === 'data_variable') {
-                isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.VARIABLE.id]);
-            } else if (block.opcode === 'data_listcontents') {
-                isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.LIST.id]);
-            } else {
-                isSpriteLocalVariable = Object.values(block.fields).some(field => {
-                    if (field.variableType === undefined) return false;
-                    else return ("id" in field) && !(this.runtime.getTargetForStage().variables[field.id]);
-                });
+            const stage = this.runtime.getTargetForStage();
+            if (stage) {
+                if (block.opcode === 'data_variable') {
+                    isSpriteLocalVariable = !(stage.variables[block.fields.VARIABLE.id]);
+                } else if (block.opcode === 'data_listcontents') {
+                    isSpriteLocalVariable = !(stage.variables[block.fields.LIST.id]);
+                } else {
+                    isSpriteLocalVariable = Object.values(block.fields).some(field => {
+                        if (field.variableType === undefined) return false;
+                        else return ("id" in field) && !(stage.variables[field.id]);
+                    });
+                }
             }
 
             // Provides an API for extensions to set reporters of themselves (that can be monitored)
