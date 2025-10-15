@@ -379,12 +379,22 @@ class Extension {
                 "---",
                 {
                     opcode: 'builder',
-                    text: 'array builder',
-                    branches: [{
-                        //accepts: 'jwArrayBuilder'
-                    }],
+                    text: 'array builder [SHADOW]',
+                    branches: [{}],
+                    arguments: {
+                        SHADOW: {
+                            fillIn: 'builderCurrent'
+                        }
+                    }
                     ...jwArray.Block
                 },
+                {
+                    opcode: 'builderCurrent',
+                    text: 'current array',
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                    ...jwArray.Block
+                }
                 {
                     opcode: 'builderAppend',
                     text: 'append [VALUE] to builder',
@@ -398,8 +408,7 @@ class Extension {
                                 jwArrayUnmodified: true
                             }
                         }
-                    },
-                    //notchAccepts: 'jwArrayBuilder'
+                    }
                 },
                 "---",
                 {
@@ -764,6 +773,11 @@ class Extension {
 
     builder() {
         return 'noop'
+    }
+
+    builderCurrent({}, util) {
+        let bi = util.thread._jwArrayBuilderIndex ?? []
+        return bi[bi.length-1] ? new jwArray.Type(bi[bi.length-1]) : new jwArray.Type([], true)
     }
 
     builderAppend({VALUE}, util) {
