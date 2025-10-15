@@ -415,7 +415,7 @@ class Extension {
                     text: 'concat [ARRAY] to builder',
                     blockType: BlockType.COMMAND,
                     arguments: {
-                        ARRAY: ...jwArray.Argument
+                        ARRAY: jwArray.Argument
                     }
                 },
                 {
@@ -423,7 +423,7 @@ class Extension {
                     text: 'set builder to [ARRAY]',
                     blockType: BlockType.COMMAND,
                     arguments: {
-                        ARRAY: ...jwArray.Argument
+                        ARRAY: jwArray.Argument
                     }
                 },
                 "---",
