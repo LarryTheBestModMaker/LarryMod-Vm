@@ -669,11 +669,11 @@ class Extension {
             js: {
                 builder: (node, compiler, imports) => {
                     const originalSource = compiler.source;
-                    compiler.source = '(yield* (function*() {';
+                    compiler.source = 'vm.jwArray.Type.toArray(yield* (function*() {';
                     compiler.source += `thread._jwArrayBuilderIndex ??= [];`
                     compiler.source += `thread._jwArrayBuilderIndex.push([]);`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true));
-                    compiler.source += `return new runtime.vm.jwArray.Type(thread._jwArrayBuilderIndex.pop());`
+                    compiler.source += `return thread._jwArrayBuilderIndex.pop();`
                     compiler.source += '})())';
                     // save edited
                     const stackSource = compiler.source;
