@@ -394,7 +394,7 @@ class Extension {
                     hideFromPalette: true,
                     canDragDuplicate: true,
                     ...jwArray.Block
-                }
+                },
                 {
                     opcode: 'builderAppend',
                     text: 'append [VALUE] to builder',
