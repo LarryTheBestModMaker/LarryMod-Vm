@@ -411,14 +411,6 @@ class Extension {
                     }
                 },
                 {
-                    opcode: 'builderConcat',
-                    text: 'concat [ARRAY] to builder',
-                    blockType: BlockType.COMMAND,
-                    arguments: {
-                        ARRAY: jwArray.Argument
-                    }
-                },
-                {
                     opcode: 'builderSet',
                     text: 'set builder to [ARRAY]',
                     blockType: BlockType.COMMAND,
@@ -800,14 +792,6 @@ class Extension {
         let bi = util.thread._jwArrayBuilderIndex ?? []
         if (bi[bi.length-1]) {
             bi[bi.length-1].push(VALUE)
-        }
-    }
-
-    builderConcat({ARRAY}, util) {
-        ARRAY = jwArray.Type.toArray(ARRAY)
-        let bi = util.thread._jwArrayBuilderIndex ?? []
-        if (bi[bi.length-1]) {
-            bi[bi.length-1] = bi[bi.length-1].concat(ARRAY.array)
         }
     }
 
