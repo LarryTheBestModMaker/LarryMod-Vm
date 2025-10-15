@@ -385,7 +385,7 @@ class Extension {
                         SHADOW: {
                             fillIn: 'builderCurrent'
                         }
-                    }
+                    },
                     ...jwArray.Block
                 },
                 {
