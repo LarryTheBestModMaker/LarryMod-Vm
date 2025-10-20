@@ -433,6 +433,22 @@ class Extension {
                     }
                 },
                 {
+                    opcode: 'items',
+                    text: 'items [X] to [Y] in [ARRAY]',
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 3
+                        }
+                    },
+                    ...jwArray.Block
+                },
+                {
                     opcode: 'index',
                     text: 'index of [VALUE] in [ARRAY]',
                     blockType: BlockType.REPORTER,
@@ -533,19 +549,12 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
+                "---",
                 {
-                    opcode: 'items',
-                    text: 'items [X] to [Y] in [ARRAY]',
+                    opcode: 'reverse',
+                    text: 'reverse [ARRAY]',
                     arguments: {
-                        ARRAY: jwArray.Argument,
-                        X: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
-                        },
-                        Y: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 3
-                        }
+                        ARRAY: jwArray.Argument
                     },
                     ...jwArray.Block
                 },
@@ -577,15 +586,6 @@ class Extension {
                     },
                     ...jwArray.Block
                 },
-                "---",
-                {
-                    opcode: 'reverse',
-                    text: 'reverse [ARRAY]',
-                    arguments: {
-                        ARRAY: jwArray.Argument
-                    },
-                    ...jwArray.Block
-                },
                 {
                     opcode: 'flat',
                     text: 'flat [ARRAY] with depth [DEPTH]',
@@ -597,6 +597,35 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
+                },
+                "---",
+                {
+                    opcode: 'toString',
+                    text: '[ARRAY] to string',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        ARRAY: jwArray.Argument
+                    }
+                },
+                {
+                    opcode: 'join',
+                    text: 'join [ARRAY] with [DIVIDER]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        ARRAY: jwArray.Argument,
+                        DIVIDER: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ""
+                        }
+                    }
+                },
+                {
+                    opcode: 'sum',
+                    text: 'sum of [ARRAY]',
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        ARRAY: jwArray.Argument
+                    }
                 },
                 "---",
                 {
@@ -894,6 +923,25 @@ class Extension {
         DEPTH = Cast.toNumber(DEPTH)
 
         return ARRAY.flat(DEPTH)
+    }
+
+    toString({ARRAY}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        
+        return ARRAY.toString()
+    }
+
+    join({ARRAY, DIVIDER}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+        DIVIDER = Cast.toString(DIVIDER)
+
+        return ARRAY.array.map(v => Cast.toString(v)).join(DIVIDER)
+    }
+
+    sum({ARRAY}) {
+        ARRAY = jwArray.Type.toArray(ARRAY)
+
+        return ARRAY.array.reduce((o, v) => o + Cast.toNumber(v), 0)
     }
 
     forEachI({}, util) {
