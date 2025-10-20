@@ -601,7 +601,7 @@ class Extension {
                 "---",
                 {
                     opcode: 'toString',
-                    text: '[ARRAY] to string',
+                    text: 'stringify [ARRAY]',
                     blockType: BlockType.REPORTER,
                     arguments: {
                         ARRAY: jwArray.Argument
