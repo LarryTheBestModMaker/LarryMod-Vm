@@ -204,7 +204,7 @@ class Extension {
 
     setChildren({NODE, CHILDREN}) {
         NODE = XML.Type.toXML(NODE)
-        CHILDREN = jwArray.Type.toArray(CHILDREN).map(v => XML.Type.forXML(v))
+        CHILDREN = jwArray.Type.toArray(CHILDREN).array.map(v => XML.Type.forXML(v))
 
         NODE.children = CHILDREN
         return NODE
