@@ -15,7 +15,7 @@ class XMLType {
     name
 
     constructor(name, children = [], attributes = {}) {
-        this.name = name
+        this.name = XMLType.safeName(name)
 
         this.children = children
         this.attributes = attributes
