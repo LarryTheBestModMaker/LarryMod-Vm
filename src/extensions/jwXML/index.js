@@ -32,7 +32,7 @@ class XMLType {
     }
 
     toString() {
-
+        return `<${this.name} />`
     }
 }
 
@@ -72,7 +72,7 @@ class Extension {
         return {
             id: "jwXML",
             name: "XML",
-            color1: "#88ee63",
+            color1: "#70e84f",
             blocks: [
                 {
                     opcode: "newNode",
@@ -94,6 +94,15 @@ class Extension {
                     },
                     ...XML.Block
                 },
+                "---",
+                {
+                    opcode: "toString",
+                    text: "stringify [XML]",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        XML: XML.Argument
+                    }
+                }
                 "---",
                 {
                     opcode: "validName",
@@ -120,6 +129,12 @@ class Extension {
         XML = XML.Type.toXML(XML)
         
         return XML.name
+    }
+
+    toString({XML}) {
+        XML = XML.Type.toXML(XML)
+
+        return XML.toString()
     }
 
     validName({NAME}) {
