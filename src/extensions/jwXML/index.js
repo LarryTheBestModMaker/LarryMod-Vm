@@ -115,11 +115,14 @@ class Extension {
                 {
                     opcode: "parse",
                     text: "parse [INPUT] as node",
-                    INPUT: {
-                        type: ArgumentType.STRING,
-                        defaultValue: '<name />',
-                        exemptFromNormalization: true
-                    }
+                    arguments: {
+                        INPUT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '<name />',
+                            exemptFromNormalization: true
+                        }
+                    },
+                    ...XML.Block
                 },
                 "---",
                 {
