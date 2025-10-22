@@ -10,6 +10,14 @@ const codeEditorHandlers = new Map();
 // we cant have nice things
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+// small polyfill for browsers that don't support Iterator.toArray, most notably the native apps that the packager makes
+// using Object because as far as I can tell the packager apps don't have the "Iterator" type
+Object.prototype.toArray ??= function() {
+    return Array.from({
+        [Symbol.iterator]: () => this
+    });
+};
+
 async function runCode(x) {
   return await Object.getPrototypeOf(async function() {}).constructor(x)();
 }
