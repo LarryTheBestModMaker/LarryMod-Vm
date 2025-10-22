@@ -88,19 +88,19 @@ class Extension {
                 "---",
                 {
                     opcode: "getName",
-                    text: "name of [XML]",
+                    text: "name of [NODE]",
                     arguments: {
-                        XML: XML.Argument
+                        NODE: XML.Argument
                     },
                     ...XML.Block
                 },
                 "---",
                 {
                     opcode: "toString",
-                    text: "stringify [XML]",
+                    text: "stringify [NODE]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        XML: XML.Argument
+                        NODE: XML.Argument
                     }
                 },
                 "---",
@@ -125,16 +125,16 @@ class Extension {
         return new XML.Type(XML.Type.safeName(NAME))
     }
 
-    getName({XML}) {
-        XML = XML.Type.toXML(XML)
+    getName({NODE}) {
+        NODE = XML.Type.toXML(NODE)
         
-        return XML.name
+        return NODE.name
     }
 
-    toString({XML}) {
-        XML = XML.Type.toXML(XML)
+    toString({NODE}) {
+        NODE = XML.Type.toXML(NODE)
 
-        return XML.toString()
+        return NODE.toString()
     }
 
     validName({NAME}) {
