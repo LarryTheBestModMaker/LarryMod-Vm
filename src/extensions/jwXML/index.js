@@ -65,7 +65,7 @@ class XMLType {
             return output
         }
 
-        return `<${this.name} />`
+        return output
     }
 }
 
@@ -173,7 +173,7 @@ class Extension {
                 {
                     opcode: "getAttribute",
                     text: "attribute [ATTRIBUTE] of [NODE]",
-                    type: BlockType.REPORTER,
+                    blockType: BlockType.REPORTER,
                     arguments: {
                         ATTRIBUTE: {
                             type: ArgumentType.STRING,
