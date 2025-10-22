@@ -120,7 +120,7 @@ class Extension {
                         defaultValue: '<name />',
                         exemptFromNormalization: true
                     }
-                }
+                },
                 "---",
                 {
                     opcode: "getName",
