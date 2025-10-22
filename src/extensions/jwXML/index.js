@@ -229,7 +229,7 @@ class Extension {
                         NODE: XML.Argument
                     },
                     ...jwArray.Block
-                }
+                },
                 "---",
                 {
                     opcode: "toString",
