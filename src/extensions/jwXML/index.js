@@ -49,7 +49,11 @@ class XMLType {
 
     toString() {
         let output = `<${this.name}`
-        // TODO: attributes
+        
+        for (let [attr, value] of Object.entries(this.attributes)) {
+            output += ` ${attr}="${XMLType.safeText(value)}"`
+        }
+
         if (this.children.length === 0) {
             output += " />"
         } else {
@@ -60,6 +64,7 @@ class XMLType {
             output += `</${this.name}>`
             return output
         }
+
         return `<${this.name} />`
     }
 }
@@ -166,6 +171,67 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: "getAttribute",
+                    text: "attribute [ATTRIBUTE] of [NODE]",
+                    type: BlockType.REPORTER,
+                    arguments: {
+                        ATTRIBUTE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                        NODE: XML.Argument
+                    },
+                },
+                {
+                    opcode: "setAttribute",
+                    text: "set attribute [ATTRIBUTE] of [NODE] to [VALUE]",
+                    arguments: {
+                        ATTRIBUTE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                        NODE: XML.Argument,
+                        VALUE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "value"
+                        },
+                    },
+                    ...XML.Block
+                },
+                {
+                    opcode: "removeAttribute",
+                    text: "remove attribute [ATTRIBUTE] of [NODE]",
+                    arguments: {
+                        ATTRIBUTE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                        NODE: XML.Argument
+                    },
+                    ...XML.Block
+                },
+                {
+                    opcode: "hasAttribute",
+                    text: "[NODE] has attribute [ATTRIBUTE]",
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        NODE: XML.Argument,
+                        ATTRIBUTE: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        }
+                    }
+                },
+                {
+                    opcode: "getAttributes",
+                    text: "attributes of [NODE]",
+                    arguments: {
+                        NODE: XML.Argument
+                    },
+                    ...jwArray.Block
+                }
+                "---",
+                {
                     opcode: "toString",
                     text: "stringify [NODE]",
                     blockType: BlockType.REPORTER,
@@ -176,7 +242,7 @@ class Extension {
                 "---",
                 {
                     opcode: "validName",
-                    text: "is [NAME] valid node name",
+                    text: "is [NAME] valid name",
                     blockType: BlockType.BOOLEAN,
                     arguments: {
                         NAME: {
@@ -225,6 +291,46 @@ class Extension {
 
         NODE.children = CHILDREN
         return NODE
+    }
+
+    getAttribute({NODE, ATTRIBUTE}) {
+        NODE = XML.Type.toXML(NODE)
+        ATTRIBUTE = Cast.toString(ATTRIBUTE)
+
+        return NODE.attributes[ATTRIBUTE] === undefined ? "" : NODE.attributes[ATTRIBUTE]
+    }
+
+    setAttribute({NODE, ATTRIBUTE, VALUE}) {
+        NODE = XML.Type.toXML(NODE)
+        ATTRIBUTE = Cast.toString(ATTRIBUTE)
+        VALUE = Cast.toString(VALUE)
+
+        if (this.validName({NAME: ATTRIBUTE})) {
+            NODE.attributes[ATTRIBUTE] = VALUE
+        }
+
+        return NODE
+    }
+
+    removeAttribute({NODE, ATTRIBUTE}) {
+        NODE = XML.Type.toXML(NODE)
+        ATTRIBUTE = Cast.toString(ATTRIBUTE)
+
+        delete NODE.attributes[ATTRIBUTE]
+        return NODE
+    }
+
+    hasAttribute({NODE, ATTRIBUTE}) {
+        NODE = XML.Type.toXML(NODE)
+        ATTRIBUTE = Cast.toString(ATTRIBUTE)
+
+        return NODE.attributes[ATTRIBUTE] !== undefined
+    }
+
+    getAttributes({NODE}) {
+        NODE = XML.Type.toXML(NODE)
+
+        return new jwArray.Type(Object.keys(NODE.attributes), true)
     }
 
     toString({NODE}) {
