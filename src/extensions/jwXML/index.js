@@ -150,7 +150,7 @@ class Extension {
                         CHILDREN: jwArray.Argument
                     },
                     ...XML.Block
-                }
+                },
                 "---",
                 {
                     opcode: "toString",
