@@ -99,7 +99,7 @@ class Extension {
         return {
             id: "jwXML",
             name: "XML",
-            color1: "#70e84f",
+            color1: "#8dd941",
             blocks: [
                 {
                     opcode: "newNode",
@@ -112,6 +112,15 @@ class Extension {
                     },
                     ...XML.Block
                 },
+                {
+                    opcode: "parse",
+                    text: "parse [INPUT] as node",
+                    INPUT: {
+                        type: ArgumentType.STRING,
+                        defaultValue: '<name />',
+                        exemptFromNormalization: true
+                    }
+                }
                 "---",
                 {
                     opcode: "getName",
@@ -180,6 +189,10 @@ class Extension {
         NAME = Cast.toString(NAME)
 
         return new XML.Type(XML.Type.safeName(NAME))
+    }
+
+    parse({INPUT}) {
+        return XML.Type.toXML(INPUT)
     }
 
     getName({NODE}) {
