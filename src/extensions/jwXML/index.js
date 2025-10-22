@@ -102,7 +102,7 @@ class Extension {
                     arguments: {
                         XML: XML.Argument
                     }
-                }
+                },
                 "---",
                 {
                     opcode: "validName",
