@@ -27,11 +27,38 @@ class XMLType {
         return new XMLType()
     }
 
+    static forXML(v) {
+        if (v instanceof XMLType) return v
+        return Cast.toString(v)
+    }
+
     static safeName(name) {
         return /[A-z_][A-z0-9_-]*/.exec(name) ? name : "node"
     }
 
+    static safeText(text) {
+        return [
+            ["&", "&amp;"],
+            ["<", "&lt;"],
+            [">", "&gt;"],
+            ['"', "&quot;"],
+            ["'", "&apos;"]
+        ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
+    }
+
     toString() {
+        let output = `<${this.name}`
+        // TODO: attributes
+        if (this.children.length === 0) {
+            output += " />"
+        } else {
+            output += ">"
+            for (let child of this.children) {
+                output += child instanceof XMLType ? child.toString() : XMLType.safeText(child)
+            }
+            output += `</${this.name}>`
+            return output
+        }
         return `<${this.name} />`
     }
 }
@@ -94,6 +121,36 @@ class Extension {
                     },
                     ...XML.Block
                 },
+                {
+                    opcode: "setName",
+                    text: "set name of [NODE] to [NAME]",
+                    arguments: {
+                        NODE: XML.Argument,
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        }
+                    },
+                    ...XML.Block
+                },
+                "---",
+                {
+                    opcode: "getChildren",
+                    text: "children of [NODE]",
+                    arguments: {
+                        NODE: XML.Argument
+                    },
+                    ...jwArray.Block
+                },
+                {
+                    opcode: "setChildren",
+                    text: "set children of [NODE] to [CHILDREN]",
+                    arguments: {
+                        NODE: XML.Argument,
+                        CHILDREN: jwArray.Argument
+                    },
+                    ...XML.Block
+                }
                 "---",
                 {
                     opcode: "toString",
@@ -129,6 +186,28 @@ class Extension {
         NODE = XML.Type.toXML(NODE)
         
         return NODE.name
+    }
+
+    setName({NODE, NAME}) {
+        NODE = XML.Type.toXML(NODE)
+        NAME = Cast.toString(NAME)
+
+        NODE.name = XML.Type.safeName(NAME)
+        return NODE
+    }
+
+    getChildren({NODE}) {
+        NODE = XML.Type.toXML(NODE)
+
+        return new jwArray.Type(NODE.children, true)
+    }
+
+    setChildren({NODE, CHILDREN}) {
+        NODE = XML.Type.toXML(NODE)
+        CHILDREN = jwArray.Type.toArray(CHILDREN).map(v => XML.Type.forXML(v))
+
+        NODE.children = CHILDREN
+        return NODE
     }
 
     toString({NODE}) {
