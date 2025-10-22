@@ -7,15 +7,6 @@ let arrayLimit = 2 ** 32 - 1
 
 // credit to sharpool because i stole the for each code from his extension haha im soo evil
 
-let isScratchBlocksReady = typeof ScratchBlocks === 'object';
-if (isScratchBlocksReady) {
-    // yes, this is just the square notch shape, but I want it to strictly check for array blocks
-    ScratchBlocks.BlockSvg.registerCustomNotch(
-        'jwArrayBuilder', 
-        `l 2 0 c 1 0 2 1 2 2 l 0 4 c 0 1 1 2 2 2 h 24 c 1 0 2 -1 2 -2 l 0 -4 c 0 -1 1 -2 2 -2 l 2 0`
-    );
-}
-
 /**
 * @param {number} x
 * @returns {string}
@@ -181,12 +172,13 @@ const jwArray = {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.SQUARE,
         forceOutputType: "Array",
-        allowDropAnywhere: true,
+        //allowDropAnywhere: true,
         disableMonitor: true
     },
     Argument: {
         shape: BlockShape.SQUARE,
         exemptFromNormalization: true,
+        check: ["Array"],
         compilerInfo: {
             jwArrayUnmodified: true
         }
