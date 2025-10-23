@@ -34,7 +34,7 @@ class XMLType {
     static toXML(v) {
         if (v instanceof XMLType) return new XMLType(v.name, [...v.children], {...v.attributes})
         
-        let parsed = XMLType.stringToMultiple(v).filter(v => v instanceof XMLType)
+        let parsed = XMLType.stringToMultiple(Cast.toString(v)).filter(v => v instanceof XMLType)
         if (parsed.length > 0) return parsed[0]
 
         return new XMLType()
@@ -54,7 +54,7 @@ class XMLType {
                 let attributes = {}
                 if (v["@:"]) {
                     for (let [attr, value] of Object.entries(v["@:"])) {
-                        attributes[attr] = value
+                        attributes[attr] = Cast.toString(value)
                     }
                 }
 
