@@ -4,7 +4,15 @@ const ArgumentType = require('../../extension-support/argument-type')
 const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
-const fxp = require('./xml.js')
+const fxp = (new require('./xml.js').default({
+    ignoreAttributes: false,
+    attributeNamePrefix : "",
+    allowBooleanAttributes: true,
+    textNodeName: "#text",
+    preserveOrder: true,
+    ignoreDeclaration: true,
+    ignorePiTags: true
+})).parse
 
 class XMLType {
     /** @type {Array<string | XMLType>} */
@@ -26,9 +34,45 @@ class XMLType {
     static toXML(v) {
         if (v instanceof XMLType) return new XMLType(v.name, [...v.children], {...v.attributes})
         
-        
+        let parsed = XMLType.stringToMultiple(v).filter(v => v instanceof XMLType)
+        if (parsed.length > 0) return parsed[0]
 
         return new XMLType()
+    }
+
+    static stringToMultiple(v) {
+        let parsed = fxp(v)
+
+        let parse = v => {
+            let output = []
+            for (let item of v) {
+                if (v["#text"]) {
+                    output.push(v["#text"])
+                    continue
+                }
+
+                let attributes = {}
+                if (v["@:"]) {
+                    for (let [attr, value] of Object.entries(v["@:"])) {
+                        attributes[attr] = value
+                    }
+                }
+
+                let name
+                for (let key of Object.keys(item)) {
+                    if (key !== "#text" && key !== "@:") {
+                        name = key
+                        break
+                    }
+                }
+
+                let children = parse(item[name])
+
+                output.push(new XMLType(name, children, attributes))
+            }
+        }
+
+        return parse(parsed)
     }
 
     static forXML(v) {
@@ -38,7 +82,7 @@ class XMLType {
 
     static safeName(name) {
         name ??= "node"
-        return /[A-z_][A-z0-9_-]*/.exec(name) ? name : "node"
+        return /[A-z_][A-z0-9_-:]*/.exec(name) ? name : "node"
     }
 
     static safeText(text) {
