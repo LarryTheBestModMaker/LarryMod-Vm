@@ -46,6 +46,8 @@ class XMLType {
         let parse = v => {
             let output = []
             for (let item of v) {
+                console.log(item)
+
                 if (v["#text"]) {
                     output.push(v["#text"])
                     continue
