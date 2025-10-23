@@ -12,7 +12,7 @@ const fxp = (new require('./xml.js').default({
     preserveOrder: true,
     ignoreDeclaration: true,
     ignorePiTags: true
-})).parse
+}))
 
 class XMLType {
     /** @type {Array<string | XMLType>} */
@@ -41,7 +41,7 @@ class XMLType {
     }
 
     static stringToMultiple(v) {
-        let parsed = fxp(v)
+        let parsed = fxp.parse(v)
 
         let parse = v => {
             let output = []
