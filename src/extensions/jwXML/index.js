@@ -44,7 +44,7 @@ class XMLType {
             preserveOrder: true,
             ignoreDeclaration: true,
             ignorePiTags: true
-        })).parse(`<root>${v}</root>`)
+        })).parse(`${v}`)
 
         let parse = v => {
             let output = []
@@ -69,11 +69,6 @@ class XMLType {
                     }
                 }
 
-                if (name !== XMLType.safeName(name)) {
-                    output.push(name)
-                    continue
-                }
-
                 let children = parse(item[name])
 
                 output.push(new XMLType(name, children, attributes))
@@ -81,7 +76,7 @@ class XMLType {
             return output
         }
 
-        return parse(parsed[0]["root"])
+        return parse(parsed)
     }
 
     static forXML(v) {
@@ -211,7 +206,7 @@ class Extension {
                 },
                 {
                     opcode: "parseMultiple",
-                    text: "parse [INPUT] as nodes/text",
+                    text: "parse [INPUT] as nodes",
                     arguments: {
                         INPUT: {
                             type: ArgumentType.STRING,
