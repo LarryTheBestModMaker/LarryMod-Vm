@@ -4,6 +4,8 @@ const ArgumentType = require('../../extension-support/argument-type')
 const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
+const fxp = require('./xml.js')
+
 class XMLType {
     /** @type {Array<string | XMLType>} */
     children
@@ -23,7 +25,9 @@ class XMLType {
 
     static toXML(v) {
         if (v instanceof XMLType) return new XMLType(v.name, [...v.children], {...v.attributes})
-        // TODO: implement string to xml
+        
+        
+
         return new XMLType()
     }
 
@@ -83,7 +87,8 @@ let XML = {
     Argument: {
         check: ["jwXML"],
         exemptFromNormalization: true
-    }
+    },
+    fxp
 }
 
 let jwArray = {
@@ -138,7 +143,7 @@ class Extension {
                 {
                     opcode: "parseMultiple",
                     text: "parse [INPUT] as nodes",
-                    blockType: BlockType.REPORTER,
+                    hideFromPalette: true,
                     arguments: {
                         INPUT: {
                             type: ArgumentType.STRING,
