@@ -110,6 +110,7 @@ class Extension {
             id: "jwXML",
             name: "XML",
             color1: "#8dd941",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+CiAgPGVsbGlwc2Ugc3R5bGU9InN0cm9rZTogcmdiKDExMiwgMTczLCA1Mik7IGZpbGw6IHJnYigxNDEsIDIxNywgNjUpOyIgY3g9IjEwIiBjeT0iMTAiIHJ4PSI5LjUiIHJ5PSI5LjUiPjwvZWxsaXBzZT4KICA8cGF0aCBkPSJNIDguMjg3IDYuMjE0IEwgNC41IDEzLjc4NiBNIDEyLjA3MyA2LjIxNCBMIDE1Ljg2IDEwIEwgMTIuMDczIDEzLjc4NiIgc3Ryb2tlPSIjZmZmIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6IHJvdW5kOyBzdHJva2UtbGluZWpvaW46IHJvdW5kOyBzdHJva2Utd2lkdGg6IDJweDsiPjwvcGF0aD4KPC9zdmc+",
             blocks: [
                 {
                     opcode: "newNode",
@@ -134,6 +135,19 @@ class Extension {
                     },
                     ...XML.Block
                 },
+                {
+                    opcode: "parseMultiple",
+                    text: "parse [INPUT] as nodes",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        INPUT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '<one /><two />',
+                            exemptFromNormalization: true
+                        }
+                    },
+                    ...jwArray.Block
+                }
                 "---",
                 {
                     opcode: "getName",
@@ -262,6 +276,17 @@ class Extension {
                             defaultValue: "name"
                         }
                     }
+                },
+                {
+                    opcode: "toStringSafe",
+                    text: "make [TEXT] XML safe",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '<unsafe>'
+                        }
+                    }
                 }
             ]
         };
@@ -275,6 +300,11 @@ class Extension {
 
     parse({INPUT}) {
         return XML.Type.toXML(INPUT)
+    }
+
+    parseMultiple({INPUT}) {
+        //TODO: implement multi xml parsing
+        return new jwArray.Type([], true)
     }
 
     getName({NODE}) {
@@ -362,6 +392,12 @@ class Extension {
         NAME = Cast.toString(NAME)
 
         return XML.Type.safeName(NAME) === NAME
+    }
+
+    toStringSafe({TEXT}) {
+        TEXT = Cast.toString(TEXT)
+
+        return XML.Type.safeText(TEXT)
     }
 }
 
