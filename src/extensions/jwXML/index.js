@@ -47,6 +47,10 @@ class XMLType {
         ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
     }
 
+    jwArrayHandler() {
+        return XMLType.safeText(`<${this.name} />`)
+    }
+
     toString() {
         let output = `<${this.name}`
         
@@ -211,6 +215,14 @@ class Extension {
                     ...XML.Block
                 },
                 {
+                    opcode: "removeAttributes",
+                    text: "remove all attributes of [NODE]",
+                    arguments: {
+                        NODE: XML.Argument
+                    },
+                    ...XML.Block
+                }
+                {
                     opcode: "hasAttribute",
                     text: "[NODE] has attribute [ATTRIBUTE]",
                     blockType: BlockType.BOOLEAN,
@@ -317,6 +329,13 @@ class Extension {
         ATTRIBUTE = Cast.toString(ATTRIBUTE)
 
         delete NODE.attributes[ATTRIBUTE]
+        return NODE
+    }
+
+    removeAttributes({NODE}) {
+        NODE = XML.Type.toXML(NODE)
+
+        NODE.attributes = {}
         return NODE
     }
 
