@@ -66,6 +66,8 @@ class XMLType {
                     }
                 }
 
+                if (!name) continue
+
                 let children = parse(item[name])
 
                 output.push(new XMLType(name, children, attributes))
