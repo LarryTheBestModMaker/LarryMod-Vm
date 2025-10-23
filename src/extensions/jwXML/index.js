@@ -29,7 +29,7 @@ class XMLType {
         let parsed = XMLType.stringToMultiple(Cast.toString(v)).filter(v => v instanceof XMLType)
         if (parsed.length > 0) return parsed[0]
 
-        return new XMLType(v)
+        return new XMLType(Cast.toString(v))
     }
 
     static stringToMultiple(v) {
