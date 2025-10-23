@@ -41,7 +41,7 @@ class XMLType {
             preserveOrder: true,
             ignoreDeclaration: true,
             ignorePiTags: true
-        })).parse(v)
+        })).parse(`<root>${v}</root>`)
 
         let parse = v => {
             let output = []
@@ -73,7 +73,7 @@ class XMLType {
             return output
         }
 
-        return parse(parsed)
+        return parse(parsed[0]["root"])
     }
 
     static forXML(v) {
