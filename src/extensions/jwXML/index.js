@@ -187,8 +187,7 @@ class Extension {
                 },
                 {
                     opcode: "parseMultiple",
-                    text: "parse [INPUT] as nodes",
-                    hideFromPalette: true,
+                    text: "parse [INPUT] as nodes/text",
                     arguments: {
                         INPUT: {
                             type: ArgumentType.STRING,
@@ -353,8 +352,9 @@ class Extension {
     }
 
     parseMultiple({INPUT}) {
-        //TODO: implement multi xml parsing
-        return new jwArray.Type([], true)
+        INPUT = Cast.toString(INPUT)
+
+        return new jwArray.Type(XML.Type.stringToMultiple(INPUT), true)
     }
 
     getName({NODE}) {
