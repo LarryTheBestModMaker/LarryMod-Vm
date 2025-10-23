@@ -352,9 +352,10 @@ class Extension {
     }
 
     parseMultiple({INPUT}) {
-        INPUT = Cast.toString(INPUT)
+        if (INPUT instanceof XML.Type) return new jwArray.Type([INPUT], true)
+        if (INPUT instanceof jwArray.Type) return new jwArray.Type(INPUT.array.map(v => XML.Type.forXML(v)), true)
 
-        return new jwArray.Type(XML.Type.stringToMultiple(INPUT), true)
+        return new jwArray.Type(XML.Type.stringToMultiple(Cast.toString(INPUT)), true)
     }
 
     getName({NODE}) {
