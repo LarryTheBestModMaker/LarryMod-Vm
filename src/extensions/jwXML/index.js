@@ -52,7 +52,7 @@ class XMLType {
                 }
 
                 let attributes = {}
-                if (v["@:"]) {
+                if (v[":@"]) {
                     for (let [attr, value] of Object.entries(v[":@"])) {
                         attributes[attr] = Cast.toString(value)
                     }
