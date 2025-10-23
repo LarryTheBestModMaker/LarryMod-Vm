@@ -7,6 +7,8 @@ const Cast = require('../../util/cast')
 const fxp = require('./xml.js')
 
 class XMLType {
+    customId = "jwXML"
+
     /** @type {Array<string | XMLType>} */
     children
 
@@ -25,11 +27,12 @@ class XMLType {
 
     static toXML(v) {
         if (v instanceof XMLType) return new XMLType(v.name, [...v.children], {...v.attributes})
+        if (v === null || v === undefined) return new XMLType()
         
         let parsed = XMLType.stringToMultiple(Cast.toString(v)).filter(v => v instanceof XMLType)
         if (parsed.length > 0) return parsed[0]
 
-        return new XMLType(Cast.toString(v))
+        return new XMLType("node", [Cast.toString(v)])
     }
 
     static stringToMultiple(v) {
@@ -66,7 +69,10 @@ class XMLType {
                     }
                 }
 
-                if (!name) continue
+                if (name !== XMLType.safeName(name)) {
+                    output.push(name)
+                    continue
+                }
 
                 let children = parse(item[name])
 
@@ -122,6 +128,22 @@ class XMLType {
 
         return output
     }
+
+    serialize() {
+        return {
+            name: this.name,
+            children: this.children.map(v => v instanceof XMLType ? v.serialize() : v),
+            attributes: this.attributes
+        }
+    }
+
+    static deserialize(data) {
+        return new XMLType(
+            data.name,
+            data.children.map(v => (typeof v === "object" && v !== null) ? XMLType.deserialize(v) : v),
+            data.attributes
+        )
+    }
 }
 
 let XML = {
@@ -147,11 +169,11 @@ let jwArray = {
 class Extension {
     constructor() {
         vm.jwXML = XML
-        /*vm.runtime.registerSerializer(
-            "jwTargets", 
-            v => v.targetId, 
-            v => new Target.Type(v)
-        );*/
+        vm.runtime.registerSerializer(
+            "jwXML", 
+            v => v.serialize(), 
+            v => XML.Type.deserialize(v)
+        );
 
         if (!vm.jwArray) vm.extensionManager.loadExtensionIdSync('jwArray')
         jwArray = vm.jwArray
