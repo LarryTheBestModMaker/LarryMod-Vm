@@ -70,6 +70,7 @@ class XMLType {
 
                 output.push(new XMLType(name, children, attributes))
             }
+            return output
         }
 
         return parse(parsed)
