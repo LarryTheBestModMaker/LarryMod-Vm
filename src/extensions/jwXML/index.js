@@ -82,7 +82,7 @@ class XMLType {
 
     static safeName(name) {
         name ??= "node"
-        return /[A-z_][A-z0-9_-:]*/.exec(name) ? name : "node"
+        return /^[A-z_][A-z0-9_\-:]*$/.exec(name) ? name : "node"
     }
 
     static safeText(text) {
