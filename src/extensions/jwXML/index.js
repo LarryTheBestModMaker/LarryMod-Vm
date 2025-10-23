@@ -53,14 +53,14 @@ class XMLType {
 
                 let attributes = {}
                 if (v["@:"]) {
-                    for (let [attr, value] of Object.entries(v["@:"])) {
+                    for (let [attr, value] of Object.entries(v[":@"])) {
                         attributes[attr] = Cast.toString(value)
                     }
                 }
 
                 let name
                 for (let key of Object.keys(item)) {
-                    if (key !== "#text" && key !== "@:") {
+                    if (key !== "#text" && key !== ":@") {
                         name = key
                         break
                     }
