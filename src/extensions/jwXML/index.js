@@ -33,7 +33,15 @@ class XMLType {
     }
 
     static stringToMultiple(v) {
-        let parsed = fxp.parse(v)
+        let parsed = (new fxp.default({
+            ignoreAttributes: false,
+            attributeNamePrefix : "",
+            allowBooleanAttributes: true,
+            textNodeName: "#text",
+            preserveOrder: true,
+            ignoreDeclaration: true,
+            ignorePiTags: true
+        })).parse(v)
 
         let parse = v => {
             let output = []
