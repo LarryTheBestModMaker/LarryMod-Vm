@@ -29,7 +29,7 @@ class XMLType {
         let parsed = XMLType.stringToMultiple(Cast.toString(v)).filter(v => v instanceof XMLType)
         if (parsed.length > 0) return parsed[0]
 
-        return new XMLType()
+        return new XMLType(v)
     }
 
     static stringToMultiple(v) {
@@ -46,16 +46,14 @@ class XMLType {
         let parse = v => {
             let output = []
             for (let item of v) {
-                console.log(item)
-
-                if (v["#text"]) {
-                    output.push(v["#text"])
+                if (item["#text"]) {
+                    output.push(item["#text"])
                     continue
                 }
 
                 let attributes = {}
-                if (v[":@"]) {
-                    for (let [attr, value] of Object.entries(v[":@"])) {
+                if (item[":@"]) {
+                    for (let [attr, value] of Object.entries(item[":@"])) {
                         attributes[attr] = Cast.toString(value)
                     }
                 }
