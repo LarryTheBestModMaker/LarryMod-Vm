@@ -147,7 +147,7 @@ class Extension {
                         }
                     },
                     ...jwArray.Block
-                }
+                },
                 "---",
                 {
                     opcode: "getName",
