@@ -221,7 +221,7 @@ class Extension {
                         NODE: XML.Argument
                     },
                     ...XML.Block
-                }
+                },
                 {
                     opcode: "hasAttribute",
                     text: "[NODE] has attribute [ATTRIBUTE]",
