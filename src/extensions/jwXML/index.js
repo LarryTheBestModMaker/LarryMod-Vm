@@ -4,15 +4,7 @@ const ArgumentType = require('../../extension-support/argument-type')
 const TargetType = require('../../extension-support/target-type')
 const Cast = require('../../util/cast')
 
-const fxp = (new require('./xml.js').default({
-    ignoreAttributes: false,
-    attributeNamePrefix : "",
-    allowBooleanAttributes: true,
-    textNodeName: "#text",
-    preserveOrder: true,
-    ignoreDeclaration: true,
-    ignorePiTags: true
-}))
+const fxp = require('./xml.js')
 
 class XMLType {
     /** @type {Array<string | XMLType>} */
