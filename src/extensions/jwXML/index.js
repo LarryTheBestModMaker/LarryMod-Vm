@@ -357,6 +357,19 @@ class Extension {
                             defaultValue: '<unsafe>'
                         }
                     }
+                },
+                {
+                    opcode: "filterArray",
+                    text: "elements named [NAME] in [INPUT]",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "name"
+                        },
+                        INPUT: jwArray.Argument
+                    },
+                    ...jwArray.Block,
                 }
             ]
         };
@@ -470,6 +483,16 @@ class Extension {
         TEXT = Cast.toString(TEXT)
 
         return XML.Type.safeText(TEXT)
+    }
+
+    filterArray({NAME, INPUT}) {
+        NAME = Cast.toString(NAME)
+        INPUT = jwArray.Type.toArray(INPUT)
+
+        if (!this.validName({NAME})) return new jwArray.Type([], true)
+        INPUT.array = INPUT.array.filter(v => v instanceof XML.Type && v.name === NAME)
+
+        return INPUT
     }
 }
 
