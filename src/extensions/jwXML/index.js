@@ -145,10 +145,12 @@ let XML = {
     Type: XMLType,
     Block: {
         blockType: BlockType.REPORTER,
+        blockShape: BlockShape.INDENTED,
         forceOutputType: "jwXML",
         disableMonitor: true
     },
     Argument: {
+        shape: BlockShape.INDENTED,
         check: ["jwXML"],
         exemptFromNormalization: true
     },
