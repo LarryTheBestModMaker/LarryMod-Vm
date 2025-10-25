@@ -306,6 +306,28 @@ class Extension {
                 },
                 "---",
                 {
+                    opcode: "appendChild",
+                    text: "append [CHILD] to [NODE]",
+                    arguments: {
+                        CHILD: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'text / node',
+                            exemptFromNormalization: true
+                        },
+                        NODE: XML.Argument
+                    },
+                    ...XML.Block
+                },
+                {
+                    opcode: "removeChildren",
+                    text: "remove children of [NODE]",
+                    arguments: {
+                        NODE: XML.Argument
+                    },
+                    ...XML.Block
+                },
+
+                {
                     opcode: "getChildren",
                     text: "children of [NODE]",
                     arguments: {
@@ -481,6 +503,21 @@ class Extension {
         NAME = Cast.toString(NAME)
 
         NODE.name = XML.Type.safeName(NAME)
+        return NODE
+    }
+
+    appendChild({NODE, CHILD}) {
+        NODE = XML.Type.toXML(NODE)
+        CHILD = XML.Type.forXML(CHILD)
+
+        NODE.children.push(CHILD)
+        return NODE
+    }
+
+    removeChildren({NODE}) {
+        NODE = XML.Type.toXML(NODE)
+
+        NODE.children = []
         return NODE
     }
 
