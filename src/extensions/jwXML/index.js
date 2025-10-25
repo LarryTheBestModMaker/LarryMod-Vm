@@ -6,6 +6,14 @@ const Cast = require('../../util/cast')
 
 const fxp = require('./xml.js')
 
+function span(text) {
+    let el = document.createElement('span')
+    el.innerText = text
+    el.style.whiteSpace = 'nowrap'
+    el.style.width = '100%'
+    return el
+}
+
 class XMLType {
     customId = "jwXML"
 
@@ -125,6 +133,42 @@ class XMLType {
         }
 
         return output
+    }
+    
+    toMonitorContent = () => span(this.toString())
+
+    toReporterContent() {
+        const childrenLimit = 50
+
+        let output = `<${this.name}`
+
+        for (let [attr, value] of Object.entries(this.attributes)) {
+            output += ` ${attr}="${XMLType.safeText(value)}"`
+        }
+
+        if (this.children.length === 0) {
+            output += " />"
+        } else {
+            output += ">\n"
+
+            for (let child of this.children.slice(0, childrenLimit)) {
+                output += "\t"
+                if (child instanceof XMLType) {
+
+                } else {
+
+                }
+                output += "\n"
+            }
+
+            if (this.children.length > childrenLimit) {
+                output += `\t... (${this.children.length - childrenLimit} nodes)\n`
+            }
+
+            output += `</${this.name}>`
+        }
+
+        return span(output)
     }
 
     serialize() {
