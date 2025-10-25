@@ -113,7 +113,7 @@ class XMLType {
         if (this.children.length === 0) {
             output += " />"
         } else {
-            output += ">" + pretty ? "\n" : ""
+            output += ">" + (pretty ? "\n" : "")
             for (let child of this.children) {
                 output += (child instanceof XMLType ? child.toString(pretty, depth + 1) : XMLType.safeText(child)) + (pretty ? "\n" : "")
             }
