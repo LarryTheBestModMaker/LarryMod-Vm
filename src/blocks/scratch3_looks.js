@@ -861,9 +861,9 @@ class Scratch3LooksBlocks {
 
                     stage.setCostume(nextCostume);
                 }
-            } else if (requestedCostume === 'first backdrop') {
+            } else if (requestedBackdrop === 'first backdrop') {
                 stage.setCostume(0);
-            } else if (requestedCostume === 'last backdrop') {
+            } else if (requestedBackdrop === 'last backdrop') {
                 stage.setCostume(stage.getCostumes().length - 1);
             // Try to cast the string to a number (and treat it as a costume index)
             // Pure whitespace should not be treated as a number
