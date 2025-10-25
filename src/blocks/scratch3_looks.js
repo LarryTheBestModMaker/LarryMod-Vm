@@ -734,6 +734,10 @@ class Scratch3LooksBlocks {
                     // costume.
                 }
                 target.setCostume(randomIndex);
+            } else if (requestedCostume === 'first costume') {
+                target.setCostume(0);
+            } else if (requestedCostume === 'last costume') {
+                target.setCostume(target.sprite.costumes_.length - 1);
             } else if (!(isNaN(requestedCostume) || Cast.isWhiteSpace(requestedCostume))) {
                 target.setCostume(optZeroIndex ? Number(requestedCostume) : Number(requestedCostume) - 1);
             }
@@ -791,6 +795,12 @@ class Scratch3LooksBlocks {
                         // costume.
                     }
                     break;
+                // case "first " + noun:
+                //     costumeIndex = 0;
+                //     break;
+                // case "last " + noun:
+                //     costumeIndex = target.sprite.costumes_.length - 1;
+                //     break;
                 default:
                     costumeIndex = target.getCostumeIndexByName(Cast.toString(requestedCostume));
             }
@@ -851,6 +861,10 @@ class Scratch3LooksBlocks {
 
                     stage.setCostume(nextCostume);
                 }
+            } else if (requestedCostume === 'first backdrop') {
+                stage.setCostume(0);
+            } else if (requestedCostume === 'last backdrop') {
+                stage.setCostume(stage.getCostumes().length - 1);
             // Try to cast the string to a number (and treat it as a costume index)
             // Pure whitespace should not be treated as a number
             // Note: isNaN will cast the string to a number before checking if it's NaN
