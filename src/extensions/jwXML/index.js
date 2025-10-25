@@ -103,8 +103,8 @@ class XMLType {
         return XMLType.safeText(`<${this.name} />`)
     }
 
-    toString() {
-        let output = `<${this.name}`
+    toString(pretty = false, depth = 0) {
+        let output = "\t".repeat(pretty ? depth : 0) + `<${this.name}`
         
         for (let [attr, value] of Object.entries(this.attributes)) {
             output += ` ${attr}="${XMLType.safeText(value)}"`
@@ -113,9 +113,9 @@ class XMLType {
         if (this.children.length === 0) {
             output += " />"
         } else {
-            output += ">"
+            output += ">" + pretty ? "\n" : ""
             for (let child of this.children) {
-                output += child instanceof XMLType ? child.toString() : XMLType.safeText(child)
+                output += (child instanceof XMLType ? child.toString(pretty, depth + 1) : XMLType.safeText(child)) + (pretty ? "\n" : "")
             }
             output += `</${this.name}>`
             return output
@@ -329,10 +329,14 @@ class Extension {
                 "---",
                 {
                     opcode: "toString",
-                    text: "stringify [NODE]",
+                    text: "stringify [NODE] [FORMAT]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        NODE: XML.Argument
+                        NODE: XML.Argument,
+                        FORMAT: {
+                            menu: "stringifyFormat",
+                            defaultValue: "compact"
+                        }
                     }
                 },
                 "---",
@@ -371,7 +375,16 @@ class Extension {
                     },
                     ...jwArray.Block,
                 }
-            ]
+            ],
+            menus: {
+                stringifyFormat: {
+                    acceptReporters: false,
+                    items: [
+                        "compact",
+                        "pretty"
+                    ]
+                }
+            }
         };
     }
 
@@ -467,10 +480,10 @@ class Extension {
         return new jwArray.Type(Object.keys(NODE.attributes), true)
     }
 
-    toString({NODE}) {
+    toString({NODE, FORMAT}) {
         NODE = XML.Type.toXML(NODE)
 
-        return NODE.toString()
+        return NODE.toString(FORMAT === "pretty")
     }
 
     validName({NAME}) {
