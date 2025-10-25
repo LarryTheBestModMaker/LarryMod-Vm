@@ -103,7 +103,18 @@ class XMLType {
             ["<", "&lt;"],
             [">", "&gt;"],
             ['"', "&quot;"],
-            ["'", "&apos;"]
+            ["'", "&apos;"],
+            ["\n", "&#10;"],
+            ["\r\n", "&#10;"],
+            ["\t", "&#9;"]
+        ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
+    }
+
+    static safeDisplayText(text) {
+        return [
+            ["\n", "&#10;"],
+            ["\r\n", "&#10;"],
+            ["\t", "&#9;"]
         ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
     }
 
@@ -154,9 +165,17 @@ class XMLType {
             for (let child of this.children.slice(0, childrenLimit)) {
                 output += "\t"
                 if (child instanceof XMLType) {
-
+                    output += `<${child.name}`
+                    for (let [attr, value] of Object.entries(child.attributes)) {
+                        output += ` ${attr}="${XMLType.safeText(value)}"`
+                    }
+                    if (child.children.length === 0) {
+                        output += " />"
+                    } else {
+                        output += `>...</${child.name}>`
+                    }
                 } else {
-
+                    output += `"${XMLType.safeDisplayText(child)}"`
                 }
                 output += "\n"
             }
