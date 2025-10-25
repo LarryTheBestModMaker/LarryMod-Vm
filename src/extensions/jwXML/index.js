@@ -118,11 +118,10 @@ class XMLType {
                 output += (
                     child instanceof XMLType ?
                     child.toString(pretty, depth + 1) :
-                    ("\t".repeat(pretty ? depth : 0) + XMLType.safeText(child))
+                    ("\t".repeat(pretty ? depth + 1 : 0) + XMLType.safeText(child))
                 ) + (pretty ? "\n" : "")
             }
-            output += `</${this.name}>`
-            return output
+            output += "\t".repeat(pretty ? depth : 0) + `</${this.name}>`
         }
 
         return output
