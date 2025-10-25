@@ -115,7 +115,11 @@ class XMLType {
         } else {
             output += ">" + (pretty ? "\n" : "")
             for (let child of this.children) {
-                output += (child instanceof XMLType ? child.toString(pretty, depth + 1) : XMLType.safeText(child)) + (pretty ? "\n" : "")
+                output += (
+                    child instanceof XMLType ?
+                    child.toString(pretty, depth + 1) :
+                    ("\t".repeat(pretty ? depth : 0) + XMLType.safeText(child))
+                ) + (pretty ? "\n" : "")
             }
             output += `</${this.name}>`
             return output
