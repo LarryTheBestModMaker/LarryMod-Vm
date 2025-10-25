@@ -2016,7 +2016,7 @@ class ScriptTreeGenerator {
                 var: this.descendInputOfBlock(block, 'name'),
                 val: this.descendInputOfBlock(block, 'value')
             };
-        case 'tempVars_changeVariable': {
+        case 'tempVars_changeVariable':
             return {
                 kind: 'tempVars.change',
                 var: this.descendInputOfBlock(block, 'name'),
