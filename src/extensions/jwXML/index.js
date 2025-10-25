@@ -9,7 +9,6 @@ const fxp = require('./xml.js')
 function span(text) {
     let el = document.createElement('span')
     el.innerText = text
-    el.style.whiteSpace = 'nowrap'
     el.style.width = '100%'
     return el
 }
@@ -112,9 +111,9 @@ class XMLType {
 
     static safeDisplayText(text) {
         return [
-            ["\n", "&#10;"],
-            ["\r\n", "&#10;"],
-            ["\t", "&#9;"]
+            ["\n", "\\n"],
+            ["\r\n", "\\n"],
+            ["\t", "\\t"]
         ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
     }
 
