@@ -103,18 +103,18 @@ class XMLType {
             [">", "&gt;"],
             ['"', "&quot;"],
             ["'", "&apos;"],
-            ["\n", "&#10;"],
             ["\r\n", "&#10;"],
+            ["\n", "&#10;"],
             ["\t", "&#9;"]
         ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
     }
 
     static safeDisplayText(text) {
         return [
-            ["\n", "\\n"],
-            ["\r\n", "\\n"],
-            ["\t", "\\t"]
-        ].reduce((a, b) => a.replaceAll(b[0], b[1]), text)
+            "\r",
+            "\n",
+            "\t"
+        ].reduce((a, b) => a.replaceAll(b, ""), text)
     }
 
     jwArrayHandler() {
