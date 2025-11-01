@@ -287,10 +287,10 @@ class Extension {
                 {
                     opcode: "getName",
                     text: "name of [NODE]",
+                    blockType: BlockType.REPORTER,
                     arguments: {
                         NODE: XML.Argument
-                    },
-                    ...XML.Block
+                    }
                 },
                 {
                     opcode: "setName",
