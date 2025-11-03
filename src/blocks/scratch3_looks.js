@@ -578,8 +578,8 @@ class Scratch3LooksBlocks {
         const message = args.MESSAGE;
         this._say(message, util.target);
     }
-    _say (message, target) { // used by compiler
-        this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, target, 'say', message);
+    _say (message, target, useShout) { // used by compiler
+        this.runtime.emit(Scratch3LooksBlocks.SAY_OR_THINK, target, useShout ? 'shout' : 'say', message);
         this.currentlyDisplayingInBubble[target] = message;
     }
 
@@ -1115,7 +1115,7 @@ class Scratch3LooksBlocks {
     shout (args, util) {
         // @TODO in 2.0 calling say/think resets the right/left bias of the bubble
         const message = args.MESSAGE;
-        this._say(Cast.toString(message).toUpperCase(), util.target); // right now all this is, is just the say block but the message is always uppercase
+        this._say(Cast.toString(message).toUpperCase(), util.target, true); // right now all this is, is just the say block but the message is always uppercase
     }
 
     shoutforsecs (args, util) {
