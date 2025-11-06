@@ -224,6 +224,7 @@ class ScriptTreeGenerator {
                 kind: 'constant',
                 value: block.fields.TEXT.value
             };
+        case 'operator_checkboxBoolean': //im lazy!
         case 'checkbox':
             return {
                 kind: 'constant',
