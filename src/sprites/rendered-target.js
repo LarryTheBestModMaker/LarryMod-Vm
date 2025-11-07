@@ -69,8 +69,9 @@ class RenderedTarget extends Target {
             // we add 1 since 0x000000 = 0, effects set to 0 will not even be enabled in the shader 
             // (so we can never tint to black if we didnt add 1)
             tintColor: 0xffffff + 1,
-            horizontalShear: 0,
-            verticalShear: 0
+            // underscores because of how the set effect and get effect blocks handle the effect name
+            horizontal_shear: 0,
+            vertical_shear: 0
         };
 
         /**
