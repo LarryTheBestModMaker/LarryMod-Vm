@@ -920,6 +920,45 @@ class JSGenerator {
             }
             return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
         }
+        case 'op.expandBool': {
+            const casted = node.bools.map((b) => this.descendInput(b).asBoolean());
+            let src = '';
+
+            if (node.isOptimized) {
+                for (let i = 0; i < casted.length; i++) src += casted[i] + node.operators[i][0];
+                if (!node.isNormal) src = `!(${src})`;
+            } else {
+                let abnormalCount = 0;
+                for (let i = 0; i < casted.length; i++) {
+                    const operator = node.operators[i];
+                    const isAbnormal = operator[1] === 'n' || operator[1] === 'N';
+                    if (isAbnormal) {
+                        abnormalCount++;
+                        src += '!(';
+                    }
+                    src += casted[i];
+                    if (!isAbnormal && abnormalCount > 0) {
+                        abnormalCount--;
+                        src += ')';
+                    }
+                    src += operator[0];
+                }
+
+                while (abnormalCount > 0) {
+                    abnormalCount--;
+                    src += ')';
+                }
+            }
+            return new TypedInput('(' + src + ')', TYPE_BOOLEAN);
+        }
+        case 'op.expandCompare': {
+            const casted = node.bools.map((b) => this.descendInput(b).asUnknown());
+            const src = [];
+            for (let i = 0; i < casted.length - 1; i++) {
+                src.push("(" + casted[i] + node.operators[i][0] + casted[i + 1] + ")");
+            }
+            return new TypedInput('(' + src.join("&&") + ')', TYPE_BOOLEAN);
+        }
 
         case 'sensing.answer':
             return new TypedInput(`runtime.ext_scratch3_sensing._answer`, TYPE_STRING);
