@@ -738,7 +738,7 @@ class ScriptTreeGenerator {
             return {
                 kind: isCompare ? 'op.expandCompare' : 'op.expandBool',
                 isOptimized: mutation.optimize === 'true',
-                isNormal: !menuvalues.find(op => ['n', 'N', 'X'].includes(op)),
+                isNormal: !menuvalues.includes('n') && !menuvalues.includes('N') && !menuvalues.includes('X'),
                 bools, operators
             };
         }
