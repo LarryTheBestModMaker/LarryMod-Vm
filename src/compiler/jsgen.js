@@ -931,7 +931,7 @@ class JSGenerator {
                 let abnormalCount = 0;
                 for (let i = 0; i < casted.length; i++) {
                     const operator = node.operators[i];
-                    const isAbnormal = operator[1] === 'n' || operator[1] === 'N';
+                    const isAbnormal = ['n', 'N', 'X'].includes(operator[1]);
                     if (isAbnormal) {
                         abnormalCount++;
                         src += '!(';

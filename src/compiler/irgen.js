@@ -705,6 +705,8 @@ class ScriptTreeGenerator {
                     case 'a': return '&&';
                     case 'N':
                     case 'o': return '||';
+                    case 'X':
+                    case 'x': return '!=';
                     default: return '&&';
                 }
             };
@@ -736,7 +738,7 @@ class ScriptTreeGenerator {
             return {
                 kind: isCompare ? 'op.expandCompare' : 'op.expandBool',
                 isOptimized: mutation.optimize === 'true',
-                isNormal: !menuvalues.includes('n') && !menuvalues.includes('N'),
+                isNormal: !menuvalues.find(op => ['n', 'N', 'X'].includes(op)),
                 bools, operators
             };
         }
