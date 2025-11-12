@@ -693,6 +693,53 @@ class ScriptTreeGenerator {
                 left: this.descendInputOfBlock(block, 'NUM1'),
                 right: this.descendInputOfBlock(block, 'NUM2')
             };
+        case 'operator_expandableBool':
+        case 'operator_expandableCompare': {
+            const mutation = block.mutation;
+            const menuvalues = mutation.menuvalues;
+            const isCompare = block.opcode.endsWith("Compare");
+
+            const toOperator = (value) => {
+                switch (value) {
+                    case 'n':
+                    case 'a': return '&&';
+                    case 'N':
+                    case 'o': return '||';
+                    default: return '&&';
+                }
+            };
+
+            const toComparator = (value) => {
+                switch (value) {
+                    case 'l': return '<';
+                    case 'L': return '<=';
+                    case 'm': return '>';
+                    case 'M': return '>=';
+                    case 'e': return '==';
+                    case 'E': return '===';
+                    case 'n': return '!=';
+                    default: return '>';
+                }
+            };
+
+            const bools = [], operators = [];
+            for (let i = 1; i <= parseInt(mutation.inputcount); i++) {
+                bools.push(this.descendInputOfBlock(block, (isCompare ? 'INPUT' : 'BOOL') + i));
+                const operator = menuvalues[i - 1];
+                operators.push([
+                    isCompare ? toComparator(operator) : toOperator(operator),
+                    operator
+                ]);
+            }
+            operators[operators.length - 1] = ['', ''];
+
+            return {
+                kind: isCompare ? 'op.expandCompare' : 'op.expandBool',
+                isOptimized: mutation.optimize === 'true',
+                isNormal: !menuvalues.includes('n') && !menuvalues.includes('N'),
+                bools, operators
+            };
+        }
 
         case 'sensing_answer':
             return {
