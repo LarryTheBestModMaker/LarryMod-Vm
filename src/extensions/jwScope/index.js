@@ -239,7 +239,7 @@ class Extension {
                 },
                 change: (node, compiler, imports) => {
                     compiler.source += `vm.jwScope.change(jwScope, ${compiler.descendInput(node.name).asString()}, ${compiler.descendInput(node.value).asNumber()});\n`
-                }
+                },
                 get: (node, compiler, imports) => {
                     return new imports.TypedInput(`vm.jwScope.get(jwScope, ${compiler.descendInput(node.name).asString()})`, imports.TYPE_UNKNOWN)
                 },
