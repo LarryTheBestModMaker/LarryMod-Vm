@@ -36,7 +36,7 @@ const jwScope = {
             }
         }
         array[array.length-1][name] = value
-    }
+    },
 
     get(array, name) {
         for (let i = array.length-1; i >= 0; i--) {
