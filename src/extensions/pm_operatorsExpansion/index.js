@@ -78,7 +78,7 @@ function generateJoinList(shown) {
     if (i === 2) xml += `<block type="operator_join">`;
     else if (i === 3) xml += `<block type="operator_join3">`;
     else xml += `<block type="pmOperatorsExpansion_join${i}">`;
-    for (let j = 1; j < i; j++) {
+    for (let j = 1; j <= i; j++) {
       xml += `<value name="STRING${j}">`;
       xml += `<shadow type="text"><field name="TEXT">${(joinWords[j - 1] ?? "...") + " "}</field></shadow>`;
       xml += `</value>`;
