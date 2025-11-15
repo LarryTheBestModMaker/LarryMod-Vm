@@ -1070,7 +1070,17 @@ class JSGenerator {
             if (procedureData.arguments.length) {
                 const args = [];
                 for (const input of node.arguments) {
-                    args.push(this.descendInput(input).asSafe());
+                    if (input instanceof Array) {
+                        //is a stack input
+                        const temp = this.source;
+                        this.source = "function*(thread, target, runtime, stage) {"
+                        this.descendStack(input, new Frame(false, undefined, true));
+                        this.source += "}";
+                        args.push(this.source);
+                        this.source = temp;
+                    } else {
+                        args.push(this.descendInput(input).asSafe());
+                    }
                 }
                 source += args.join(',');
             }
@@ -1164,6 +1174,11 @@ class JSGenerator {
             stage.children[0].addEventListener('mousedown', () => stage.innerHTML = ${createVideo(MISTERBEAST)});
             `;
             break;
+
+        case 'args.command':
+            if (node.index !== -1) this.source += `yield* p${node.index}(thread, target, runtime, stage);\n`;
+            break;
+
         case 'addons.call': {
             const inputs = this.descendInputRecord(node.arguments);
             const blockFunction = `runtime.getAddonBlock("${sanitize(node.code)}").callback`;
@@ -1828,7 +1843,17 @@ class JSGenerator {
             if (procedureData.arguments.length) {
                 const args = [];
                 for (const input of node.arguments) {
-                    args.push(this.descendInput(input).asSafe());
+                    if (input instanceof Array) {
+                        //is a stack input
+                        const temp = this.source;
+                        this.source = "function*(thread, target, runtime, stage) {"
+                        this.descendStack(input, new Frame(false, undefined, true));
+                        this.source += "}";
+                        args.push(this.source);
+                        this.source = temp;
+                    } else {
+                        args.push(this.descendInput(input).asSafe());
+                    }
                 }
                 this.source += args.join(',');
             }
