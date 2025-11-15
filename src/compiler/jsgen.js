@@ -1176,7 +1176,7 @@ class JSGenerator {
             break;
 
         case 'args.command':
-            if (node.index !== -1) this.source += `yield* p${node.index}(thread, target, runtime, stage);\n`;
+            if (node.index !== -1) this.source += `yield* (p${node.index} ?? function*(){})(thread, target, runtime, stage);\n`;
             break;
 
         case 'addons.call': {
