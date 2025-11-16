@@ -438,7 +438,8 @@ class Blocks {
                 oldInput: e.oldInputName,
                 newParent: e.newParentId,
                 newInput: e.newInputName,
-                newCoordinate: e.newCoordinate
+                newCoordinate: e.newCoordinate,
+                fromExpandable: e.isFromExpandable,
             });
             break;
         case 'dragOutside':
@@ -477,7 +478,7 @@ class Blocks {
                     }
                 }, 100);
             }
-            this.deleteBlock(e.blockId, false, e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
+            this.deleteBlock(e.blockId, false);
             break;
         case 'var_create':
             this.resetCache(); // tw: more aggressive cache resetting
@@ -835,10 +836,16 @@ class Blocks {
         }
 
         const block = this._blocks[e.id];
+
         // Track whether a change actually occurred
         // ignoring changes like routine re-positioning
         // of a block when loading a workspace
         let didChange = false;
+
+        // Determine wether we should remove an input
+        // from the parent block. Typically remove an
+        // expandable or procedure update
+        const shouldRemoveInput = e.fromExpandable || block.opcode.startsWith("argument_reporter_");
 
         // Move coordinate changes.
         if (e.newCoordinate) {
@@ -855,7 +862,8 @@ class Blocks {
             if (typeof e.oldInput !== 'undefined' &&
                 oldParent.inputs[e.oldInput].block === e.id) {
                 // This block was connected to the old parent's input.
-                oldParent.inputs[e.oldInput].block = null;
+                if (shouldRemoveInput) delete oldParent.inputs[e.oldInput];
+                else oldParent.inputs[e.oldInput].block = null;
             } else if (oldParent.next === e.id) {
                 // This block was connected to the old parent's next connection.
                 oldParent.next = null;
@@ -931,10 +939,8 @@ class Blocks {
      * with the given ID does not exist.
      * @param {!string} blockId Id of block to delete
      * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block
-     * @param {boolean} isSpecialShadow If we should remove the input that contains this block,
-     *                  typically called for procedures and expandables
      */
-    deleteBlock (blockId, preserveStack, isSpecialShadow) {
+    deleteBlock (blockId, preserveStack) {
         // Get block
         const block = this._blocks[blockId];
         if (!block) {
@@ -986,17 +992,6 @@ class Blocks {
                 next.y = block.y;
             }
             this._scripts.splice(i, 1);
-        }
-
-        if (isSpecialShadow && block.parent !== null) {
-            const parent = this._blocks[block.parent];
-
-            for (const inputName in parent.inputs) {
-                if (parent.inputs[inputName].block === blockId) {
-                    delete parent.inputs[inputName];
-                    break;
-                }
-            }
         }
 
         // Delete block itself.
