@@ -344,48 +344,42 @@ class Scratch3ControlBlocks {
     }
 
     // used by compiler
-    exitLoop(_, util) {
-        this._editOuterLoop('escape', util);
+    exitLoop(args, util) {
+        this._editOuterLoop('escape', util, args);
     }
-    continueLoop(_, util) {
-        this._editOuterLoop('continue', util);
+    continueLoop(args, util) {
+        this._editOuterLoop('continue', util, args);
     }
     _getLoopBlock(thread) {
         // climp up stack to get outer loop
         const stackFrames = thread.stackFrames, frameCount = stackFrames.length;
-        let loopBlock = null, stackIndex = -1;
+        let loopBlock = null;
         for (let i = frameCount - 1; i >= 0; i--) {
             if (i < 0) break;
             if (!stackFrames[i].isLoop) continue;
             loopBlock = stackFrames[i].op.id;
-            stackIndex = i;
             break;
         }
-        if (!loopBlock) return null;
-        return {
-            block: loopBlock,
-            index: stackIndex
-        };
+        return loopBlock;
     }
-    _editOuterLoop(type, util) {
+    _editOuterLoop(type, util, optData) {
         const thread = util.thread;
         const wasCompiled = thread.isCompiled;
         thread.isCompiled = false; // Failsafe
 
-        const frameData = this._getLoopBlock(thread);
-        if (!frameData) {
+        const outerLoop = optData.loopBlock ?? this._getLoopBlock(thread);
+        if (!outerLoop) {
             throw `All "${type} loop" blocks must be inside of a looping block.`;
             return;
         }
 
-        const block = frameData.block;
-        const afterLoop = thread.blockContainer.getBlock(block).next;
+        const afterLoop = thread.blockContainer.getBlock(outerLoop).next;
         if (type === 'escape') {
-            while(thread.stack.at(-1) !== block) thread.popStack();
+            while(thread.stack.at(-1) !== outerLoop) thread.popStack();
             thread.popStack();
             if (afterLoop) thread.pushStack(afterLoop);
         } else {
-            while (thread.stack[0] && thread.stack.at(-1) !== block) thread.popStack();
+            while (thread.stack[0] && thread.stack.at(-1) !== outerLoop) thread.popStack();
             thread.status = thread.constructor.STATUS_YIELD;
         }
         thread.isCompiled = wasCompiled;
