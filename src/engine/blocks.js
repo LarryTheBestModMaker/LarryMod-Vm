@@ -455,9 +455,11 @@ class Blocks {
             break;
         case 'delete':
             // Don't accept delete events for missing blocks,
-            // or shadow blocks being obscured.
-            if (!this._blocks.hasOwnProperty(e.blockId) ||
-                this._blocks[e.blockId].shadow) {
+            // or most shadow blocks being obscured.
+            if (
+                !this._blocks.hasOwnProperty(e.blockId) ||
+                (this._blocks[e.blockId].shadow && this._blocks[e.blockId].opcode.startsWith("argument_reporter_"))
+            ) {
                 return;
             }
             // If this block is the initial block of a script, inform any runtime to forget about glows
