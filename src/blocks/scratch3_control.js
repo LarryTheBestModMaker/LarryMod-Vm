@@ -367,7 +367,7 @@ class Scratch3ControlBlocks {
         const wasCompiled = thread.isCompiled;
         thread.isCompiled = false; // Failsafe
 
-        const outerLoop = optData.loopBlock ?? this._getLoopBlock(thread);
+        const outerLoop = optData.loopBlock.id ?? this._getLoopBlock(thread);
         if (!outerLoop) {
             throw `All "${type} loop" blocks must be inside of a looping block.`;
             return;
