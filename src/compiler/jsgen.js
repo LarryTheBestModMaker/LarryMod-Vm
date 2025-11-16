@@ -1847,7 +1847,10 @@ class JSGenerator {
                         //is a stack input
                         const temp = this.source;
                         this.source = "function*(thread, target, runtime, stage) {"
+                        const temp2 = this.isWarp;
+                        this.isWarp = procedureData.isWarp;
                         this.descendStack(input, new Frame(false, undefined, true));
+                        this.isWarp = temp2;
                         this.source += "}";
                         args.push(this.source);
                         this.source = temp;
