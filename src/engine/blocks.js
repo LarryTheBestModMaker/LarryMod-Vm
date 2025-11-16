@@ -477,8 +477,7 @@ class Blocks {
                     }
                 }, 100);
             }
-            console.log(e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
-            this.deleteBlock(e.blockId, e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
+            this.deleteBlock(e.blockId, false, e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
             break;
         case 'var_create':
             this.resetCache(); // tw: more aggressive cache resetting
@@ -932,8 +931,10 @@ class Blocks {
      * with the given ID does not exist.
      * @param {!string} blockId Id of block to delete
      * @param {boolean} preserveStack If we should reconect the bottom blocks to the top block
+     * @param {boolean} isSpecialShadow If we should remove the input that contains this block,
+     *                  typically called for procedures and expandables
      */
-    deleteBlock (blockId, preserveStack) {
+    deleteBlock (blockId, preserveStack, isSpecialShadow) {
         // Get block
         const block = this._blocks[blockId];
         if (!block) {
@@ -985,6 +986,17 @@ class Blocks {
                 next.y = block.y;
             }
             this._scripts.splice(i, 1);
+        }
+
+        if (isSpecialShadow && block.parent !== null) {
+            const parent = this._blocks[block.parent];
+
+            for (const inputName in parent.inputs) {
+                if (parent.inputs[inputName].block === blockId) {
+                    delete parent.inputs[inputName];
+                    break;
+                }
+            }
         }
 
         // Delete block itself.
