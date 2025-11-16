@@ -458,15 +458,16 @@ class Blocks {
             if (!this._blocks.hasOwnProperty(e.blockId)) return;
 
             // Don't accept delete events for most shadow blocks.
+            const block = this._blocks[e.blockId];
             if (
                 !e.isFromExpandable &&
-                (this._blocks[e.blockId].shadow && !this._blocks[e.blockId].opcode.startsWith("argument_reporter_"))
+                (block.shadow && !block.opcode.startsWith("argument_reporter_"))
             ) {
                 return;
             }
             // If this block is the initial block of a script, inform any runtime to forget about glows
             // as well as force end the script (if in compiler)
-            if (this._blocks[e.blockId].topLevel) {
+            if (block.topLevel) {
                 this.runtime.quietGlow(e.blockId);
                 if (this.runtime.compilerOptions.enabled) setTimeout(() => {
                     // slighlty delay script end to handle tab switching vs real block deletion
@@ -476,7 +477,7 @@ class Blocks {
                     }
                 }, 100);
             }
-            this.deleteBlock(e.blockId);
+            this.deleteBlock(e.blockId, e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
             break;
         case 'var_create':
             this.resetCache(); // tw: more aggressive cache resetting
