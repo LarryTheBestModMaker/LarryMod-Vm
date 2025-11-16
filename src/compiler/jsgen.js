@@ -1306,9 +1306,7 @@ class JSGenerator {
             if (inLoop) this.source += `break;\n`;
             else {
                 // this could be an uncompiled loop block
-                const lastStack = this.script.stack[this.script.stack.length - 1];
-                const loopBlock = lastStack.kind === "compat" && lastStack.blockType === "loop" ? lastStack.block : undefined;
-                this.source += `yield* executeInCompatibilityLayer({ loopBlock: ${JSON.stringify(loopBlock)}}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
             }
             break;
         }
@@ -1317,9 +1315,7 @@ class JSGenerator {
             if (inLoop) this.source += `continue;\n`;
             else {
                 // this could be an uncompiled loop block
-                const lastStack = this.script.stack[this.script.stack.length - 1];
-                const loopBlock = lastStack.kind === "compat" && lastStack.blockType === "loop" ? lastStack.block : undefined;
-                this.source += `yield* executeInCompatibilityLayer({ loopBlock: ${JSON.stringify(loopBlock)}}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
+                this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
             }
             break;
         }
