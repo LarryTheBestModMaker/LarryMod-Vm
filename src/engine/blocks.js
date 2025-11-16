@@ -454,11 +454,12 @@ class Blocks {
             }
             break;
         case 'delete':
-            // Don't accept delete events for missing blocks,
-            // or most shadow blocks being obscured.
+            // Don't accept delete events for missing blocks
+            if (!this._blocks.hasOwnProperty(e.blockId)) return;
+
+            // Don't accept delete events for most shadow blocks.
             if (
-                !this._blocks.hasOwnProperty(e.blockId) ||
-                !e.isFromExpandable ||
+                !e.isFromExpandable &&
                 (this._blocks[e.blockId].shadow && !this._blocks[e.blockId].opcode.startsWith("argument_reporter_"))
             ) {
                 return;
