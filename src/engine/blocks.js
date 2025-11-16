@@ -477,6 +477,7 @@ class Blocks {
                     }
                 }, 100);
             }
+            console.log(e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
             this.deleteBlock(e.blockId, e.isFromExpandable || block.opcode.startsWith("argument_reporter_"));
             break;
         case 'var_create':
