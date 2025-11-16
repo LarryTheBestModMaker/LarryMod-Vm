@@ -458,7 +458,8 @@ class Blocks {
             // or most shadow blocks being obscured.
             if (
                 !this._blocks.hasOwnProperty(e.blockId) ||
-                (this._blocks[e.blockId].shadow && this._blocks[e.blockId].opcode.startsWith("argument_reporter_"))
+                !e.isFromExpandable ||
+                (this._blocks[e.blockId].shadow && !this._blocks[e.blockId].opcode.startsWith("argument_reporter_"))
             ) {
                 return;
             }
