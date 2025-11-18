@@ -1200,7 +1200,7 @@ class JSGenerator {
             } else if (blockType === BlockType.CONDITIONAL || blockType === BlockType.LOOP) {
                 const branchVariable = this.localVariables.next();
                 this.source += `const ${branchVariable} = createBranchInfo(${blockType === BlockType.LOOP});\n`;
-                this.source += `while (!${branchVariable}.escaped || (${branchVariable}.branch = +(${this.generateCompatibilityLayerCall(node, false, branchVariable)}))) {\n`;
+                this.source += `while (!${branchVariable}.escaped && (${branchVariable}.branch = +(${this.generateCompatibilityLayerCall(node, false, branchVariable)}))) {\n`;
                 this.source += `switch (${branchVariable}.branch) {\n`;
                 this.compatBranchInfo = { node, branchVar: branchVariable, escaped: false };
                 for (let i = 0; i < node.substacks.length; i++) {
