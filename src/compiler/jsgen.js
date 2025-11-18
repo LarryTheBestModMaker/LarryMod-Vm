@@ -1182,7 +1182,7 @@ class JSGenerator {
             if (node.index !== -1) {
                 let outputVariable = this.localVariables.next();
                 this.source += `let ${outputVariable} = yield* (p${node.index} || function*(){})(thread, target, runtime, stage);\n`;
-                this.source += `if (${output} !== undefined) { return ${output}; };\n`
+                this.source += `if (${outputVariable} !== undefined) { return ${outputVariable}; };\n`
             }
             break;
 
@@ -1881,7 +1881,7 @@ class JSGenerator {
                 this.source += args.join(',');
             }
             this.source += `);\n`;
-            this.source += `if (${output} !== undefined) { return ${output}; };\n`
+            this.source += `if (${outputVariable} !== undefined) { return ${outputVariable}; };\n`
 
             if (node.type === 'hat') {
                 throw new Error('Custom hat blocks are not supported');
