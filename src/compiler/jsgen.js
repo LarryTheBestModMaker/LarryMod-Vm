@@ -1199,7 +1199,7 @@ class JSGenerator {
                 this.source += `${this.generateCompatibilityLayerCall(node, isLastInLoop)};\n`;
             } else if (blockType === BlockType.CONDITIONAL || blockType === BlockType.LOOP) {
                 const branchVariable = this.localVariables.next();
-                const label = "compatLoopLabel" + Math.random();
+                const label = "compatLoopLabel" + branchVariable;
                 this.source += `const ${branchVariable} = createBranchInfo(${blockType === BlockType.LOOP});\n`;
                 this.source += `${label}: while (${branchVariable}.branch = +(${this.generateCompatibilityLayerCall(node, false, branchVariable)})) {\n`;
                 this.source += `switch (${branchVariable}.branch) {\n`;
