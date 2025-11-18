@@ -1199,17 +1199,14 @@ class JSGenerator {
                 this.source += `${this.generateCompatibilityLayerCall(node, isLastInLoop)};\n`;
             } else if (blockType === BlockType.CONDITIONAL || blockType === BlockType.LOOP) {
                 const branchVariable = this.localVariables.next();
+                const label = "compatLoopLabel" + Math.random();
                 this.source += `const ${branchVariable} = createBranchInfo(${blockType === BlockType.LOOP});\n`;
-                this.source += `while (!${branchVariable}.escaped && (${branchVariable}.branch = +(${this.generateCompatibilityLayerCall(node, false, branchVariable)}))) {\n`;
+                this.source += `${label}: while (${branchVariable}.branch = +(${this.generateCompatibilityLayerCall(node, false, branchVariable)})) {\n`;
                 this.source += `switch (${branchVariable}.branch) {\n`;
-                this.compatBranchInfo = { node, branchVar: branchVariable, escaped: false };
+                this.compatBranchInfo = { node, branchVar: branchVariable, label };
                 for (let i = 0; i < node.substacks.length; i++) {
                     this.source += `case ${i + 1}: {\n`;
                     this.descendStack(node.substacks[i], new Frame(false));
-                    if (this.compatBranchInfo.escaped) {
-                        this.source += `}\n`; // close break point
-                        this.compatBranchInfo.escaped = false;
-                    }
                     this.source += `break;\n`;
                     this.source += `}\n`; // close case
                 }
@@ -1313,9 +1310,7 @@ class JSGenerator {
             else {
                 // this could be an uncompiled loop block
                 if (this.compatBranchInfo) {
-                    this.compatBranchInfo.escaped = true;
-                    this.source += `${this.compatBranchInfo.branchVar}.escaped = true;\n`;
-                    this.source += `if (false) {\n`; // stop following code in the stack
+                    this.source += `break ${this.compatBranchInfo.label};\n`;
                 } else {
                     this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
                 }
@@ -1328,9 +1323,7 @@ class JSGenerator {
             else {
                 // this could be an uncompiled loop block
                 if (this.compatBranchInfo) {
-                    // we only need to make the loop stop stack code, not end the loop
-                    this.compatBranchInfo.escaped = true;
-                    this.source += `if (false) {\n`; // stop following code in the stack
+                    this.source += `continue ${this.compatBranchInfo.label};\n`;
                 } else {
                     this.source += `yield* executeInCompatibilityLayer({}, runtime.getOpcodeFunction("control_exitLoop"), false, false, "${node.id}", null);\n`;
                 }
