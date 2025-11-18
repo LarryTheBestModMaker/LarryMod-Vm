@@ -744,7 +744,6 @@ class Extension {
                     compiler.source += '}})();\n'
                     compiler.source += `thread._jwArrayForEach.pop();\n`
                     compiler.source += `if (${output} !== undefined) {\n`
-                    if (node.isDefineClicked) this.retire();
                     compiler.source += `return ${output};\n`
                     compiler.source += `};\n`
                 },
