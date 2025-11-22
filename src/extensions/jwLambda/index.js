@@ -65,18 +65,13 @@ class LambdaType {
     }
 
     execute = function* (arg, thread, target, runtime, stage) {
-        try {
-            thread._jwLambdaArgument ??= []
-            thread._jwLambdaArgument.push(arg)
-            if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
-            this.timesExecuted++
-            let output = (yield* this.func(arg, thread, target, runtime, stage, this) ?? "")
-            thread._jwLambdaArgument.pop()
-            return output
-        } catch (e) {
-            console.warn("Lambda failed", e)
-            return ""
-        }
+        thread._jwLambdaArgument ??= []
+        thread._jwLambdaArgument.push(arg)
+        if (this.proc) thread.procedures = {...this.proc, ...thread.procedures}
+        this.timesExecuted++
+        let output = (yield* this.func(arg, thread, target, runtime, stage, this) ?? "")
+        thread._jwLambdaArgument.pop()
+        return output
     }
 }
 
