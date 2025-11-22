@@ -1881,7 +1881,10 @@ class JSGenerator {
                 this.source += args.join(',');
             }
             this.source += `);\n`;
-            this.source += `if (${outputVariable} !== undefined) { return ${outputVariable}; };\n`
+            const thisProcedureData = this.ir.procedures[this.script.procedureVariant];
+            if (thisProcedureData && !thisProcedureData.returns) {
+                this.source += `if (${outputVariable} !== undefined) { return ${outputVariable}; };\n`
+            }
 
             if (node.type === 'hat') {
                 throw new Error('Custom hat blocks are not supported');
