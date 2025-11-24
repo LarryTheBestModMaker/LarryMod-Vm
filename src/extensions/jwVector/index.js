@@ -91,6 +91,13 @@ class VectorType {
 
     /** @returns {number} */
     get angle() {return Math.atan2(this.x, this.y) * (180 / Math.PI)}
+
+    toJSON() {
+        return {
+            x: this.x,
+            y: this.y
+        }
+    }
 }
 
 const Vector = {
@@ -321,7 +328,14 @@ class Extension {
                     },
                     extensions: ["colours_looks"],
                     filter: [TargetType.SPRITE]
-                }
+                },
+                "---",
+                {
+                    opcode: 'getMouse',
+                    text: 'mouse position',
+                    extensions: ["colours_sensing"],
+                    ...Vector.Block
+                },
             ],
             menus: {
                 roundingFunctions: {
@@ -473,6 +487,10 @@ class Extension {
         VECTOR = Vector.Type.toVector(VECTOR)
 
         util.target.setStretch(VECTOR.x, VECTOR.y)
+    }
+
+    getMouse({}, util) {
+        return new Vector.Type(vm.runtime.ioDevices.mouse.getScratchX(), vm.runtime.ioDevices.mouse.getScratchY())
     }
 }
 

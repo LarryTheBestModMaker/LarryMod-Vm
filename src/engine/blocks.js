@@ -438,7 +438,8 @@ class Blocks {
                 oldInput: e.oldInputName,
                 newParent: e.newParentId,
                 newInput: e.newInputName,
-                newCoordinate: e.newCoordinate
+                newCoordinate: e.newCoordinate,
+                fromExpandable: e.isFromExpandable,
             });
             break;
         case 'dragOutside':
@@ -454,15 +455,20 @@ class Blocks {
             }
             break;
         case 'delete':
-            // Don't accept delete events for missing blocks,
-            // or shadow blocks being obscured.
-            if (!this._blocks.hasOwnProperty(e.blockId) ||
-                this._blocks[e.blockId].shadow) {
+            // Don't accept delete events for missing blocks
+            if (!this._blocks.hasOwnProperty(e.blockId)) return;
+
+            // Don't accept delete events for most shadow blocks.
+            const block = this._blocks[e.blockId];
+            if (
+                !e.isFromExpandable &&
+                (block.shadow && !block.opcode.startsWith("argument_reporter_"))
+            ) {
                 return;
             }
             // If this block is the initial block of a script, inform any runtime to forget about glows
             // as well as force end the script (if in compiler)
-            if (this._blocks[e.blockId].topLevel) {
+            if (block.topLevel) {
                 this.runtime.quietGlow(e.blockId);
                 if (this.runtime.compilerOptions.enabled) setTimeout(() => {
                     // slighlty delay script end to handle tab switching vs real block deletion
@@ -472,7 +478,7 @@ class Blocks {
                     }
                 }, 100);
             }
-            this.deleteBlock(e.blockId);
+            this.deleteBlock(e.blockId, false);
             break;
         case 'var_create':
             this.resetCache(); // tw: more aggressive cache resetting
@@ -720,30 +726,6 @@ class Blocks {
                     }));
                 }
             }
-
-            // update the checkbox state if monitoring
-            // TODO theres probably a better way to check for ScratchBlocks here
-            // but it fixes the problem so whatever
-            if (typeof ScratchBlocks === 'object') {
-                // check if monitoring
-                const monitorState = this.runtime.getMonitorState();
-                const shouldCheck = (
-                    monitorState.get(`${args.id}_${args.value}`) !== undefined ||
-                    monitorState.get(`${args.id}_${args.value.toLowerCase()}`) !== undefined
-                );
-
-                const workspace = ScratchBlocks.mainWorkspace;
-                const flyout = workspace.isFlyout ? workspace : workspace.getFlyout();
-                const checkbox = flyout.checkboxes_[args.id];
-                if (checkbox) {
-                    checkbox.clicked = shouldCheck;
-                    if (shouldCheck) {
-                        ScratchBlocks.utils.addClass(checkbox.svgRoot, 'checked');
-                    } else {
-                        ScratchBlocks.utils.removeClass(checkbox.svgRoot, 'checked');
-                    }
-                }
-            }
             break;
         case 'mutation':
             block.mutation = mutationAdapter(args.value);
@@ -777,15 +759,18 @@ class Blocks {
 
             // Variable blocks may be sprite specific depending on the owner of the variable
             let isSpriteLocalVariable = false;
-            if (block.opcode === 'data_variable') {
-                isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.VARIABLE.id]);
-            } else if (block.opcode === 'data_listcontents') {
-                isSpriteLocalVariable = !(this.runtime.getTargetForStage().variables[block.fields.LIST.id]);
-            } else {
-                isSpriteLocalVariable = Object.values(block.fields).some(field => {
-                    if (field.variableType === undefined) return false;
-                    else return ("id" in field) && !(this.runtime.getTargetForStage().variables[field.id]);
-                });
+            const stage = this.runtime.getTargetForStage();
+            if (stage) {
+                if (block.opcode === 'data_variable') {
+                    isSpriteLocalVariable = !(stage.variables[block.fields.VARIABLE.id]);
+                } else if (block.opcode === 'data_listcontents') {
+                    isSpriteLocalVariable = !(stage.variables[block.fields.LIST.id]);
+                } else {
+                    isSpriteLocalVariable = Object.values(block.fields).some(field => {
+                        if (field.variableType === undefined) return false;
+                        else return ("id" in field) && !(stage.variables[field.id]);
+                    });
+                }
             }
 
             // Provides an API for extensions to set reporters of themselves (that can be monitored)
@@ -851,10 +836,16 @@ class Blocks {
         }
 
         const block = this._blocks[e.id];
+
         // Track whether a change actually occurred
         // ignoring changes like routine re-positioning
         // of a block when loading a workspace
         let didChange = false;
+
+        // Determine wether we should remove an input
+        // from the parent block. Typically remove an
+        // expandable or procedure update
+        const shouldRemoveInput = e.fromExpandable || block.opcode.startsWith("argument_reporter_");
 
         // Move coordinate changes.
         if (e.newCoordinate) {
@@ -871,7 +862,8 @@ class Blocks {
             if (typeof e.oldInput !== 'undefined' &&
                 oldParent.inputs[e.oldInput].block === e.id) {
                 // This block was connected to the old parent's input.
-                oldParent.inputs[e.oldInput].block = null;
+                if (shouldRemoveInput) delete oldParent.inputs[e.oldInput];
+                else oldParent.inputs[e.oldInput].block = null;
             } else if (oldParent.next === e.id) {
                 // This block was connected to the old parent's next connection.
                 oldParent.next = null;

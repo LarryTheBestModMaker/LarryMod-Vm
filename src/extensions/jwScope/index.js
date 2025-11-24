@@ -28,13 +28,23 @@ const jwScope = {
         array[array.length-1][name] = value
     },
 
+    change(array, name, value) {
+        for (let i = array.length-1; i >= 0; i--) {
+            if (name in array[i]) {
+                array[i][name] = Cast.toNumber(array[i][name]) + value
+                return
+            }
+        }
+        array[array.length-1][name] = value
+    },
+
     get(array, name) {
         for (let i = array.length-1; i >= 0; i--) {
             if (name in array[i]) {
                 return array[i][name]
             }
         }
-        return ""
+        return null
     },
 
     reset(array) {
@@ -66,11 +76,12 @@ class Extension {
             }
 
             const oldDescendStack = vm.exports.JSGenerator.prototype.descendStack
-            vm.exports.JSGenerator.prototype.descendStack = function(...args) {
+            vm.exports.JSGenerator.prototype.descendStack = function(nodes, frame) {
+                if (frame.parent == 'control.switch') return oldDescendStack.call(this, nodes, frame)
                 this.source += "var jwScopeT = [...jwScope, {}];\n"
                 this.source += "{\n" //create scope
                 this.source += "let jwScope = jwScopeT;\n"
-                const result = oldDescendStack.call(this, ...args)
+                const result = oldDescendStack.call(this, nodes, frame)
                 this.source += "};\n"
                 return result
             }
@@ -105,9 +116,25 @@ class Extension {
                     },
                 },
                 {
+                    opcode: "change",
+                    blockType: BlockType.COMMAND,
+                    text: "change [NAME] by [VALUE]",
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "var",
+                        },
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: "1"
+                        }
+                    },
+                },
+                {
                     opcode: "get",
                     blockType: BlockType.REPORTER,
                     text: "get [NAME]",
+                    allowDropAnywhere: true,
                     arguments: {
                         NAME: {
                             type: ArgumentType.STRING,
@@ -181,6 +208,11 @@ class Extension {
                     name: generator.descendInputOfBlock(block, 'NAME'),
                     value: generator.descendInputOfBlock(block, 'VALUE')
                 }),
+                change: (generator, block) => ({
+                    kind: 'stack',
+                    name: generator.descendInputOfBlock(block, 'NAME'),
+                    value: generator.descendInputOfBlock(block, 'VALUE')
+                }),
                 get: (generator, block) => ({
                     kind: 'input',
                     name: generator.descendInputOfBlock(block, 'NAME')
@@ -204,6 +236,9 @@ class Extension {
                 },
                 set: (node, compiler, imports) => {
                     compiler.source += `vm.jwScope.set(jwScope, ${compiler.descendInput(node.name).asString()}, ${compiler.descendInput(node.value).asUnknown()});\n`
+                },
+                change: (node, compiler, imports) => {
+                    compiler.source += `vm.jwScope.change(jwScope, ${compiler.descendInput(node.name).asString()}, ${compiler.descendInput(node.value).asNumber()});\n`
                 },
                 get: (node, compiler, imports) => {
                     return new imports.TypedInput(`vm.jwScope.get(jwScope, ${compiler.descendInput(node.name).asString()})`, imports.TYPE_UNKNOWN)

@@ -137,7 +137,7 @@ class Scratch3LooksBlocks {
     _resetBubbles (target) {
         const state = this._getBubbleState(target);
         this.SAY_BUBBLE_LIMIT = this.SAY_BUBBLE_LIMITdefault;
-        state.props = this.defaultBubble;
+        state.props = structuredClone(this.defaultBubble);
     }
 
     /**
@@ -148,7 +148,7 @@ class Scratch3LooksBlocks {
      */
     _setBubbleProperty (target, props, value) {
         const object = this._getBubbleState(target);
-        if (!object.props) object.props = this.defaultBubble;
+        if (!object.props) object.props = structuredClone(this.defaultBubble);
         if (!this.currentBubbleProps[target]) this.currentBubbleProps[target] = {};
         if (!this.currentBubbleProps[target].props) this.currentBubbleProps[target].props = this.defaultBubble;
         props.forEach((prop, index) => {
