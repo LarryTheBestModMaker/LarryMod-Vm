@@ -363,7 +363,9 @@ class Extension {
                         "stretch y",
                         "costume #",
                         "costume name",
-                        "visible"
+                        "visible",
+                        "layer",
+                        "volume"
                     ]
                 },
                 targetPropertySet: {
@@ -377,7 +379,9 @@ class Extension {
                         "stretch y",
                         "costume #",
                         "costume name",
-                        "visible"
+                        "visible",
+                        "layer",
+                        "volume"
                     ]
                 },
                 touchingObject: [
@@ -437,6 +441,8 @@ class Extension {
             case "costume #": return TARGET.target.currentCostume + 1
             case "costume name": return TARGET.target.getCurrentCostume().name
             case "visible": return TARGET.target.visible
+            case "layer": return TARGET.target.getLayerOrder()
+            case "volume": return TARGET.target.volume
         }
 
         return ""
@@ -476,6 +482,12 @@ class Extension {
                 break
             case "visible":
                 TARGET.target.setVisible(Cast.toBoolean(VALUE))
+                break
+            case "layer":
+                vm.runtime.ext_scratch3_looks.setSpriteLayer({NUM: VALUE}, {target: TARGET.target})
+                break
+            case "volume":
+                vm.runtime.ext_scratch3_sound._updateVolume(Cast.toNumber(VALUE), TARGET.target)
                 break
         }
     }
