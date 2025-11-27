@@ -695,7 +695,7 @@ class pmSensingExpansion {
     }
 
     packaged() {
-        return this.runtime.isPackaged;
+        return this.runtime.isPackagedProject;
     }
 
     spriteName(_, util) {
