@@ -942,6 +942,7 @@ class Scratch3MusicBlocks {
                     opcode: 'stopAllSounds',
                     blockType: BlockType.COMMAND,
                     text: 'stop all sounds',
+                    hideFromPalette: true,
                     arguments: {}
                 },
             ],
