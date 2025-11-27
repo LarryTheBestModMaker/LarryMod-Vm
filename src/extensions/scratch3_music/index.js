@@ -924,6 +924,10 @@ class Scratch3MusicBlocks {
                             type: ArgumentType.NOTE,
                             defaultValue: 60
                         },
+                        BEATS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0.25
+                        },
                         INSTRUMENT: {
                             type: ArgumentType.NUMBER,
                             menu: 'INSTRUMENT',
