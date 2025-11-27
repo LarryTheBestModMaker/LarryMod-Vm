@@ -1232,7 +1232,12 @@ class Scratch3MusicBlocks {
                 sound.outputNode.stop();
             }
             let Util = this._allCUtils[sound];
-            if (Util && 'stackFrame' in Util) Util.stackFrame.timer.setTimer(Util.stackFrame.duration - 0.01);
+            if (Util && 'stackFrame' in Util) {
+                if ('timer' in Util.stackFrame) {
+                    console.log(Util.stackFrame.timer)
+                    //Util.stackFrame.timer.setTimer(Util.stackFrame.duration - 0.01)
+                }
+            }
         }
     }
 
