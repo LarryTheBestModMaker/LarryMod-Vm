@@ -88,6 +88,8 @@ class Scratch3MusicBlocks {
 
         this._playNoteForPicker = this._playNoteForPicker.bind(this);
         this.runtime.on('PLAY_NOTE', this._playNoteForPicker);
+
+        this._allCurrentlyRunningSounds = [];
     }
 
     /**
@@ -935,6 +937,12 @@ class Scratch3MusicBlocks {
                         }
                     }
                 },
+                {
+                    opcode: 'stopAllSounds',
+                    blockType: BlockType.COMMAND,
+                    text: 'stop all sounds',
+                    arguments: {}
+                },
             ],
             menus: {
                 DRUM: {
@@ -1194,6 +1202,11 @@ class Scratch3MusicBlocks {
         this._concurrencyCounter++;
         player.once('stop', () => {
             this._concurrencyCounter--;
+            
+            const index = this._allCurrentlyRunningSounds.indexOf(player);
+            if (index > -1) {
+                this._allCurrentlyRunningSounds.splice(index, 1);
+            }
         });
 
         // Start playing the note
@@ -1206,6 +1219,16 @@ class Scratch3MusicBlocks {
         player.outputNode.playbackRate.value = notePitchInterval;
         // Schedule playback to stop.
         player.outputNode.stop(releaseEnd);
+
+        this._allCurrentlyRunningSounds.push(player);
+    }
+
+    _stopAllSounds () {
+        for (const sound of this._allCurrentlyRunningSounds) {
+            if ('outputNode' in sound) {
+                sound.outputNode.stop();
+            }
+        }
     }
 
     /**
@@ -1395,6 +1418,10 @@ class Scratch3MusicBlocks {
             return stage.tempo;
         }
         return 60;
+    }
+
+    stopAllSounds () {
+        return this._stopAllSounds();
     }
 }
 
