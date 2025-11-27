@@ -90,6 +90,7 @@ class Scratch3MusicBlocks {
         this.runtime.on('PLAY_NOTE', this._playNoteForPicker);
 
         this._allCurrentlyRunningSounds = [];
+        this._allCUtils = {};
     }
 
     /**
@@ -1202,11 +1203,12 @@ class Scratch3MusicBlocks {
         this._concurrencyCounter++;
         player.once('stop', () => {
             this._concurrencyCounter--;
-            
+
             const index = this._allCurrentlyRunningSounds.indexOf(player);
             if (index > -1) {
                 this._allCurrentlyRunningSounds.splice(index, 1);
             }
+            this._allCUtils[player] = null;
         });
 
         // Start playing the note
@@ -1221,6 +1223,7 @@ class Scratch3MusicBlocks {
         player.outputNode.stop(releaseEnd);
 
         this._allCurrentlyRunningSounds.push(player);
+        this._allCUtils[player] = util;
     }
 
     _stopAllSounds () {
@@ -1228,6 +1231,8 @@ class Scratch3MusicBlocks {
             if ('outputNode' in sound) {
                 sound.outputNode.stop();
             }
+            let Util = this._allCUtils[sound];
+            Util.stackFrame.duration = 0;
         }
     }
 
