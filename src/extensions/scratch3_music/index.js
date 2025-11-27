@@ -1233,10 +1233,8 @@ class Scratch3MusicBlocks {
             }
             let Util = this._allCUtils[sound];
             if (Util && 'stackFrame' in Util) {
-                if ('timer' in Util.stackFrame) {
-                    console.log(Util.stackFrame.timer)
-                    //Util.stackFrame.timer.setTimer(Util.stackFrame.duration - 0.01)
-                }
+                console.log(Util.stackFrame)
+                //Util.stackFrame.timer.setTimer((Util.stackFrame.duration * 1000) - 0.01)
             }
         }
     }
