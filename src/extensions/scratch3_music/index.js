@@ -910,7 +910,27 @@ class Scratch3MusicBlocks {
                         description: 'get the current tempo (speed) for notes, drums, and rests played'
                     }),
                     blockType: BlockType.REPORTER
-                }
+                },
+                {
+                    blockType: BlockType.LABEL,
+                    text: "Dinosaurmod-Special Blocks"
+                },
+                {
+                    opcode: 'playInstrument',
+                    blockType: BlockType.COMMAND,
+                    text: 'play note [NOTE] for [BEATS] beats as [INSTRUMENT]',
+                    arguments: {
+                        NOTE: {
+                            type: ArgumentType.NOTE,
+                            defaultValue: 60
+                        },
+                        INSTRUMENT: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'INSTRUMENT',
+                            defaultValue: 1
+                        }
+                    }
+                },
             ],
             menus: {
                 DRUM: {
@@ -1065,6 +1085,29 @@ class Scratch3MusicBlocks {
         }
     }
 
+    playInstrument (args, util) {
+        if (this._stackTimerNeedsInit(util)) {
+            let note = Cast.toNumber(args.NOTE);
+            note = MathUtil.clamp(note,
+                Scratch3MusicBlocks.MIDI_NOTE_RANGE.min, Scratch3MusicBlocks.MIDI_NOTE_RANGE.max);
+            let beats = Cast.toNumber(args.BEATS);
+            beats = this._clampBeats(beats);
+            // If the duration is 0, do not play the note. In Scratch 2.0, "play drum for 0 beats" plays the drum,
+            // but "play note for 0 beats" is silent.
+            if (beats === 0) return;
+
+            const durationSec = this._beatsToSec(beats);
+
+            let instrument = this._getInstrument(args.INSTRUMENT, util, false);
+
+            this._playNote(util, note, durationSec, instrument);
+
+            this._startStackTimer(util, durationSec);
+        } else {
+            this._checkStackTimer(util);
+        }
+    }
+
     _playNoteForPicker (noteNum, category) {
         if (category !== this.getInfo().name) return;
         const util = {
@@ -1081,9 +1124,10 @@ class Scratch3MusicBlocks {
      * @param {object} util - utility object provided by the runtime.
      * @param {number} note - the pitch of the note to play, interpreted as a MIDI note number.
      * @param {number} durationSec - the duration in seconds to play the note.
+     * @param {any} customInstrument - when the value isn't null, it replaces the current instrument with itself
      * @private
      */
-    _playNote (util, note, durationSec) {
+    _playNote (util, note, durationSec, customInstrument = null) {
         if (util.runtime.audioEngine === null) return;
         if (util.target.sprite.soundBank === null) return;
 
@@ -1094,7 +1138,7 @@ class Scratch3MusicBlocks {
 
         // Determine which of the audio samples for this instrument to play
         const musicState = this._getMusicState(util.target);
-        const inst = musicState.currentInstrument;
+        const inst = customInstrument == null ? musicState.currentInstrument : customInstrument;
         const instrumentInfo = this.INSTRUMENT_INFO[inst];
         const sampleArray = instrumentInfo.samples;
         const sampleIndex = this._selectSampleIndexForNote(note, sampleArray);
@@ -1283,6 +1327,24 @@ class Scratch3MusicBlocks {
         }
         instNum = MathUtil.wrapClamp(instNum, 0, this.INSTRUMENT_INFO.length - 1);
         musicState.currentInstrument = instNum;
+    }
+
+    /**
+     * Internal code to select an instrument for playing notes. If mapMidi is true, get the instrument according to
+     * the MIDI to Scratch instrument mapping.
+     * @param {number} instNum - the instrument number.
+     * @param {object} util - utility object provided by the runtime.
+     * @param {boolean} mapMidi - whether or not instNum is a MIDI instrument number.
+     */
+    _getInstrument (instNum, util, mapMidi) {
+        instNum = Cast.toNumber(instNum);
+        instNum = Math.round(instNum);
+        instNum -= 1; // instruments are one-indexed
+        if (mapMidi) {
+            instNum = (this.MIDI_INSTRUMENTS[instNum] || 0) - 1;
+        }
+        instNum = MathUtil.wrapClamp(instNum, 0, this.INSTRUMENT_INFO.length - 1);
+        return instNum;
     }
 
     /**
