@@ -1883,7 +1883,7 @@ class JSGenerator {
             this.source += `);\n`;
             const thisProcedureData = this.ir.procedures[this.script.procedureVariant];
             if (thisProcedureData && !thisProcedureData.returns) {
-                this.source += `if (${outputVariable} !== undefined) { return ${outputVariable}; };\n`
+                this.source += `if (${outputVariable}) { return ${outputVariable}; };\n`
             }
 
             if (node.type === 'hat') {
