@@ -87,6 +87,7 @@ const statementBlocks = [
     'sensing_settimer',
     'looks_shout',
     'looks_shoutforsecs',
+    'operator_forceBooleanTo'
 ];
 
 const outputBlocks = [

@@ -18,6 +18,7 @@
  * @property {BlockType} blockType - the type of block (command, reporter, etc.) being described.
  * @property {string} text - the text on the block, with [PLACEHOLDERS] for arguments.
  * @property {Boolean} [hideFromPalette] - true if this block should not appear in the block palette.
+ * @property {Boolean} [inputsBlock] - true if this block can have multiple lines at once.
  * @property {Boolean} [isTerminal] - true if the block ends a stack - no blocks can be connected after it.
  * @property {Boolean} [disableMonitor] - true if this block is a reporter but should not allow a monitor.
  * @property {ReporterScope} [reporterScope] - if this block is a reporter, this is the scope/context for its value.

@@ -79,8 +79,13 @@ class Scratch3OperatorsBlocks {
             operator_clamp: this.clampReporter,
             operator_isUpperLowerCase: this.isCase,
             operator_strictlyContains: this.strictlyContains,
-            operator_strictlyEquals: this.strictlyEquals
+            operator_strictlyEquals: this.strictlyEquals,
+            operator_forceBooleanTo: this.forceBoolean
         };
+    }
+
+    forceBoolean() {
+        alert("this doesn't work.")
     }
     
     
