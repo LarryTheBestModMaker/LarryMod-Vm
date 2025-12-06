@@ -720,7 +720,7 @@ class ScriptTreeGenerator {
                     case 'M': return '>=';
                     case 'e': return '==';
                     case 'E': return '===';
-                    case 'n': return '!=';
+                    case 'n': return '!==';
                     default: return '>';
                 }
             };
