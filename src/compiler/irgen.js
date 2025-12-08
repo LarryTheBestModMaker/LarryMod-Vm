@@ -1733,7 +1733,7 @@ class ScriptTreeGenerator {
                 kind: 'pen.stamp'
             };
         case 'procedures_return': {
-            const topBlock = this.getBlockById(this.thread.topBlock);
+            const topBlock = this.getBlockById(this.script.topBlockId);
             return {
                 kind: 'procedures.return',
                 return: this.descendInputOfBlock(block, 'return'),
