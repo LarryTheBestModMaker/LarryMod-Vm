@@ -624,7 +624,7 @@ const makeSafeForJSON = (runtime, value) => {
     if (Array.isArray(value)) {
         let copy = null;
         for (let i = 0; i < value.length; i++) {
-            if (value[i].customId) {
+            if (value[i]?.customId) {
                 if (!copy) {
                     // Only copy the list when needed
                     copy = value.slice();
