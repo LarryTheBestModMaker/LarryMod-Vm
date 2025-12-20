@@ -621,6 +621,9 @@ const isVariableValueSafeForJSON = value => (
     typeof value === 'boolean'
 );
 const makeSafeForJSON = (runtime, value) => {
+    // null and undefined should not be serialized, as they are illegal values
+    if (value === null || typeof value === 'undefined')
+        return ''
     if (Array.isArray(value)) {
         let copy = null;
         for (let i = 0; i < value.length; i++) {
