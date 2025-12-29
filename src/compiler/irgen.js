@@ -451,10 +451,10 @@ class ScriptTreeGenerator {
             };
         case 'operator_expandableMath': {
             const menuOperators = block.mutation.menuvalues;
-            const inputs = Object.values(block.inputs);
+            const inputCount = Number(block.mutation.inputcount);
             const operations = [];
-            for (var i = 0; i < inputs.length; i++) {
-                const input = inputs[i];
+            for (let i = 1; i <= inputCount; i++) {
+                const input = block.inputs["NUM" + i];
                 if (input.block == null) delete block.inputs[input.name];
                 else operations.push([
                   this.descendInputOfBlock(block, input.name),
@@ -487,7 +487,9 @@ class ScriptTreeGenerator {
         case "operators_expandablejoininputs":
         case "operator_expandablejoininputs": {
             const strings = [];
-            for (const input of Object.values(block.inputs)) {
+            const inputCount = Number(block.mutation.inputcount);
+            for (let i = 1; i <= inputCount; i++) {
+                const input = block.inputs["INPUT" + i];
                 if (input.block == null) delete block.inputs[input.name];
                 else strings.push(this.descendInputOfBlock(block, input.name));
             }
