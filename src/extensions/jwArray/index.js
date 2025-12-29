@@ -675,6 +675,7 @@ class Extension {
             menus: {
                 list: {
                     acceptReporters: false,
+                    variableType: 'list',
                     items: "getLists",
                 },
                 stringifyFormat: {
@@ -773,16 +774,6 @@ class Extension {
                 }
             }
         };
-    }
-    
-    getLists() {
-        const globalLists = Object.values(vm.runtime.getTargetForStage().variables)
-            .filter((x) => x.type == "list");
-        const localLists = Object.values(vm.editingTarget.variables)
-            .filter((x) => x.type == "list");
-        const uniqueLists = [...new Set([...globalLists, ...localLists])];
-        if (uniqueLists.length === 0) return [{ text: "", value: "" }];
-        return uniqueLists.map((v) => ({ text: v.name, value: new jwArray.Type(v.value) }));
     }
 
     blank() {
