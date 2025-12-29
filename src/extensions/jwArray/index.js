@@ -675,8 +675,7 @@ class Extension {
             menus: {
                 list: {
                     acceptReporters: false,
-                    variableType: 'list',
-                    items: "getLists",
+                    variableType: 'list'
                 },
                 stringifyFormat: {
                     acceptReporters: false,
