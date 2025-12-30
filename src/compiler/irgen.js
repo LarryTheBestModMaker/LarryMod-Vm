@@ -458,7 +458,7 @@ class ScriptTreeGenerator {
                 if (input.block == null) delete block.inputs[input.name];
                 else operations.push([
                   this.descendInputOfBlock(block, input.name),
-                  menuOperators[i]
+                  menuOperators[i - 1]
                 ]);
             }
             return {
