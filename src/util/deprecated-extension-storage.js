@@ -22,7 +22,8 @@ const ExtensionStorage = (default_content = {}) => {
             console.warn("extensionStorage APIs are deprecated. Please avoid using them in your extensions.");
             WARNED_EXTENSIONS.add(key);
         }
-        return target[key] = value;
+        target[key] = value;
+        return key in target && target[key] === value;
       },
     }
   );

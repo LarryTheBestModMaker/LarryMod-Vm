@@ -1209,7 +1209,7 @@ class JgRuntimeBlocks {
 
     setMaxFrameRate(args) {
         let frameRate = Cast.toNumber(args.FRAMERATE);
-        this.runtime.frameLoop.setFramerate(frameRate);
+        this.runtime.setFramerate(frameRate);
     }
     deleteSprite(args) {
         const target = this.runtime.getSpriteTargetByName(args.NAME);

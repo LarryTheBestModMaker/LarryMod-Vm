@@ -451,14 +451,14 @@ class ScriptTreeGenerator {
             };
         case 'operator_expandableMath': {
             const menuOperators = block.mutation.menuvalues;
-            const inputs = Object.values(block.inputs);
+            const inputCount = Number(block.mutation.inputcount);
             const operations = [];
-            for (var i = 0; i < inputs.length; i++) {
-                const input = inputs[i];
+            for (let i = 1; i <= inputCount; i++) {
+                const input = block.inputs["NUM" + i];
                 if (input.block == null) delete block.inputs[input.name];
                 else operations.push([
                   this.descendInputOfBlock(block, input.name),
-                  menuOperators[i]
+                  menuOperators[i - 1]
                 ]);
             }
             return {
@@ -487,7 +487,9 @@ class ScriptTreeGenerator {
         case "operators_expandablejoininputs":
         case "operator_expandablejoininputs": {
             const strings = [];
-            for (const input of Object.values(block.inputs)) {
+            const inputCount = Number(block.mutation.inputcount);
+            for (let i = 1; i <= inputCount; i++) {
+                const input = block.inputs["INPUT" + i];
                 if (input.block == null) delete block.inputs[input.name];
                 else strings.push(this.descendInputOfBlock(block, input.name));
             }
@@ -720,7 +722,7 @@ class ScriptTreeGenerator {
                     case 'M': return '>=';
                     case 'e': return '==';
                     case 'E': return '===';
-                    case 'n': return '!=';
+                    case 'n': return '!==';
                     default: return '>';
                 }
             };
@@ -1746,7 +1748,7 @@ class ScriptTreeGenerator {
             return {
                 kind: 'procedures.return',
                 return: this.descendInputOfBlock(block, 'return'),
-                isDefineClicked: topBlock ? topBlock.opcode === "procedures_return" || topBlock.opcode.startsWith("procedures_definition") : false,
+                isDefineClicked: topBlock && this.thread.topBlock === this.script.topBlockId && (topBlock.opcode === "procedures_return" || topBlock.opcode.startsWith("procedures_definition")),
                 compilerInfo: {
                     jwArrayUnmodified: true
                 }
