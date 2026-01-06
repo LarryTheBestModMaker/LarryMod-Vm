@@ -190,7 +190,8 @@ const outputBlocks = [
     'looks_sayColor',
     'looks_sayOther',
     'sound_getsoundlength',
-    'looks_getWhatBubbleIsDisplaying'
+    'looks_getWhatBubbleIsDisplaying',
+    'looks_getinputofbackdrop'
 ];
 
 module.exports = {

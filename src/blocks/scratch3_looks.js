@@ -424,6 +424,7 @@ class Scratch3LooksBlocks {
             looks_shout: this.shout,
             looks_shoutforsecs: this.shoutforsecs,
             looks_getWhatBubbleIsDisplaying: this.getWhatBubbleIsDisplaying,
+            looks_getinputofbackdrop: this.getBackdropValue,
         };
     }
 
@@ -758,16 +759,16 @@ class Scratch3LooksBlocks {
                 return '';
         }
     }
-    getCostumeValue (args, util) {
+    getCostumeValue (args, util, forceBackdrop = false) {
         let costumeIndex = 0;
-        const target = util.target
+        const target = util.target || this.runtime.getTargetForStage()
         const requestedCostume = args.COSTUME;
         const requestedValue = Cast.toString(args.INPUT);
         if (typeof requestedCostume === 'number') {
             // Numbers should be treated as costume indices, always
             costumeIndex = (requestedCostume === 0) ? 0 : requestedCostume - 1;
         } else {
-            let noun = target.isStage ? "backdrop" : "costume";
+            let noun = target.isStage || forceBackdrop ? "backdrop" : "costume";
             switch (Cast.toString(requestedCostume)) {
                 case "next " + noun:
                     costumeIndex = target.currentCostume + 1;
@@ -824,6 +825,9 @@ class Scratch3LooksBlocks {
             default:
                 return '';
         }
+    }
+    getBackdropValue(args, util) {
+        return this.getCostumeValue(args, util, true)
     }
 
     /**
