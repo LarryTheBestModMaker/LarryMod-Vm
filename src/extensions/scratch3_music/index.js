@@ -1209,7 +1209,7 @@ class Scratch3MusicBlocks {
             if (index > -1) {
                 this._allCurrentlyRunningSounds.splice(index, 1);
             }
-            this._allCUtils[player] = null;
+            if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = null;
         });
 
         // Start playing the note
@@ -1224,7 +1224,7 @@ class Scratch3MusicBlocks {
         player.outputNode.stop(releaseEnd);
 
         this._allCurrentlyRunningSounds.push(player);
-        this._allCUtils[player] = util;
+        if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = util;
     }
 
     _stopAllSounds () {
