@@ -942,7 +942,7 @@ class Scratch3MusicBlocks {
                     opcode: 'stopAllSounds',
                     blockType: BlockType.COMMAND,
                     text: 'stop all sounds',
-                    hideFromPalette: true,
+                    hideFromPalette: false,
                     arguments: {}
                 },
             ],
@@ -1230,7 +1230,7 @@ class Scratch3MusicBlocks {
     _stopAllSounds () {
         for (const sound of this._allCurrentlyRunningSounds) {
             if ('outputNode' in sound) {
-                sound.outputNode.stop();
+                sound.stop();
             }
             let Util = this._allCUtils[sound];
             if (Util && 'stackFrame' in Util) {
