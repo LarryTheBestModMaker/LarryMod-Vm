@@ -322,6 +322,14 @@ class Scratch3MusicBlocks {
                     description: 'Sound of a cuica being played'
                 }),
                 fileName: '18-cuica'
+            },
+            {
+                name: formatMessage({
+                    id: 'music.drumSleighBells',
+                    default: '(19) Sleigh Bell (D.M.)',
+                    description: 'Sound of a sleigh bell being played'
+                }),
+                fileName: '19-sleigh-bells'
             }
         ];
     }
@@ -706,14 +714,14 @@ class Scratch3MusicBlocks {
      * @type {{min: number, max: number}}
      */
     static get BEAT_RANGE () {
-        return {min: 0, max: 100};
+        return {min: 0, max: 1024};
     }
 
     /** The minimum and maximum tempo values, in bpm.
      * @type {{min: number, max: number}}
      */
     static get TEMPO_RANGE () {
-        return {min: 20, max: 500};
+        return {min: 10, max: 1024};
     }
 
     /**
@@ -721,7 +729,7 @@ class Scratch3MusicBlocks {
      * @type {number}
      */
     static get CONCURRENCY_LIMIT () {
-        return 30;
+        return 1024;
     }
 
     /**
@@ -942,7 +950,7 @@ class Scratch3MusicBlocks {
                     opcode: 'stopAllSounds',
                     blockType: BlockType.COMMAND,
                     text: 'stop all sounds',
-                    hideFromPalette: true,
+                    //hideFromPalette: true,
                     arguments: {}
                 },
             ],
@@ -1128,7 +1136,7 @@ class Scratch3MusicBlocks {
             runtime: this.runtime,
             target: this.runtime.getEditingTarget()
         };
-        this._playNote(util, noteNum, 0.25);
+        this._playNote(util, noteNum, 0.25, null, true);
     }
 
     /**
@@ -1141,7 +1149,7 @@ class Scratch3MusicBlocks {
      * @param {any} customInstrument - when the value isn't null, it replaces the current instrument with itself
      * @private
      */
-    _playNote (util, note, durationSec, customInstrument = null) {
+    _playNote (util, note, durationSec, customInstrument = null, usesPicker) {
         if (util.runtime.audioEngine === null) return;
         if (util.target.sprite.soundBank === null) return;
 
@@ -1205,11 +1213,13 @@ class Scratch3MusicBlocks {
         player.once('stop', () => {
             this._concurrencyCounter--;
 
-            const index = this._allCurrentlyRunningSounds.indexOf(player);
-            if (index > -1) {
-                this._allCurrentlyRunningSounds.splice(index, 1);
-            }
-            if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = null;
+            if (!usesPicker) {
+                const index = this._allCurrentlyRunningSounds.indexOf(player);
+                if (index > -1) {
+                    this._allCurrentlyRunningSounds.splice(index, 1);
+                }
+                if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = null;
+            };
         });
 
         // Start playing the note
@@ -1223,8 +1233,10 @@ class Scratch3MusicBlocks {
         // Schedule playback to stop.
         player.outputNode.stop(releaseEnd);
 
-        this._allCurrentlyRunningSounds.push(player);
-        if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = util;
+        if (!usesPicker) {
+            this._allCurrentlyRunningSounds.push(player);
+            if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = util
+        };
     }
 
     _stopAllSounds () {
@@ -1235,6 +1247,7 @@ class Scratch3MusicBlocks {
             let Util = this._allCUtils[sound];
             if (Util && 'stackFrame' in Util) {
                 console.log(Util.stackFrame)
+                _forceStopStackTimer(Util)
                 //Util.stackFrame.timer.setTimer((Util.stackFrame.duration * 1000) - 0.01)
             }
         }
@@ -1322,6 +1335,24 @@ class Scratch3MusicBlocks {
         const timeElapsed = util.stackFrame.timer.timeElapsed();
         if (timeElapsed < util.stackFrame.duration * 1000) {
             util.yield();
+        }
+    }
+
+    _startStackTimer (util, duration) {
+        util.stackFrame.timer = new Timer();
+        util.stackFrame.timer.start();
+        util.stackFrame.duration = duration;
+        util.yield();
+    }
+
+    //THREAD: stopThisScript
+    _forceStopStackTimer (util) {
+        if (!util) return;
+        if (util.hasOwnProperty('stackFrame')) {
+            if (util.hasOwnProperty('timer')) {
+                util.stackFrame.timer.forceStop()
+                util.stackFrame.timer = null
+            }
         }
     }
 

@@ -257,32 +257,57 @@ class VariableInput {
     }
 
     asNumber () {
-        if (this.type === TYPE_NUMBER) return this.source;
-        if (this.type === TYPE_NUMBER_NAN) return `(${this.source} || 0)`;
-        return `(+${this.source} || 0)`;
+        // Compute at compilation time
+        const numberValue = +this.constantValue;
+        if (numberValue) {
+            // It's important that we use the number's stringified value and not the constant value
+            // Using the constant value allows numbers such as "010" to be interpreted as 8 (or SyntaxError in strict mode) instead of 10.
+            return numberValue.toString();
+        }
+        // numberValue is one of 0, -0, or NaN
+        if (Object.is(numberValue, -0)) {
+            return '-0';
+        }
+        return '0';
     }
 
     asNumberOrNaN () {
-        if (this.type === TYPE_NUMBER || this.type === TYPE_NUMBER_NAN) return this.source;
-        return `(+${this.source})`;
+        return this.asNumber();
     }
 
     asString () {
-        if (this.type === TYPE_STRING) return this.source;
-        return `("" + ${this.source})`;
+        return `"${sanitize('' + this.constantValue)}"`;
     }
 
     asBoolean () {
-        if (this.type === TYPE_BOOLEAN) return this.source;
-        return `toBoolean(${this.source})`;
+        // Compute at compilation time
+        return Cast.toBoolean(this.constantValue).toString();
     }
 
     asColor () {
+        // Attempt to parse hex code at compilation time
+        if (/^#[0-9a-f]{6,8}$/i.test(this.constantValue)) {
+            const hex = this.constantValue.slice(1);
+            return Number.parseInt(hex, 16).toString();
+        }
         return this.asUnknown();
     }
 
     asUnknown () {
-        return this.source;
+        // Attempt to convert strings to numbers if it is unlikely to break things
+        if (typeof this.constantValue === 'number' || typeof this.constantValue === 'boolean') {
+            // todo: handle NaN?
+            return this.constantValue;
+        }
+        // handle bad nulls
+        if (this.constantValue == null) {
+            return 'null';
+        }
+        const numberValue = +this.constantValue;
+        if (numberValue.toString() === this.constantValue) {
+            return this.constantValue;
+        }
+        return this.asString();
     }
 
     asSafe () {
@@ -915,7 +940,7 @@ class JSGenerator {
                         builder += ')';
                         powWrap--;
                     }
-                    if (opType) builder += opType;
+                    if (opType) builder += " " + opType + " ";
                 }
             }
             return new TypedInput('(' + builder + ')', TYPE_NUMBER_NAN);
@@ -1984,7 +2009,7 @@ class JSGenerator {
                 const variableReference = this.localVariables.next();
                 this.source += `{\nconst ${variableReference} = ${objectReference} ? ${objectReference}.lookupVariableByNameAndType("${sanitize(property)}", "", true) : "";\n`;
                 this.source += `if (${variableReference}) `;
-                this.source += `${variableReference}.value = ${value.asString()};\n}\n`;
+                this.source += `${variableReference}.value = ${value.asUnknown()};\n}\n`;
                 break;
             }
             break;
@@ -2277,21 +2302,25 @@ class JSGenerator {
         script += `if (thread.spoofing) {\n`;
         script += `target = thread.spoofTarget;\n`;
         script += `};\n`;
-        script += 'try {\n';
+        
+        if (!this.isProcedure) {
+            script += 'try {\n';
+        }
 
         script += this.source;
 
-        script += '} catch (err) {';
-        script += `console.log("${sanitize(script)}");\n`;
-        script += 'console.error(err);';
-        script += `runtime.emit("BLOCK_STACK_ERROR", {`;
-        script += `id:"${sanitize(this.script.topBlockId)}",`;
-        script += `value:String(err)`;
-        script += `});\n`;
-        script += '}\n';
         if (!this.isProcedure) {
+            script += '} catch (err) {';
+            script += `console.log("${sanitize(script)}");\n`;
+            script += 'console.error(err);';
+            script += `runtime.emit("BLOCK_STACK_ERROR", {`;
+            script += `id:"${sanitize(this.script.topBlockId)}",`;
+            script += `value:String(err)`;
+            script += `});\n`;
+            script += '}\n';
             script += 'retire();\n';
         }
+
         script += '}; })';
         return script;
     }

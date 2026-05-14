@@ -1032,6 +1032,19 @@ class RenderedTarget extends Target {
     }
 
     /**
+     * Move to a certain layer.
+     */
+    setLayerOrder (nLayers) { // This should only ever be used for sprites // used by compiler
+        if (this.renderer) {
+            // Let the renderer re-order the sprite based on its knowledge
+            // of what layers are present
+            this.renderer.setDrawableOrder(this.drawableID, nLayers, StageLayering.SPRITE_LAYER);
+        }
+
+        this.runtime.setExecutablePosition(this, nLayers);
+    }
+
+    /**
      * Move to the front layer.
      */
     goToFront () { // This should only ever be used for sprites // used by compiler

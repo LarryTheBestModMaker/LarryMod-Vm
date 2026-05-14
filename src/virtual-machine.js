@@ -481,6 +481,7 @@ class VirtualMachine extends EventEmitter {
      * @return {!Promise} Promise that resolves after targets are installed.
      */
     loadProject (input) {
+        this.emit('DESERIALIZE', 'project');
         return new Promise(async (resolve, reject) => {
             try {
                 const arr = new Uint8Array(input);
@@ -732,6 +733,7 @@ class VirtualMachine extends EventEmitter {
      * @return {string} Serialized state of the runtime.
      */
     toJSON (optTargetId, serializationOptions, beautiful) {
+        this.emit('SERIALIZE', optTargetId);
         const sb3 = require('./serialization/sb3');
         return StringUtil.stringify(sb3.serialize(this.runtime, optTargetId, serializationOptions), beautiful);
     }
@@ -2058,6 +2060,35 @@ class VirtualMachine extends EventEmitter {
         // through dragging a sprite on the stage
         // Emit a project changed event.
         this.runtime.emitProjectChanged();
+    }
+
+    /**
+     * Set the layer of the sprite
+     * @param {number} layer The chosen layer thingy
+     */
+    setSpriteLayer (layer) {
+        if (this._dragTarget) {
+            this._dragTarget.setLayerOrder(layer);
+        } else {
+            this.editingTarget.setLayerOrder(layer);
+        }
+        // Post sprite info means the gui has changed something about a sprite,
+        // either through the sprite info pane fields (e.g. direction, size) or
+        // through dragging a sprite on the stage
+        // Emit a project changed event.
+        this.runtime.emitProjectChanged();
+    }
+
+    /**
+     * Get the layer of the sprite
+     */
+    getSpriteLayer () {
+        if (!this._dragTarget || !this.editingTarget) return null;
+        if (this._dragTarget) {
+            return this._dragTarget.getLayerOrder();
+        } else {
+            return this.editingTarget.getLayerOrder();
+        }
     }
 
     /**

@@ -85,6 +85,7 @@ class Scratch3SensingBlocks {
             sensing_answer: this.getAnswer,
             sensing_username: this.getUsername,
             sensing_loggedin: this.getLoggedIn,
+            sensing_online: this.isOnline,
             sensing_userid: () => {}, // legacy no-op block
             sensing_regextest: this.regextest,
             sensing_thing_is_number: this.thing_is_number,
@@ -341,6 +342,9 @@ class Scratch3SensingBlocks {
             },
             sensing_loggedin: {
                 getId: () => 'loggedin'
+            },
+            sensing_online: {
+                getId: () => 'online'
             },
         };
     }
@@ -695,6 +699,15 @@ class Scratch3SensingBlocks {
     setTimer (args, util) {
         //return this.isTimerPaused;
         return this.runtime.ioDevices.clock.setTimer(args.NUM);
+    }
+
+    isOnline () {
+        // Modern Node.js has a navigator object but does .onLine === undefined
+        if (typeof navigator === 'object' && typeof navigator.onLine === 'boolean') {
+            return navigator.onLine;
+        }
+        // We're running in some non-browser environment. We probably have internet.
+        return true;
     }
 }
 

@@ -109,6 +109,13 @@ class Timer {
         this._pausedTime = null;
     }
 
+    /**
+     * forces the timer to delete itself (dangerous)
+     */
+    forceStop() {
+        delete this;
+    }
+
     timeElapsed () {
         if (this._pausedTime) return this._pausedTime;
         const now = this.nowObj.now();

@@ -17,6 +17,7 @@ module.exports = {
     'drums/16-guiro.mp3': require('./assets/drums/16-guiro.mp3'),
     'drums/17-vibraslap.mp3': require('./assets/drums/17-vibraslap.mp3'),
     'drums/18-cuica.mp3': require('./assets/drums/18-cuica.mp3'),
+    'drums/19-sleigh-bells.mp3': require('./assets/drums/19-sleigh-bells.mp3'),
     'instruments/1-piano/24.mp3': require('./assets/instruments/1-piano/24.mp3'),
     'instruments/1-piano/36.mp3': require('./assets/instruments/1-piano/36.mp3'),
     'instruments/1-piano/48.mp3': require('./assets/instruments/1-piano/48.mp3'),

@@ -10,7 +10,7 @@ class CanvasVar {
      * @param {Runtime} runtime the runtime this canvas exists inside
      * @param {string} id this canvas's id
      * @param {string} name the name of this canvas
-     * @param {[number,number]|string|Image} [img=[1, 1]] optionally the image to be loaded into this canvas
+     * @param {Array<number>|string|Image} [img=[1, 1]] optionally the image to be loaded into this canvas
      */
     constructor (runtime, id, name, img = [1, 1]) {
         this.id = id ?? uid();
@@ -168,13 +168,18 @@ class CanvasVar {
         const ctx = this.canvas.getContext('2d');
 
         const printSkin = this.renderer._allSkins[this._skinId];
+        ctx.save();
+        ctx.resetTransform();
         const imageData = ctx.getImageData(0, 0, width, height);
+        ctx.restore();
         printSkin._setTexture(imageData);
+        printSkin.emitWasAltered();
+        
+        this.runtime.requestRedraw();
     }
 
     applyCanvasToTarget(target) {
         this.renderer.updateDrawableSkinId(target.drawableID, this._skinId);
-        this.runtime.requestRedraw();
     }
 }
 
