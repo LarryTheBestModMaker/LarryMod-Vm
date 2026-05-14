@@ -761,7 +761,7 @@ class Scratch3LooksBlocks {
     }
     getCostumeValue (args, util, forceBackdrop = false) {
         let costumeIndex = 0;
-        const isStage = target.isStage || forceBackdrop
+        const isStage = util.target && util.target.isStage || forceBackdrop
         const target = isStage ? this.runtime.getTargetForStage() : util.target
         const requestedCostume = args.COSTUME;
         const requestedValue = Cast.toString(args.INPUT);
