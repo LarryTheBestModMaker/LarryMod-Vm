@@ -257,31 +257,24 @@ class VariableInput {
     }
 
     asNumber () {
-        // Compute at compilation time
-        const numberValue = +this.constantValue;
-        if (numberValue) {
-            // It's important that we use the number's stringified value and not the constant value
-            // Using the constant value allows numbers such as "010" to be interpreted as 8 (or SyntaxError in strict mode) instead of 10.
-            return numberValue.toString();
-        }
-        // numberValue is one of 0, -0, or NaN
-        if (Object.is(numberValue, -0)) {
-            return '-0';
-        }
-        return '0';
+        if (this.type === TYPE_NUMBER) return this.source;
+        if (this.type === TYPE_NUMBER_NAN) return `(${this.source} || 0)`;
+        return `(+${this.source} || 0)`;
     }
 
     asNumberOrNaN () {
-        return this.asNumber();
+        if (this.type === TYPE_NUMBER || this.type === TYPE_NUMBER_NAN) return this.source;
+        return `(+${this.source})`;
     }
 
     asString () {
-        return `"${sanitize('' + this.constantValue)}"`;
+        if (this.type === TYPE_STRING) return this.source;
+        return `("" + ${this.source})`;
     }
 
     asBoolean () {
-        // Compute at compilation time
-        return Cast.toBoolean(this.constantValue).toString();
+        if (this.type === TYPE_BOOLEAN) return this.source;
+        return `toBoolean(${this.source})`;
     }
 
     asColor () {
@@ -294,20 +287,7 @@ class VariableInput {
     }
 
     asUnknown () {
-        // Attempt to convert strings to numbers if it is unlikely to break things
-        if (typeof this.constantValue === 'number' || typeof this.constantValue === 'boolean') {
-            // todo: handle NaN?
-            return this.constantValue;
-        }
-        // handle bad nulls
-        if (this.constantValue == null) {
-            return 'null';
-        }
-        const numberValue = +this.constantValue;
-        if (numberValue.toString() === this.constantValue) {
-            return this.constantValue;
-        }
-        return this.asString();
+        return this.source;
     }
 
     asSafe () {
