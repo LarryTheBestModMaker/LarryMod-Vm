@@ -191,7 +191,8 @@ const outputBlocks = [
     'looks_sayOther',
     'sound_getsoundlength',
     'looks_getWhatBubbleIsDisplaying',
-    'looks_getinputofbackdrop'
+    'looks_getinputofbackdrop',
+    'sensing_online'
 ];
 
 module.exports = {

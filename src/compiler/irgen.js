@@ -1134,16 +1134,6 @@ class ScriptTreeGenerator {
                 kind: 'your mom'
             };
 
-        case 'argument_reporter_command': {
-            const name = block.fields.VALUE.value;
-            const index = this.script.arguments.lastIndexOf(name);
-            this.script.yields = true;
-            return {
-                kind: 'args.command',
-                index: index
-            };
-        }
-
         case 'control_switch':
             return {
                 kind: 'control.switch',
