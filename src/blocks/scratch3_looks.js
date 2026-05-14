@@ -759,9 +759,9 @@ class Scratch3LooksBlocks {
                 return '';
         }
     }
-    getCostumeValue (args, util, forceBackdrop = false) {
+    _getCostumeValue (args, util, forceBackdrop = false) {
         let costumeIndex = 0;
-        const isStage = util.target && util.target.isStage || forceBackdrop
+        const isStage = forceBackdrop;
         const target = isStage ? this.runtime.getTargetForStage() : util.target
         const requestedCostume = args.COSTUME;
         const requestedValue = Cast.toString(args.INPUT);
@@ -797,12 +797,17 @@ class Scratch3LooksBlocks {
                         // costume.
                     }
                     break;
-                // case "first " + noun:
-                //     costumeIndex = 0;
-                //     break;
-                // case "last " + noun:
-                //     costumeIndex = target.sprite.costumes_.length - 1;
-                //     break;
+                case "first " + noun:
+                    costumeIndex = 0;
+                    break;
+                case "last " + noun:
+                    costumeIndex = target.sprite.costumes_.length - 1;
+                    if (costumeIndex >= target.sprite.costumes_.length) {
+                        costumeIndex = 0;
+                        // This really only accounts for if there's only 1
+                        // costume.
+                    }
+                    break;
                 default:
                     costumeIndex = target.getCostumeIndexByName(Cast.toString(requestedCostume));
             }
@@ -828,7 +833,11 @@ class Scratch3LooksBlocks {
         }
     }
     getBackdropValue(args, util) {
-        return this.getCostumeValue(args, util, true)
+        return this._getCostumeValue(args, util, true)
+    }
+
+    getCostumeValue(args, util) {
+        return this._getCostumeValue(args, util, false)
     }
 
     /**
