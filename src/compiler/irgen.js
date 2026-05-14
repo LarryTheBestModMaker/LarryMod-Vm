@@ -289,6 +289,16 @@ class ScriptTreeGenerator {
             };
         }
 
+        case 'argument_reporter_command': {
+            const name = block.fields.VALUE.value;
+            const index = this.script.arguments.lastIndexOf(name);
+            this.script.yields = true;
+            return {
+                kind: 'args.command',
+                index: index
+            };
+        }
+
         case 'control_get_counter':
             return {
                 kind: 'counter.get'
@@ -300,6 +310,10 @@ class ScriptTreeGenerator {
         case 'control_is_clone':
             return {
                 kind: 'control.isclone'
+            };
+        case 'control_from_to_index':
+            return {
+                kind: 'control.fromToIndex'
             };
 
         case 'data_variable':
@@ -1381,6 +1395,14 @@ class ScriptTreeGenerator {
                 kind: 'control.newScript',
                 substack: this.descendSubstack(block, 'SUBSTACK')
             };
+        case 'control_from_to':
+            this.analyzeLoop();
+            return {
+                kind: 'control.fromTo',
+                from: this.descendInputOfBlock(block, 'FROM'),
+                to: this.descendInputOfBlock(block, 'TO'),
+                do: this.descendSubstack(block, 'SUBSTACK')
+            };
         case 'data_addtolist':
             return {
                 kind: 'list.add',
@@ -1866,7 +1888,7 @@ class ScriptTreeGenerator {
                 variant,
                 returns: false,
                 arguments: args,
-                type: JSON.parse(block.mutation.optype || '"statement"')
+                type: JSON.parse(block.mutation.optype || '"string"')
             };
         }
 
@@ -2463,6 +2485,7 @@ class ScriptTreeGenerator {
             if (
                 topBlock.opcode === 'procedures_definition'
                 || topBlock.opcode === 'procedures_definition_return'
+                || topBlock.opcode === 'procedures_definition_hat'
             ) {
                 entryBlock = topBlock.next;
             } else {

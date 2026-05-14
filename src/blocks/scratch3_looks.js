@@ -761,14 +761,15 @@ class Scratch3LooksBlocks {
     }
     getCostumeValue (args, util, forceBackdrop = false) {
         let costumeIndex = 0;
-        const target = util.target || this.runtime.getTargetForStage()
+        const isStage = target.isStage || forceBackdrop
+        const target = isStage ? this.runtime.getTargetForStage() : util.target
         const requestedCostume = args.COSTUME;
         const requestedValue = Cast.toString(args.INPUT);
         if (typeof requestedCostume === 'number') {
             // Numbers should be treated as costume indices, always
             costumeIndex = (requestedCostume === 0) ? 0 : requestedCostume - 1;
         } else {
-            let noun = target.isStage || forceBackdrop ? "backdrop" : "costume";
+            let noun = isStage ? "backdrop" : "costume";
             switch (Cast.toString(requestedCostume)) {
                 case "next " + noun:
                     costumeIndex = target.currentCostume + 1;
