@@ -1218,7 +1218,7 @@ class Scratch3MusicBlocks {
                 if (index > -1) {
                     this._allCurrentlyRunningSounds.splice(index, 1);
                 }
-                if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = null;
+                /*if (!this._stackTimerNeedsInit(util)) */this._allCUtils[player] = null;
             };
         });
 
@@ -1235,7 +1235,7 @@ class Scratch3MusicBlocks {
 
         if (!usesPicker) {
             this._allCurrentlyRunningSounds.push(player);
-            if (!this._stackTimerNeedsInit(util)) this._allCUtils[player] = util
+            /*if (!this._stackTimerNeedsInit(util)) */this._allCUtils[player] = util
         };
     }
 
@@ -1338,20 +1338,12 @@ class Scratch3MusicBlocks {
         }
     }
 
-    _startStackTimer (util, duration) {
-        util.stackFrame.timer = new Timer();
-        util.stackFrame.timer.start();
-        util.stackFrame.duration = duration;
-        util.yield();
-    }
-
     //THREAD: stopThisScript
     _forceStopStackTimer (util) {
         if (!util) return;
         if (util.hasOwnProperty('stackFrame')) {
             if (util.hasOwnProperty('timer')) {
-                util.stackFrame.timer.forceStop()
-                util.stackFrame.timer = null
+                util.stackFrame.duration = util.stackFrame.timer.timeElapsed() - 0.05
             }
         }
     }

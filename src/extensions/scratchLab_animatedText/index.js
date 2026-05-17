@@ -32,6 +32,11 @@ const ARCHIVO_ID = 'Archivo';
 const ARCHIVOBLACK_ID = 'Archivo Black';
 const SCRATCH_ID = 'Scratch';
 
+/* DinosaurMod/TurboWarp Fonts */
+const MOPEDS_ID = 'Mopeds';
+const FREDOKA_ID = 'Fredoka';
+const IMPACT_ID = 'Impact';
+
 const RANDOM_ID = 'Random';
 
 class Scratch3TextBlocks {
@@ -49,7 +54,7 @@ class Scratch3TextBlocks {
     }
 
     get FONT_IDS () {
-        return [SANS_SERIF_ID, SERIF_ID, HANDWRITING_ID, MARKER_ID, CURLY_ID, PIXEL_ID, PLAYFUL_ID, BUBBLY_ID, ARCADE_ID, BITSANDBYTES_ID, TECHNOLOGICAL_ID, SCRATCH_ID, ARCHIVO_ID, ARCHIVOBLACK_ID];
+        return [SANS_SERIF_ID, SERIF_ID, HANDWRITING_ID, MARKER_ID, CURLY_ID, PIXEL_ID, PLAYFUL_ID, BUBBLY_ID, ARCADE_ID, BITSANDBYTES_ID, TECHNOLOGICAL_ID, SCRATCH_ID, ARCHIVO_ID, ARCHIVOBLACK_ID, MOPEDS_ID, FREDOKA_ID, IMPACT_ID];
     }
     get DEFAULT_TEXT_STATE () {
         return {
