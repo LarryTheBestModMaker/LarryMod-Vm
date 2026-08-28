@@ -1751,7 +1751,6 @@ class Scratch3MusicBlocks {
             125,
             126,
             127,
-            128,
         ];
     }
 
