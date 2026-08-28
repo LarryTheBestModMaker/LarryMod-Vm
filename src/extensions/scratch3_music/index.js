@@ -330,6 +330,14 @@ class Scratch3MusicBlocks {
                     description: 'Sound of a sleigh bell being played'
                 }),
                 fileName: '19-sleigh-bells'
+            },
+            {
+                name: formatMessage({
+                    id: 'music.drumElectronicBeat',
+                    default: '(20) Electronic Beat (L.M.)',
+                    description: 'Sound of an electronic beat being played'
+                }),
+                fileName: '20-electronic-beat'
             }
         ];
     }
@@ -347,207 +355,144 @@ class Scratch3MusicBlocks {
         return [
             {
                 name: formatMessage({
-                    id: 'music.instrumentPiano',
-                    default: '(1) Piano',
-                    description: 'Sound of a piano'
+                    id: 'music.instrumentAcousticGrandPiano',
+                    default: '(1) Acoustic Grand Piano',
+                    description: 'Sound of an acoustic grand piano'
                 }),
-                dirName: '1-piano',
-                releaseTime: 0.5,
+                dirName: '1-acoustic-grand-piano',
+                releaseTime: 2.5,
                 samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentElectricPiano',
-                    default: '(2) Electric Piano',
-                    description: 'Sound of an electric piano'
+                    id: 'music.instrumentBrightAcousticPiano',
+                    default: '(2) Bright Acoustic Piano',
+                    description: 'Sound of a bright acoustic piano'
                 }),
-                dirName: '2-electric-piano',
-                releaseTime: 0.5,
-                samples: [60]
+                dirName: '2-bright-acoustic-piano',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentOrgan',
-                    default: '(3) Organ',
-                    description: 'Sound of an organ'
+                    id: 'music.instrumentElectricGrandPiano',
+                    default: '(3) Electric Grand Piano',
+                    description: 'Sound of an electric grand piano'
                 }),
-                dirName: '3-organ',
-                releaseTime: 0.5,
-                samples: [60]
+                dirName: '3-electric-grand-piano',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentGuitar',
-                    default: '(4) Guitar',
-                    description: 'Sound of an accoustic guitar'
+                    id: 'music.instrumentHonkyTonkPiano',
+                    default: '(4) Honky-tonk Piano',
+                    description: 'Sound of a honky-tonk piano'
                 }),
-                dirName: '4-guitar',
-                releaseTime: 0.5,
-                samples: [60]
+                dirName: '4-honky-tonk-piano',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentElectricGuitar',
-                    default: '(5) Electric Guitar',
-                    description: 'Sound of an electric guitar'
+                    id: 'music.instrumentElectricPianoOne',
+                    default: '(5) Electric Piano 1',
+                    description: 'Sound of an electric piano (1)'
                 }),
-                dirName: '5-electric-guitar',
-                releaseTime: 0.5,
-                samples: [60]
+                dirName: '5-electric-piano-one',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentBass',
-                    default: '(6) Bass',
-                    description: 'Sound of an accoustic upright bass'
+                    id: 'music.instrumentElectricPianoTwo',
+                    default: '(6) Electric Piano 2',
+                    description: 'Sound of an electric piano (2)'
                 }),
-                dirName: '6-bass',
-                releaseTime: 0.25,
-                samples: [36, 48]
+                dirName: '6-electric-piano-two',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentPizzicato',
-                    default: '(7) Pizzicato',
-                    description: 'Sound of a string instrument (e.g. violin) being plucked'
+                    id: 'music.instrumentHarpsichord',
+                    default: '(7) Harpsichord',
+                    description: 'Sound of a harpsichord'
                 }),
-                dirName: '7-pizzicato',
-                releaseTime: 0.25,
-                samples: [60]
+                dirName: '7-harpsichord',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentCello',
-                    default: '(8) Cello',
-                    description: 'Sound of a cello being played with a bow'
+                    id: 'music.instrumentClavinet',
+                    default: '(8) Clavinet',
+                    description: 'Sound of a clavinet'
                 }),
-                dirName: '8-cello',
-                releaseTime: 0.1,
-                samples: [36, 48, 60]
+                dirName: '8-clavinet',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentTrombone',
-                    default: '(9) Trombone',
-                    description: 'Sound of a trombone being played'
+                    id: 'music.instrumentCelesta',
+                    default: '(9) Celesta',
+                    description: 'Sound of a celesta'
                 }),
-                dirName: '9-trombone',
-                samples: [36, 48, 60]
+                dirName: '9-celesta',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentClarinet',
-                    default: '(10) Clarinet',
-                    description: 'Sound of a clarinet being played'
+                    id: 'music.instrumentGlockenspiel',
+                    default: '(10) Glockenspiel',
+                    description: 'Sound of a glockenspiel'
                 }),
-                dirName: '10-clarinet',
-                samples: [48, 60]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentSaxophone',
-                    default: '(11) Saxophone',
-                    description: 'Sound of a saxophone being played'
-                }),
-                dirName: '11-saxophone',
-                samples: [36, 60, 84]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentFlute',
-                    default: '(12) Flute',
-                    description: 'Sound of a flute being played'
-                }),
-                dirName: '12-flute',
-                samples: [60, 72]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentWoodenFlute',
-                    default: '(13) Wooden Flute',
-                    description: 'Sound of a wooden flute being played'
-                }),
-                dirName: '13-wooden-flute',
-                samples: [60, 72]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentBassoon',
-                    default: '(14) Bassoon',
-                    description: 'Sound of a bassoon being played'
-                }),
-                dirName: '14-bassoon',
-                samples: [36, 48, 60]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentChoir',
-                    default: '(15) Choir',
-                    description: 'Sound of a choir singing'
-                }),
-                dirName: '15-choir',
-                releaseTime: 0.25,
-                samples: [48, 60, 72]
-            },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentVibraphone',
-                    default: '(16) Vibraphone',
-                    description: 'Sound of a vibraphone being struck'
-                }),
-                dirName: '16-vibraphone',
-                releaseTime: 0.5,
-                samples: [60, 72]
+                dirName: '10-glockenspiel',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
                     id: 'music.instrumentMusicBox',
-                    default: '(17) Music Box',
-                    description: 'Sound of a music box playing'
+                    default: '(11) Music Box',
+                    description: 'Sound of a music box'
                 }),
-                dirName: '17-music-box',
-                releaseTime: 0.25,
-                samples: [60]
+                dirName: '11-music-box',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentSteelDrum',
-                    default: '(18) Steel Drum',
-                    description: 'Sound of a steel drum being struck'
+                    id: 'music.instrumentVibraphone',
+                    default: '(12) Vibraphone',
+                    description: 'Sound of a vibraphone'
                 }),
-                dirName: '18-steel-drum',
-                releaseTime: 0.5,
-                samples: [60]
+                dirName: '12-vibraphone',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
                     id: 'music.instrumentMarimba',
-                    default: '(19) Marimba',
-                    description: 'Sound of a marimba being struck'
+                    default: '(13) Marimba',
+                    description: 'Sound of a marimba'
                 }),
-                dirName: '19-marimba',
-                samples: [60]
+                dirName: '13-marimba',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
             {
                 name: formatMessage({
-                    id: 'music.instrumentSynthLead',
-                    default: '(20) Synth Lead',
-                    description: 'Sound of a "lead" synthesizer being played'
+                    id: 'music.instrumentXylophone',
+                    default: '(14) Xylophone',
+                    description: 'Sound of a xylophone'
                 }),
-                dirName: '20-synth-lead',
-                releaseTime: 0.1,
-                samples: [60]
+                dirName: '14-xylophone',
+                releaseTime: 2.5,
+                samples: [24, 36, 48, 60, 72, 84, 96, 108]
             },
-            {
-                name: formatMessage({
-                    id: 'music.instrumentSynthPad',
-                    default: '(21) Synth Pad',
-                    description: 'Sound of a "pad" synthesizer being played'
-                }),
-                dirName: '21-synth-pad',
-                releaseTime: 0.25,
-                samples: [60]
-            }
         ];
     }
 
@@ -557,70 +502,17 @@ class Scratch3MusicBlocks {
      */
     get MIDI_INSTRUMENTS () {
         return [
-            // Acoustic Grand, Bright Acoustic, Electric Grand, Honky-Tonk
-            1, 1, 1, 1,
-            // Electric Piano 1, Electric Piano 2, Harpsichord, Clavinet
-            2, 2, 4, 4,
-            // Celesta, Glockenspiel, Music Box, Vibraphone
-            17, 17, 17, 16,
-            // Marimba, Xylophone, Tubular Bells, Dulcimer
-            19, 16, 17, 17,
-            // Drawbar Organ, Percussive Organ, Rock Organ, Church Organ
-            3, 3, 3, 3,
-            // Reed Organ, Accordion, Harmonica, Tango Accordion
-            3, 3, 3, 3,
-            // Nylon String Guitar, Steel String Guitar, Electric Jazz Guitar, Electric Clean Guitar
-            4, 4, 5, 5,
-            // Electric Muted Guitar, Overdriven Guitar,Distortion Guitar, Guitar Harmonics
-            5, 5, 5, 5,
-            // Acoustic Bass, Electric Bass (finger), Electric Bass (pick), Fretless Bass
-            6, 6, 6, 6,
-            // Slap Bass 1, Slap Bass 2, Synth Bass 1, Synth Bass 2
-            6, 6, 6, 6,
-            // Violin, Viola, Cello, Contrabass
-            8, 8, 8, 8,
-            // Tremolo Strings, Pizzicato Strings, Orchestral Strings, Timpani
-            8, 7, 8, 19,
-            // String Ensemble 1, String Ensemble 2, SynthStrings 1, SynthStrings 2
-            8, 8, 8, 8,
-            // Choir Aahs, Voice Oohs, Synth Voice, Orchestra Hit
-            15, 15, 15, 19,
-            // Trumpet, Trombone, Tuba, Muted Trumpet
-            9, 9, 9, 9,
-            // French Horn, Brass Section, SynthBrass 1, SynthBrass 2
-            9, 9, 9, 9,
-            // Soprano Sax, Alto Sax, Tenor Sax, Baritone Sax
-            11, 11, 11, 11,
-            // Oboe, English Horn, Bassoon, Clarinet
-            14, 14, 14, 10,
-            // Piccolo, Flute, Recorder, Pan Flute
-            12, 12, 13, 13,
-            // Blown Bottle, Shakuhachi, Whistle, Ocarina
-            13, 13, 12, 12,
-            // Lead 1 (square), Lead 2 (sawtooth), Lead 3 (calliope), Lead 4 (chiff)
-            20, 20, 20, 20,
-            // Lead 5 (charang), Lead 6 (voice), Lead 7 (fifths), Lead 8 (bass+lead)
-            20, 20, 20, 20,
-            // Pad 1 (new age), Pad 2 (warm), Pad 3 (polysynth), Pad 4 (choir)
-            21, 21, 21, 21,
-            // Pad 5 (bowed), Pad 6 (metallic), Pad 7 (halo), Pad 8 (sweep)
-            21, 21, 21, 21,
-            // FX 1 (rain), FX 2 (soundtrack), FX 3 (crystal), FX 4 (atmosphere)
-            21, 21, 21, 21,
-            // FX 5 (brightness), FX 6 (goblins), FX 7 (echoes), FX 8 (sci-fi)
-            21, 21, 21, 21,
-            // Sitar, Banjo, Shamisen, Koto
-            4, 4, 4, 4,
-            // Kalimba, Bagpipe, Fiddle, Shanai
-            17, 14, 8, 10,
-            // Tinkle Bell, Agogo, Steel Drums, Woodblock
-            17, 17, 18, 19,
-            // Taiko Drum, Melodic Tom, Synth Drum, Reverse Cymbal
-            1, 1, 1, 1,
-            // Guitar Fret Noise, Breath Noise, Seashore, Bird Tweet
-            21, 21, 21, 21,
-            // Telephone Ring, Helicopter, Applause, Gunshot
-            21, 21, 21, 21
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
         ];
     }
 
