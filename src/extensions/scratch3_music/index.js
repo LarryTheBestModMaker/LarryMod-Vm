@@ -331,14 +331,6 @@ class Scratch3MusicBlocks {
                 }),
                 fileName: '19-sleigh-bells'
             },
-            {
-                name: formatMessage({
-                    id: 'music.drumElectronicBeat',
-                    default: '(20) Electronic Beat (L.M.)',
-                    description: 'Sound of an electronic beat being played'
-                }),
-                fileName: '20-electronic-beat'
-            }
         ];
     }
 
@@ -1620,16 +1612,6 @@ class Scratch3MusicBlocks {
         description: 'Sound of Applause'
     }),
     dirName: '127-applause',
-    releaseTime: 2.5,
-    samples: [24, 36, 48, 60, 72, 84, 96, 108]
-},
-{
-    name: formatMessage({
-        id: 'music.instrumentGunshot',
-        default: '(128) Gunshot',
-        description: 'Sound of Gunshot'
-    }),
-    dirName: '128-gunshot',
     releaseTime: 2.5,
     samples: [24, 36, 48, 60, 72, 84, 96, 108]
 },
