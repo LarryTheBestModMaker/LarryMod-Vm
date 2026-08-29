@@ -415,11 +415,11 @@ class Scratch3Text2SpeechBlocks {
     get PENGUINMOD_VOICES () {
         return [
             GOOGLE_ID
-        ];
+        ]};
     get TTSMAKER_VOICES () {
         return [
             ALAYNA_ID
-        ];
+        ]};
     }
     /**
      * Key-value pairs for turning a voice ID into the parameter for the PenguinMod API.
