@@ -499,7 +499,6 @@ class Scratch3Text2SpeechBlocks {
             blockIconURI: blockIconURI,
             menuIconURI: menuIconURI,
             blocks: [
-                <label text="Text Length is now limited to 50000 characters!"></label>
                 {
                     opcode: 'speakAndWait',
                     text: formatMessage({
