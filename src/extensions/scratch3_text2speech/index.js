@@ -78,6 +78,11 @@ const KITTEN_ID = 'KITTEN';
 const GOOGLE_ID = 'GOOGLE';
 
 /**
+ * An id for one of the voices.
+ */
+const ALAYNA_ID = 'ALAYNA';
+
+/**
  * Playback rate for the tenor voice, for cases where we have only a female gender voice.
  */
 const FEMALE_TENOR_RATE = 0.89; // -2 semitones
@@ -212,6 +217,16 @@ class Scratch3Text2SpeechBlocks {
                 }),
                 special: 'google',
                 gender: 'mixed',
+                playbackRate: 1
+            },
+            [ALAYNA_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.alayna',
+                    default: 'alayna',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                special: 'alayna',
+                gender: 'female',
                 playbackRate: 1
             },
         };
@@ -397,7 +412,8 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICES () {
         return [
-            GOOGLE_ID
+            GOOGLE_ID,
+            ALAYNA_ID
         ];
     }
     /**
@@ -405,7 +421,8 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICE_MAP () {
         return {
-            [GOOGLE_ID]: 'google'
+            [GOOGLE_ID]: 'google',
+            [ALAYNA_ID]: 'alayna'
         };
     }
     /**
@@ -414,7 +431,8 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICE_VOLUMES () {
         return {
-            [GOOGLE_ID]: 100
+            [GOOGLE_ID]: 100,
+            [ALAYNA_ID]: 100
         };
     }
 
