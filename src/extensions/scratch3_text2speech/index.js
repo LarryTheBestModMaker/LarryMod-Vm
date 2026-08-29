@@ -35,6 +35,8 @@ const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
  */
 const PM_SERVER_HOST = 'https://gextapi.derpygamer2142.com';
 
+const TTS_SERVER_HOST = 'https://api.ttsmaker.com/v2/get-voice-list';
+
 /**
  * How long to wait in ms before timing out requests to synthesis server.
  * @type {int}
@@ -412,7 +414,10 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICES () {
         return [
-            GOOGLE_ID,
+            GOOGLE_ID
+        ];
+    get TTSMAKER_VOICES () {
+        return [
             ALAYNA_ID
         ];
     }
@@ -421,7 +426,10 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICE_MAP () {
         return {
-            [GOOGLE_ID]: 'google',
+            [GOOGLE_ID]: 'google'
+        };
+    get TTSMAKER_VOICE_MAP () {
+        return {
             [ALAYNA_ID]: 'alayna'
         };
     }
@@ -432,7 +440,10 @@ class Scratch3Text2SpeechBlocks {
     get PENGUINMOD_VOICE_VOLUMES () {
         return {
             [GOOGLE_ID]: 100,
-            [ALAYNA_ID]: 100
+        };
+    get TTSMAKER_VOICE_VOLUMES () {
+        return {
+            [ALAYNA_ID]: 100,
         };
     }
 
@@ -862,11 +873,18 @@ class Scratch3Text2SpeechBlocks {
         if (isPenguinMod) {
             path = `${PM_SERVER_HOST}/tts`;
         } else {
+        if (isTTSMaker) {
+            path = `${TTS_SERVER_HOST}/tts`;
+        } else {
             path = `${SERVER_HOST}/synth`;
         }
         if (isPenguinMod) {
             path += `?lang=${locale}`;
             path += `&voice=${penguinModVoice}`;
+        } else {
+        if (isTTSMaker) {
+            path += `?lang=${locale}`;
+            path += `&voice=${TTSMakerVoice}`;
         } else {
             path += `?locale=${locale}`;
         }
@@ -874,7 +892,7 @@ class Scratch3Text2SpeechBlocks {
         // this textLimit is enforced on the API, no point in increasing it here
         let textLimit = 128;
         if (isPenguinMod) {
-            textLimit = 512;
+            textLimit = 50000;
         }
         path += `&text=${encodeURIComponent(words.substring(0, textLimit))}`;
 
