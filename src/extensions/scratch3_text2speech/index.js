@@ -35,8 +35,6 @@ const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
  */
 const PM_SERVER_HOST = 'https://gextapi.derpygamer2142.com';
 
-const TTS_SERVER_HOST = 'https://api.ttsmaker.com/v2/get-voice-list';
-
 /**
  * How long to wait in ms before timing out requests to synthesis server.
  * @type {int}
@@ -78,11 +76,6 @@ const KITTEN_ID = 'KITTEN';
  * An id for one of the voices.
  */
 const GOOGLE_ID = 'GOOGLE';
-
-/**
- * An id for one of the voices.
- */
-const ALAYNA_ID = 'ALAYNA';
 
 /**
  * Playback rate for the tenor voice, for cases where we have only a female gender voice.
@@ -219,16 +212,6 @@ class Scratch3Text2SpeechBlocks {
                 }),
                 special: 'google',
                 gender: 'mixed',
-                playbackRate: 1
-            },
-            [ALAYNA_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.alayna',
-                    default: 'alayna',
-                    description: 'Name for a voice with ambiguous gender.'
-                }),
-                special: 'alayna',
-                gender: 'female',
                 playbackRate: 1
             },
         };
@@ -415,11 +398,7 @@ class Scratch3Text2SpeechBlocks {
     get PENGUINMOD_VOICES () {
         return [
             GOOGLE_ID
-        ]};
-    get TTSMAKER_VOICES () {
-        return [
-            ALAYNA_ID
-        ]};
+        ];
     }
     /**
      * Key-value pairs for turning a voice ID into the parameter for the PenguinMod API.
@@ -428,10 +407,6 @@ class Scratch3Text2SpeechBlocks {
         return {
             [GOOGLE_ID]: 'google'
         };
-    get TTSMAKER_VOICE_MAP () {
-        return {
-            [ALAYNA_ID]: 'alayna'
-        };
     }
     /**
      * Key-value pairs for getting a nice volume setting for a specific PenguinMod voice.
@@ -439,11 +414,7 @@ class Scratch3Text2SpeechBlocks {
      */
     get PENGUINMOD_VOICE_VOLUMES () {
         return {
-            [GOOGLE_ID]: 100,
-        };
-    get TTSMAKER_VOICE_VOLUMES () {
-        return {
-            [ALAYNA_ID]: 100,
+            [GOOGLE_ID]: 100
         };
     }
 
@@ -874,18 +845,11 @@ class Scratch3Text2SpeechBlocks {
         if (isPenguinMod) {
             path = `${PM_SERVER_HOST}/tts`;
         } else {
-        if (isTTSMaker) {
-            path = `${TTS_SERVER_HOST}/tts`;
-        } else {
             path = `${SERVER_HOST}/synth`;
         }
         if (isPenguinMod) {
             path += `?lang=${locale}`;
             path += `&voice=${penguinModVoice}`;
-        } else {
-        if (isTTSMaker) {
-            path += `?lang=${locale}`;
-            path += `&voice=${TTSMakerVoice}`;
         } else {
             path += `?locale=${locale}`;
         }
