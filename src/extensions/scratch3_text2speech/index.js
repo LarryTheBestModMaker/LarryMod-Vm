@@ -509,12 +509,12 @@ class Scratch3Text2SpeechBlocks {
     getInfo () {
         // Only localize the default input to the "speak" block if we are in a
         // supported language.
-        let defaultTextToSpeak = 'hello';
+        let defaultTextToSpeak = 'Welcome to LarryMod!';
         if (this.isSupportedLanguage(this.getEditorLanguage())) {
             defaultTextToSpeak = formatMessage({
                 id: 'text2speech.defaultTextToSpeak',
-                default: 'hello',
-                description: 'hello: the default text to speak'
+                default: 'Welcome to LarryMod!',
+                description: 'Welcome to LarryMod!: the default text to speak'
             });
         }
 
